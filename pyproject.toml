@@ -1,0 +1,45 @@
+[tool.poetry]
+name = "pfund-plot"
+version = "0.0.1.dev1"
+description = "A wrapper of the existing plotting libraries for financial data analysis."
+license = "Apache-2.0"
+authors = ["stephenyau <softwareentrepreneer+pfund-plot@gmail.com>"]
+readme = "README.md"
+homepage = "https://pfund.ai"
+repository = "https://github.com/PFund-Software-Ltd/pfund-plot"
+documentation = "https://pfund-plot-docs.pfund.ai"
+keywords = ["trading", "plotting", "wrapper", "pfund"]
+classifiers = [
+    "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Intended Audience :: Information Technology",
+    "Topic :: Office/Business :: Financial :: Investment",
+    "Topic :: Scientific/Engineering :: Visualization",
+    "Topic :: Software Development :: Libraries",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+plotly = "^5.24.1"
+great-tables = "^0.13.0"
+hvplot = {version = "^0.11.1", optional = true}
+numba = {version = "^0.60.0", optional = true}  # TEMP, remove it when datashader has fixed the llvmlite install issue
+datashader = {version = "^0.16.3", optional = true}
+dash = {version = "^2.18.1", optional = true}
+taipy = {version = "^4.0.0", optional = true}
+panel = {version = "^1.5.2", optional = true}
+streamlit = {version = "^1.39.0", optional = true}
+
+[tool.poetry.extras]
+big-data = ["hvplot", "numba", "datashader"]  # need numba to get around llvmlite install issue when installing datashader
+app = ["dash", "taipy", "panel", "streamlit"]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
