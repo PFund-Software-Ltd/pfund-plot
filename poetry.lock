@@ -3505,10 +3505,11 @@ test = ["coverage[toml]", "zope.event", "zope.testing"]
 testing = ["coverage[toml]", "zope.event", "zope.testing"]
 
 [extras]
+all = ["dash", "datashader", "hvplot", "numba", "panel", "streamlit", "taipy"]
 app = ["dash", "panel", "streamlit", "taipy"]
 big-data = ["datashader", "hvplot", "numba"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "1ed8f014cbd3aa3626def5a98f2ae9572bded765ddd5a2400a57a75109f91d80"
+content-hash = "e7027c4ff1a7908cf8faec5c8238fa1b1067ea9170282f6b50b6be33f13955f6"
