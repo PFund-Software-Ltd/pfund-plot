@@ -1,8 +1,7 @@
 import click
 from trogon import tui
 
-# from pfund_plot.cli.commands.PLACEHOLDER import ...
-
+from pfund_plot.cli.commands.plot import plot
 
 @tui(command='tui', help="Open terminal UI")
 @click.group(context_settings={"help_option_names": ["-h", "--help"]})
@@ -14,4 +13,4 @@ def pfund_plot_group(ctx):
     # ctx.obj['config'] = 
 
 
-# pfund_plot_group.add_command(...)
+pfund_plot_group.add_command(plot)
