@@ -1,14 +1,14 @@
 [tool.poetry]
 name = "pfund-plot"
 version = "0.0.1.dev2"
-description = "A wrapper of the existing plotting libraries for financial data analysis."
+description = "A library for financial data visualization, dashboard creation, and template sharing."
 license = "Apache-2.0"
 authors = ["stephenyau <softwareentrepreneer+pfund-plot@gmail.com>"]
 readme = "README.md"
 homepage = "https://pfund.ai"
 repository = "https://github.com/PFund-Software-Ltd/pfund-plot"
 documentation = "https://pfund-plot-docs.pfund.ai"
-keywords = ["trading", "plotting", "pfund", "charts", "data visualization", "graphs", "plots"]
+keywords = ["financial data", "plotting", "dashboards", "charts", "data visualization", "graphs", "plots"]
 classifiers = [
     "Operating System :: OS Independent",
     "Intended Audience :: Developers",
@@ -26,37 +26,56 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.10"
-click = "^8.1.7"
-trogon = "^0.6.0"
+pfeed = "^0.0.2"
 plotly = "^5.24.1"
-pyecharts = "^2.0.6"
-great-tables = "^0.13.0"
+hvplot = "^0.11.2"
+datashader = "^0.16.3"
+papermill = "^2.6.0"
+voila = "^0.5.8"
+panel = "^1.5.5"
+jupyter-bokeh = "^4.0.5"
 lightweight-charts = "^2.1"
-hvplot = {version = "^0.11.1", optional = true}
-numba = {version = "^0.60.0", optional = true}  # TEMP, remove it when datashader has fixed the llvmlite install issue
-datashader = {version = "^0.16.3", optional = true}
+perspective-python = "^3.2.0"
+streamlit = {version = "^1.41.1", optional = true}
 dash = {version = "^2.18.1", optional = true}
 taipy = {version = "^4.0.0", optional = true}
-panel = {version = "^1.5.2", optional = true}
-streamlit = {version = "^1.39.0", optional = true}
+gradio = {version = "^5.9.1", optional = true}
+marimo = {version = "^0.10.5", optional = true}
 
 [tool.poetry.extras]
-big-data = ["hvplot", "numba", "datashader"]  # need numba to get around llvmlite install issue when installing datashader
-app = ["dash", "taipy", "panel", "streamlit"]
+streamlit = ["streamlit"]
+dash = ["dash"]
+taipy = ["taipy"]
+gradio = ["gradio"]
+marimo = ["marimo"]
+# solara = ["solara"]  # TODO: add this later when it is more mature, currently its doc is really bad
 all = [
-    "hvplot", "numba", "datashader", 
-    "dash", "taipy", "panel", "streamlit"
+    "streamlit", "dash", "taipy", "gradio", "marimo",
 ]
+
+[tool.poetry.scripts]
+pfund-plot = "pfund_plot.main:run_cli"
+pfplot = "pfund_plot.main:run_cli"
 
 [tool.poetry.group.dev]
 optional = true
 
 [tool.poetry.group.dev.dependencies]
-pfeed = {extras = ["all"], path = "../pfeed", develop = true}
+pfeed = {path = "../pfeed", develop = true}
+pfund = {path = "../pfund", develop = true}
 
-[tool.poetry.scripts]
-pfund-plot = "pfund_plot.main:run_cli"
-pfplot = "pfund_plot.main:run_cli"
+[tool.poetry.group.test]
+optional = true
+
+[tool.poetry.group.test.dependencies]
+pytest = "^8.3.3"
+pytest-cov = "^6.0.0"
+pytest-mock = "^3.14.0"
+pytest-xdist = "^3.6.1"
+tox = "^4.23.2"
+faker = "^33.1.0"
+bandit = "^1.7.10"
+pre-commit = "^4.0.1"
 
 [build-system]
 requires = ["poetry-core"]
