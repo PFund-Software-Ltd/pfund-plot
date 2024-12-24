@@ -7,12 +7,11 @@
     - for data streaming, only supports plotly and bokeh (hvplot), rendered using panel
 
 #### Libraries:
-- plotly is the default plotting library
-- hvplot is a high-level API for bokeh
+- hvplot is the default plotting library (bokeh backend)
     - jupyter-bokeh is for using bokeh (hvplot) in jupyter notebook
     - datashader is for plotting big data
-- lightweight-charts is for financial charts
-- perspective-python is for streaming big data
+- if hvplot doesn't support a plot type, use plotly directly
+- if performance is an issue, use perspective-python for streaming big data
 
 ---
 ### 2. Dashboard generation = Curated plots in a dashboard

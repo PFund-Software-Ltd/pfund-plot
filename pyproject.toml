@@ -27,20 +27,19 @@ classifiers = [
 [tool.poetry.dependencies]
 python = "^3.10"
 pfeed = "^0.0.2"
-plotly = "^5.24.1"
-hvplot = "^0.11.2"
-datashader = "^0.16.3"
+hvplot = {extras = ["plotly", "datashader"], version = "^0.11.2"}
+pywebview = "^5.3.2"
 papermill = "^2.6.0"
 voila = "^0.5.8"
 panel = "^1.5.5"
 jupyter-bokeh = "^4.0.5"
-lightweight-charts = "^2.1"
-perspective-python = "^3.2.0"
+# perspective-python = "^3.2.0"  # TODO: add this if performance is an issue
 streamlit = {version = "^1.41.1", optional = true}
 dash = {version = "^2.18.1", optional = true}
 taipy = {version = "^4.0.0", optional = true}
 gradio = {version = "^5.9.1", optional = true}
 marimo = {version = "^0.10.5", optional = true}
+narwhals = "^1.19.1"
 
 [tool.poetry.extras]
 streamlit = ["streamlit"]
@@ -63,6 +62,7 @@ optional = true
 [tool.poetry.group.dev.dependencies]
 pfeed = {path = "../pfeed", develop = true}
 pfund = {path = "../pfund", develop = true}
+bokeh-sampledata = "^2024.2"
 
 [tool.poetry.group.test]
 optional = true

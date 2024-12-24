@@ -1,5 +1,3 @@
-import plotly.graph_objects as go
-
 # TEMP
 # composites are plots combined together on the same canvas
 # it can be used to perform comparison analysis, create a graph that has the price line, equity curve etc. 
