@@ -14,7 +14,7 @@ import datetime
 
 import panel as pn
 import narwhals as nw
-from bokeh.models import HoverTool
+from bokeh.models import HoverTool, CrosshairTool
 
 from pfeed.feeds.base_feed import BaseFeed
 from pfund_plot.const.enums import DisplayMode, PlottingBackend, DataType
@@ -145,7 +145,10 @@ def candlestick_plot(
             .ohlc(
                 'ts', ['open', 'low', 'high', 'close'],
                 hover_cols=REQUIRED_COLS,
-                tools=[_create_hover_tool(_df)],
+                tools=[
+                    _create_hover_tool(_df), 
+                    CrosshairTool(dimensions='height', line_color='gray', line_alpha=0.3)
+                ],
                 grid=grid,
                 pos_color=up_color,
                 neg_color=down_color,
