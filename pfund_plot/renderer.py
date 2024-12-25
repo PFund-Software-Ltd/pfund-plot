@@ -4,9 +4,11 @@ if TYPE_CHECKING:
     from pfund_plot.types.core import tFigure
     from panel.layout import Panel
     from panel.io.threads import StoppableThread
+    from panel.io.server import Server
     from holoviews.core.overlay import Overlay
 
 import socket
+from threading import Thread
 from multiprocessing import Process
 
 import panel as pn
@@ -30,7 +32,7 @@ def render(
     display_mode: DisplayMode,
     plotting_backend: PlottingBackend,
     raw_figure: bool,
-) -> tFigure | Panel | StoppableThread | Process:
+) -> tFigure | Panel | Server | StoppableThread:
     if raw_figure:
         # fig is of type "Overlay" -> convert to tFigure (bokeh figure or plotly figure)
         fig: tFigure = hv.render(fig, backend=plotting_backend.value)
@@ -40,7 +42,7 @@ def render(
             panel_fig: Panel = fig
             return panel_fig
         elif display_mode == DisplayMode.browser:
-            server: StoppableThread = pn.serve(fig, show=True, threaded=True)
+            server: Server = pn.serve(fig, show=True, threaded=False)
             return server
         elif display_mode == DisplayMode.desktop:
             def _get_free_port():
@@ -50,15 +52,20 @@ def render(
             port = _get_free_port()
             server: StoppableThread = pn.serve(fig, show=False, threaded=True, port=port)
             title = getattr(fig, 'name', "PFund Plot")
-            try:
-                # NOTE: need to run in a separate process, otherwise jupyter notebook will hang after closing the webview window
-                process = Process(target=run_webview, name=title, args=(title, port, ), daemon=True)
-                process.start()
-                process.join()
-                return process
-            except Exception as e:
-                print(f"An error occurred: {e}")
-            finally:
-                server.stop()
+            def run_process():
+                try:
+                    # NOTE: need to run in a separate process, otherwise jupyter notebook will hang after closing the webview window
+                    process = Process(target=run_webview, name=title, args=(title, port, ), daemon=True)
+                    process.start()
+                    process.join()
+                except Exception as e:
+                    print(f"An error occurred: {e}")
+                finally:
+                    server.stop()
+            # NOTE: need to run the process in a separate thread, otherwise periodic callbacks when streaming=True won't work
+            # because process.join() will block the thread
+            thread = Thread(target=run_process, daemon=True)
+            thread.start()
+            return server
         else:
             raise ValueError(f"Invalid display mode: {display_mode}")

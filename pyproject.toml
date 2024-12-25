@@ -28,18 +28,17 @@ classifiers = [
 python = "^3.10"
 pfeed = "^0.0.2"
 hvplot = {extras = ["plotly", "datashader"], version = "^0.11.2"}
+panel = "^1.5.5"
 pywebview = "^5.3.2"
 papermill = "^2.6.0"
 voila = "^0.5.8"
-panel = "^1.5.5"
 jupyter-bokeh = "^4.0.5"
-# perspective-python = "^3.2.0"  # TODO: add this if performance is an issue
+narwhals = "^1.19.1"
 streamlit = {version = "^1.41.1", optional = true}
 dash = {version = "^2.18.1", optional = true}
 taipy = {version = "^4.0.0", optional = true}
 gradio = {version = "^5.9.1", optional = true}
 marimo = {version = "^0.10.5", optional = true}
-narwhals = "^1.19.1"
 
 [tool.poetry.extras]
 streamlit = ["streamlit"]
@@ -47,14 +46,15 @@ dash = ["dash"]
 taipy = ["taipy"]
 gradio = ["gradio"]
 marimo = ["marimo"]
-# solara = ["solara"]  # TODO: add this later when it is more mature, currently its doc is really bad
+solara = ["solara"]
 all = [
-    "streamlit", "dash", "taipy", "gradio", "marimo",
+    "streamlit", "dash", "taipy", "gradio", "marimo", "solara",
 ]
 
 [tool.poetry.scripts]
 pfund-plot = "pfund_plot.main:run_cli"
 pfplot = "pfund_plot.main:run_cli"
+pfplt = "pfund_plot.main:run_cli"
 
 [tool.poetry.group.dev]
 optional = true

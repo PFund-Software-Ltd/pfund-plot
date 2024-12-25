@@ -3745,8 +3745,8 @@ develop = true
 beautifulsoup4 = "^4.12.3"
 pandas = "^2.2.0"
 pfund = "^0.0.2"
-pydantic = "^2.7.0"
-yfinance = "^0.2.50"
+pydantic = "^2.9.2"
+yfinance = "^0.2.51"
 zstandard = "^0.23.0"
 
 [package.extras]
@@ -3774,7 +3774,7 @@ develop = true
 
 [package.dependencies]
 click = "^8.1.7"
-duckdb = "^1.0.0"
+duckdb = "^1.1.2"
 ipython = "^8.23.0"
 orjson = "^3.10.1"
 platformdirs = "^4.3.6"
@@ -6856,10 +6856,11 @@ all = ["dash", "gradio", "marimo", "streamlit", "taipy"]
 dash = ["dash"]
 gradio = ["gradio"]
 marimo = ["marimo"]
+solara = []
 streamlit = ["streamlit"]
 taipy = ["taipy"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "79c500c0c85a7858a1bc6c56601401848ff0626eb121f36977bcfcbdc09062ec"
+content-hash = "d996822fa51f6ee1ba8e91e09be58f046e88002d459a95b44d0b9c5d719abd17"

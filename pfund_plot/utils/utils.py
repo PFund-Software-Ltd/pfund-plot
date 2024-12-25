@@ -7,7 +7,9 @@ import datetime
 
 
 def is_daily_data(df: FrameT) -> bool:
-    '''Checks the "ts" column by comparing the first two rows to see if the data is daily data.'''
+    '''Checks if the 'resolution' column is '1d' and the "ts" column by comparing the first two rows to see if the data is daily data.'''
+    if 'resolution' in df.columns and df.select('resolution').row(0)[0] == '1d':
+        return True
     assert 'ts' in df.columns, "DataFrame must have a 'ts' column"
     assert isinstance(df.select('ts').row(0)[0], datetime.datetime), '"ts" column must be of type datetime'
     ts1 = df.select('ts').row(0)[0]

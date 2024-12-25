@@ -6,7 +6,9 @@ if TYPE_CHECKING:
     from pfund_plot.types.core import tFigure
     from pfund_plot.types.literals import tDISPLAY_MODE
     from holoviews.core.overlay import Overlay
+    from panel.io.threads import StoppableThread
     from panel.layout import Panel
+    from panel.io.server import Server
 
 import datetime
 
@@ -92,10 +94,11 @@ def candlestick_plot(
     data: tDataFrame | BaseFeed, 
     streaming: bool = False, 
     display_mode: tDISPLAY_MODE = "notebook", 
-    raw_figure: bool = False,
     num_points: int = 100,
+    raw_figure: bool = False,
     slider_step: int = 100,
     show_volume: bool = True,
+    streaming_freq: int = 1000,  # in milliseconds
     # styling
     up_color: str = 'green',
     down_color: str = 'red',
@@ -103,7 +106,7 @@ def candlestick_plot(
     height: int | None = None,
     width: int | None = None,
     grid: bool = True,
-) -> tFigure:
+) -> tFigure | Panel | Server | StoppableThread:
     '''
     Args:
         data: the data to plot, either a dataframe or pfeed's feed object
@@ -119,64 +122,101 @@ def candlestick_plot(
         height: the height of the plot
         width: the width of the plot
     '''
-    display_mode, plotting_backend = DisplayMode[display_mode.lower()], PlottingBackend.bokeh
-    data_type: DataType = validate_input_data(data)
-    
-    if not streaming:
-        if data_type == DataType.dataframe:
-            df: FrameT = _validate_df(data)
-            max_num_points = df.shape[0]
-            def create_plot(_num_points):
-                plot_df: tDataFrame = df.tail(_num_points).to_native()
-                return (
-                    plot_df
-                    .hvplot
-                    .ohlc(
-                        'ts', ['open', 'low', 'high', 'close'],
-                        hover_cols=REQUIRED_COLS,
-                        tools=[_create_hover_tool(df)],
-                        grid=grid,
-                        pos_color=up_color,
-                        neg_color=down_color,
-                        responsive=True,
-                        bgcolor=bg_color,
-                    )
-                    .opts(
-                        **_get_style(df, display_mode, height, width),
-                    )
-                )
-        else:
-            # TODO
-            feed = data
-    else:
-        # TODO
-        pass
-    
     # TODO: add volume plot when show_volume is True
     # TODO: add range selector
     # TODO: date input
-     
-    if not raw_figure:
-        points_slider = pn.widgets.IntSlider(
-            name='Number of Most Recent Data Points', 
-            value=min(num_points, max_num_points),
-            start=num_points,
-            end=max_num_points,
-            step=slider_step,
+    # TODO: using tick data to update the current candlestick
+    
+    
+    display_mode, plotting_backend = DisplayMode[display_mode.lower()], PlottingBackend.bokeh
+    data_type: DataType = validate_input_data(data)
+    df: FrameT = _validate_df(data)
+    
+    
+    # Define reactive values    
+    max_num_points = pn.rx(df.shape[0])
+    
+    # Main Component: candlestick plot
+    def _create_plot(_df: FrameT, _num_points: int):
+        plot_df: tDataFrame = _df.tail(_num_points).to_native()
+        return (
+            plot_df
+            .hvplot
+            .ohlc(
+                'ts', ['open', 'low', 'high', 'close'],
+                hover_cols=REQUIRED_COLS,
+                tools=[_create_hover_tool(_df)],
+                grid=grid,
+                pos_color=up_color,
+                neg_color=down_color,
+                responsive=True,
+                bgcolor=bg_color,
+            )
+            .opts(**_get_style(_df, display_mode, height, width))
         )
-        show_all_data_button = pn.widgets.Button(
-            name='Show All',
-            button_type='primary',
-        )
-        def update_slider(event):
-            points_slider.value = max_num_points
-        show_all_data_button.on_click(update_slider)
+
+    # Side Components 1: data points slider
+    points_slider = pn.widgets.IntSlider(
+        name='Number of Most Recent Data Points', 
+        value=min(num_points, max_num_points.rx.value),
+        start=num_points,
+        end=max_num_points,
+        step=slider_step,
+    )
+    
+    # Side Components 2: show all data button
+    show_all_data_button = pn.widgets.Button(
+        name='Show All',
+        button_type='primary',
+    )
+    def max_out_slider(event):
+        points_slider.value = max_num_points.rx.value
+    show_all_data_button.on_click(max_out_slider)
+    
+    if raw_figure:
+        fig: Overlay = _create_plot(df)
+    else:
+        if not streaming:
+            plot_pane = pn.pane.HoloViews(
+                pn.bind(_create_plot, _df=df, _num_points=points_slider)
+            )
+        else:
+            # NOTE: do NOT bind the plot to the slider, otherwise the change of slider value and the periodic callback 
+            # will BOTH trigger the plot update, causing an error, probably a race condition
+            plot_pane = pn.pane.HoloViews(_create_plot(df, points_slider.value))
+            
+            def _update_plot():
+                # FIXME
+                # TEMP: fake streaming data
+                import pandas as pd
+                nonlocal df
+                pandas_df = df.to_native()
+                last_ts = pandas_df['ts'].iloc[-1]
+                new_ts = last_ts + pd.Timedelta(days=1)
+                new_row = pd.DataFrame({
+                    'date': [new_ts.date()],
+                    'ts': [new_ts],
+                    'symbol': ['AAPL'],
+                    'product': ['AAPL_USD_STK'],
+                    'open': [pandas_df['open'].iloc[-1] * 1.01],  # 1% higher than last price
+                    'high': [pandas_df['high'].iloc[-1] * 1.02],
+                    'low': [pandas_df['low'].iloc[-1] * 0.99],
+                    'close': [pandas_df['close'].iloc[-1] * 1.015],
+                    'volume': [int(pandas_df['volume'].iloc[-1] * 0.8)]
+                })
+                df2 = pd.concat([pandas_df, new_row], ignore_index=True)
+                df = nw.from_native(df2)
+
+                # this will also update the slider's end value since it's a reactive object
+                max_num_points.rx.value = df.shape[0]
+                
+                plot_pane.object = _create_plot(df, points_slider.value)
+
+            pn.state.add_periodic_callback(_update_plot, period=streaming_freq)  # period in milliseconds
         fig: Panel = pn.Column(
-            pn.bind(create_plot, points_slider.param.value),
+            plot_pane,
             pn.Row(points_slider, show_all_data_button, align='center'),
             sizing_mode='stretch_both',
             name=DEFAULT_STYLE['title'],
         )
-    else:
-        fig: Overlay = create_plot(max_num_points)
     return render(fig, display_mode, plotting_backend, raw_figure)
