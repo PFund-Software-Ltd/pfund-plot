@@ -1,3 +1,5 @@
+import importlib
+
 try:
     import polars as pl
 except ImportError:
@@ -9,37 +11,40 @@ except ImportError:
     dd = None
 import pandas as pd
 
-from pfeed.const.enums import DataTool
 from pfeed.types.core import tDataFrame, is_dataframe
 from pfeed.feeds.base_feed import BaseFeed
 
 from pfund_plot.const.enums import DataType
-from pfund_plot import get_config
 
 
-config = get_config()
-
-
-def _get_dataframe_type(df: tDataFrame) -> DataTool:
-    if isinstance(df, pd.DataFrame):
-        return DataTool.pandas
-    elif pl and isinstance(df, (pl.DataFrame, pl.LazyFrame)):
-        return DataTool.polars
-    elif dd and isinstance(df, dd.DataFrame):
-        return DataTool.dask
-    else:
-        raise ValueError(f"Unsupported dataframe type: {type(df)}, make sure you have installed the required libraries")
-
-
-def validate_input_data(data: tDataFrame | BaseFeed) -> DataType:
+def _import_hvplot(data: tDataFrame | BaseFeed) -> None:
     if is_dataframe(data):
-        df_type: DataTool = _get_dataframe_type(data)
-        data_tool: DataTool = DataTool[config.data_tool.lower()]
-        if data_tool != df_type:
-            raise ValueError(f"data_tool is set to '{data_tool}', but the input data is of type '{df_type}'")
-        return DataType.dataframe
+        if isinstance(data, pd.DataFrame):
+            import hvplot.pandas
+        elif pl and isinstance(data, (pl.DataFrame, pl.LazyFrame)):
+            import hvplot.polars
+        elif dd and isinstance(data, dd.DataFrame):
+            import hvplot.dask
+        else:
+            raise ValueError(f"Unsupported dataframe type: {type(data)}, make sure you have installed the required libraries")
     elif isinstance(data, BaseFeed):
-        return DataType.datafeed
+        importlib.import_module(f"hvplot.{data.data_tool.name.value.lower()}")
     else:
         raise ValueError("Input data must be a dataframe or pfeed's feed object")
-    
+
+
+def validate_data_type(data: tDataFrame | BaseFeed, streaming: bool, import_hvplot: bool = True) -> DataType:
+    if is_dataframe(data):
+        data_type = DataType.dataframe
+    elif isinstance(data, BaseFeed):
+        data_type = DataType.datafeed
+    else:
+        raise ValueError("Input data must be a dataframe or pfeed's feed object")
+   
+    # FIXME: add it back when pfeed's streaming is ready
+    # if streaming:
+    #     assert data_type == DataType.datafeed, "streaming is only supported for pfeed's feed object, not dataframe"
+
+    if import_hvplot:
+        _import_hvplot(data)
+    return data_type

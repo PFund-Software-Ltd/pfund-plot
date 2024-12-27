@@ -38,7 +38,7 @@ streamlit = {version = "^1.41.1", optional = true}
 dash = {version = "^2.18.1", optional = true}
 taipy = {version = "^4.0.0", optional = true}
 gradio = {version = "^5.9.1", optional = true}
-marimo = {version = "^0.10.5", optional = true}
+marimo = {version = "^0.10.7", optional = true}
 
 [tool.poetry.extras]
 streamlit = ["streamlit"]

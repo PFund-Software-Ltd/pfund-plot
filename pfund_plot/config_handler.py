@@ -4,8 +4,6 @@ from dataclasses import dataclass, asdict
 
 import yaml
 
-from pfeed.types.literals import tDATA_TOOL
-from pfeed.const.enums import DataTool
 from pfund_plot.const.paths import (
     PROJ_NAME, 
     DATA_PATH,
@@ -23,8 +21,6 @@ __all__ = [
 
 @dataclass
 class ConfigHandler:
-    data_tool: tDATA_TOOL = 'pandas'
-    max_points: int = 5000
     data_path: str = str(DATA_PATH)
     cache_path: str = str(CACHE_PATH)
     
@@ -97,16 +93,6 @@ class ConfigHandler:
         self._initialize_configs()
     
     def _initialize_configs(self):
-        data_tool = DataTool[self.data_tool.lower()]
-        if data_tool == DataTool.pandas:
-            import hvplot.pandas
-        elif data_tool == DataTool.polars:
-            import hvplot.polars
-        elif data_tool == DataTool.dask:
-            import hvplot.dask
-        else:
-            raise ValueError(f"Invalid data tool: {self.data_tool}")
-        
         for path in [self.data_path, self.cache_path]:
             if not os.path.exists(path):
                 os.makedirs(path)
@@ -115,8 +101,6 @@ class ConfigHandler:
                 
 
 def configure(
-    data_tool: tDATA_TOOL | None = None,
-    max_points: int | None = None,
     data_path: str | None = None,
     cache_path: str | None = None,
     verbose: bool = False,
@@ -125,7 +109,6 @@ def configure(
     '''Configures the global config object.
     It will override the existing config values from the existing config file or the default values.
     Args:
-        max_points: The maximum number of points to display in the plot.
         write: If True, the config will be saved to the config file.
     '''
     NON_CONFIG_KEYS = ['verbose', 'write']

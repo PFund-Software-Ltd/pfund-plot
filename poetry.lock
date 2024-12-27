@@ -2834,13 +2834,13 @@ source = ["Cython (>=3.0.11)"]
 
 [[package]]
 name = "marimo"
-version = "0.10.6"
+version = "0.10.7"
 description = "A library for making reactive notebooks and apps"
 optional = true
 python-versions = ">=3.9"
 files = [
-    {file = "marimo-0.10.6-py3-none-any.whl", hash = "sha256:278c8cbf37b323ad913b20af5abc17da089d88d4d6bdb484d78fcc2bab21448e"},
-    {file = "marimo-0.10.6.tar.gz", hash = "sha256:b3bdc78cf07801d1197b0d3957e845526f82db30f48e2dc91324923579204d66"},
+    {file = "marimo-0.10.7-py3-none-any.whl", hash = "sha256:7109023f80d5be5153dd725b58b20e37b7a64df301d69a08dc2190f01386ec97"},
+    {file = "marimo-0.10.7.tar.gz", hash = "sha256:8377c529c9e3545b04593d695d733a02789956de9c6189a903748f6e40d76d4e"},
 ]
 
 [package.dependencies]
@@ -3745,17 +3745,17 @@ develop = true
 beautifulsoup4 = "^4.12.3"
 pandas = "^2.2.0"
 pfund = "^0.0.2"
+polars = "^1.18.0"
 pydantic = "^2.9.2"
 yfinance = "^0.2.51"
 zstandard = "^0.23.0"
 
 [package.extras]
-all = ["bytewax (>=0.21.0,<0.22.0)", "confluent-kafka (>=2.5.3,<3.0.0)", "connectorx (>=0.3.3,<0.4.0)", "dask[complete,dataframe] (>=2024.12.1,<2025.0.0)", "databento (>=0.43.0,<0.44.0)", "litellm (>=1.51.0,<2.0.0)", "minio (>=7.2.8,<8.0.0)", "modin[all] (>=0.32.0,<0.33.0)", "polars (>=1.17.1,<2.0.0)", "polygon-api-client (>=1.14.2,<2.0.0)", "prefect (>=3.0.5,<4.0.0)", "psutil (>=6.0.0,<7.0.0)", "pyarrow (>=17.0.0,<18.0.0)", "pyspark[connect,pandas-on-spark,sql] (>=3.5.3,<4.0.0)", "ray (>=2.35.0,<3.0.0)"]
+all = ["bytewax (>=0.21.0,<0.22.0)", "confluent-kafka (>=2.5.3,<3.0.0)", "connectorx (>=0.3.3,<0.4.0)", "dask[complete,dataframe] (>=2024.12.1,<2025.0.0)", "databento (>=0.43.0,<0.44.0)", "litellm (>=1.51.0,<2.0.0)", "minio (>=7.2.8,<8.0.0)", "modin[all] (>=0.32.0,<0.33.0)", "polygon-api-client (>=1.14.2,<2.0.0)", "prefect (>=3.0.5,<4.0.0)", "psutil (>=6.0.0,<7.0.0)", "pyarrow (>=17.0.0,<18.0.0)", "pyspark[connect,pandas-on-spark,sql] (>=3.5.3,<4.0.0)", "ray (>=2.35.0,<3.0.0)"]
 core = ["bytewax (>=0.21.0,<0.22.0)", "confluent-kafka (>=2.5.3,<3.0.0)", "connectorx (>=0.3.3,<0.4.0)", "minio (>=7.2.8,<8.0.0)", "modin[all] (>=0.32.0,<0.33.0)", "prefect (>=3.0.5,<4.0.0)", "psutil (>=6.0.0,<7.0.0)", "ray (>=2.35.0,<3.0.0)"]
 dask = ["dask[complete,dataframe] (>=2024.12.1,<2025.0.0)"]
 databento = ["databento (>=0.43.0,<0.44.0)"]
 llm = ["litellm (>=1.51.0,<2.0.0)"]
-polars = ["polars (>=1.17.1,<2.0.0)"]
 polygon = ["polygon-api-client (>=1.14.2,<2.0.0)"]
 spark = ["pyspark[connect,pandas-on-spark,sql] (>=3.5.3,<4.0.0)"]
 
@@ -3933,6 +3933,48 @@ files = [
 [package.extras]
 dev = ["pre-commit", "tox"]
 testing = ["pytest", "pytest-benchmark"]
+
+[[package]]
+name = "polars"
+version = "1.18.0"
+description = "Blazingly fast DataFrame library"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "polars-1.18.0-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:27a6c7e5d2d15afb5f06291433019411c9a28e59e49741442d11a6a945f21daa"},
+    {file = "polars-1.18.0-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:6431563aee2dfa6787b0debbed3f565ebb4322da32317d95c8eac3e48330bc28"},
+    {file = "polars-1.18.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a333ff578373e29e0cacc79c35afe42c0620813c9b0c832009ab8b330e421093"},
+    {file = "polars-1.18.0-cp39-abi3-manylinux_2_24_aarch64.whl", hash = "sha256:3a3a65a3ad6b6b0bd61a33f215856cfdd3e3abc9942e69526b2b88c0ef8683a4"},
+    {file = "polars-1.18.0-cp39-abi3-win_amd64.whl", hash = "sha256:a79ef2542454d9cace63e8fa528cf808b6377077173be522df9b8c0e792ce96a"},
+    {file = "polars-1.18.0-cp39-abi3-win_arm64.whl", hash = "sha256:52b543da52f4f6a661a2fa3cdd4b499938bdb34eeae538ec3bcef6c8c41bfc33"},
+    {file = "polars-1.18.0.tar.gz", hash = "sha256:5c2f119555ae8d822a5322509c6abd91601a8931115d2e4c3fff13fadf39e877"},
+]
+
+[package.extras]
+adbc = ["adbc-driver-manager[dbapi]", "adbc-driver-sqlite[dbapi]"]
+all = ["polars[async,cloudpickle,database,deltalake,excel,fsspec,graph,iceberg,numpy,pandas,plot,pyarrow,pydantic,style,timezone]"]
+async = ["gevent"]
+calamine = ["fastexcel (>=0.9)"]
+cloudpickle = ["cloudpickle"]
+connectorx = ["connectorx (>=0.3.2)"]
+database = ["nest-asyncio", "polars[adbc,connectorx,sqlalchemy]"]
+deltalake = ["deltalake (>=0.19.0)"]
+excel = ["polars[calamine,openpyxl,xlsx2csv,xlsxwriter]"]
+fsspec = ["fsspec"]
+gpu = ["cudf-polars-cu12"]
+graph = ["matplotlib"]
+iceberg = ["pyiceberg (>=0.5.0)"]
+numpy = ["numpy (>=1.16.0)"]
+openpyxl = ["openpyxl (>=3.0.0)"]
+pandas = ["pandas", "polars[pyarrow]"]
+plot = ["altair (>=5.4.0)"]
+pyarrow = ["pyarrow (>=7.0.0)"]
+pydantic = ["pydantic"]
+sqlalchemy = ["polars[pandas]", "sqlalchemy"]
+style = ["great-tables (>=0.8.0)"]
+timezone = ["tzdata"]
+xlsx2csv = ["xlsx2csv (>=0.8.0)"]
+xlsxwriter = ["xlsxwriter"]
 
 [[package]]
 name = "pre-commit"
@@ -6863,4 +6905,4 @@ taipy = ["taipy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "d996822fa51f6ee1ba8e91e09be58f046e88002d459a95b44d0b9c5d719abd17"
+content-hash = "3de69a6d5805e0c1b2247acfc87461b45f6f401191d90c0c06167aba2019b2b8"

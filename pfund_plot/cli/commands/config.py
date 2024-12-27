@@ -49,7 +49,7 @@ def set(**kwargs):
 @click.option('--config-file', '-c', is_flag=True, help=f'Open the {PROJ_NAME}_config.yml file')
 @click.option('--default-editor', '-E', is_flag=True, help='Use default editor')
 def open(config_file, default_editor):
-    """Opens the config files, e.g. logging.yml, docker-compose.yml, .env."""
+    """Opens config files, e.g. pfund_plot_config.yml."""
     from pfund_plot.const.paths import CONFIG_FILE_PATH
     
     if sum([config_file]) > 1:

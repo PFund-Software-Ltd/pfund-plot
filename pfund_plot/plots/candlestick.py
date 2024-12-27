@@ -3,28 +3,21 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from narwhals.typing import IntoFrameT, FrameT
     from pfeed.types.core import tDataFrame
-    from pfund_plot.types.core import tFigure
+    from pfeed.feeds.base_feed import BaseFeed
     from pfund_plot.types.literals import tDISPLAY_MODE
+    from pfund_plot.types.core import tOutput
     from holoviews.core.overlay import Overlay
-    from panel.io.threads import StoppableThread
     from panel.layout import Panel
-    from panel.io.server import Server
-
-import datetime
-
+    
 import panel as pn
 import narwhals as nw
 from bokeh.models import HoverTool, CrosshairTool
 
-from pfeed.feeds.base_feed import BaseFeed
 from pfund_plot.const.enums import DisplayMode, PlottingBackend, DataType
-from pfund_plot.config_handler import get_config
-from pfund_plot.utils.validate import validate_input_data
-from pfund_plot.utils.utils import is_daily_data
+from pfund_plot.utils.validate import validate_data_type
 from pfund_plot.renderer import render
 
 
-config = get_config()
 __all__ = ['candlestick_plot']
 
 
@@ -39,6 +32,7 @@ DEFAULT_HEIGHT_FOR_NOTEBOOK = 280
 
 
 def _validate_df(df: IntoFrameT) -> FrameT:
+    import datetime
     df: FrameT = nw.from_native(df)
     if isinstance(df, nw.LazyFrame):
         df = df.collect()
@@ -74,6 +68,7 @@ def _get_style(df: FrameT, display_mode: DisplayMode, height: int | None, width:
 
 
 def _create_hover_tool(df: FrameT) -> HoverTool:
+    from pfund_plot.utils.utils import is_daily_data
     ts_format = '%Y-%m-%d' if is_daily_data(df) else '%Y-%m-%d %H:%M:%S'
     return HoverTool(
         tooltips=[
@@ -106,7 +101,7 @@ def candlestick_plot(
     height: int | None = None,
     width: int | None = None,
     grid: bool = True,
-) -> tFigure | Panel | Server | StoppableThread:
+) -> tOutput:
     '''
     Args:
         data: the data to plot, either a dataframe or pfeed's feed object
@@ -129,8 +124,14 @@ def candlestick_plot(
     
     
     display_mode, plotting_backend = DisplayMode[display_mode.lower()], PlottingBackend.bokeh
-    data_type: DataType = validate_input_data(data)
-    df: FrameT = _validate_df(data)
+    data_type: DataType = validate_data_type(data, streaming, import_hvplot=True)
+    if data_type == DataType.datafeed:
+        # TODO: get streaming data in the format of dataframe, and then call _validate_df
+        # df = data.get_realtime_data(...)
+        pass
+    else:
+        df = data
+    df: FrameT = _validate_df(df)
     
     
     # Define reactive values    
@@ -176,6 +177,7 @@ def candlestick_plot(
         points_slider.value = max_num_points.rx.value
     show_all_data_button.on_click(max_out_slider)
     
+
     if raw_figure:
         fig: Overlay = _create_plot(df)
     else:
@@ -183,6 +185,7 @@ def candlestick_plot(
             plot_pane = pn.pane.HoloViews(
                 pn.bind(_create_plot, _df=df, _num_points=points_slider)
             )
+            periodic_callback = None
         else:
             # NOTE: do NOT bind the plot to the slider, otherwise the change of slider value and the periodic callback 
             # will BOTH trigger the plot update, causing an error, probably a race condition
@@ -215,11 +218,11 @@ def candlestick_plot(
                 
                 plot_pane.object = _create_plot(df, points_slider.value)
 
-            pn.state.add_periodic_callback(_update_plot, period=streaming_freq)  # period in milliseconds
+            periodic_callback = pn.state.add_periodic_callback(_update_plot, period=streaming_freq, start=False)  # period in milliseconds
         fig: Panel = pn.Column(
             plot_pane,
             pn.Row(points_slider, show_all_data_button, align='center'),
             sizing_mode='stretch_both',
             name=DEFAULT_STYLE['title'],
         )
-    return render(fig, display_mode, plotting_backend, raw_figure)
+    return render(fig, display_mode, raw_figure=raw_figure, plotting_backend=plotting_backend, periodic_callback=periodic_callback)

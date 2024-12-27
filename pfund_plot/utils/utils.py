@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from narwhals.typing import FrameT
 
+import os
 import datetime
 
 
@@ -16,3 +17,11 @@ def is_daily_data(df: FrameT) -> bool:
     ts2 = df.select('ts').row(1)[0]
     delta = ts2 - ts1
     return delta == datetime.timedelta(days=1)
+
+
+# this excludes vscode notebook, only counts standalone jupyter lab/notebook server
+def is_jupyter_notebook() -> bool:  
+    return any(
+        key.startswith(('JUPYTER_', 'JPY_')) 
+        for key in os.environ
+    )
