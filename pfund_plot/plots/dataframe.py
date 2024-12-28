@@ -32,6 +32,7 @@ def dataframe_plot(
     dataframe_backend: tDATAFRAME_BACKEND = "tabulator",
     hide_cols: list[str] | None = None,
     header_filters: bool = False,
+    watch: bool = True,
     **panel_kwargs
 ) -> tOutput:
     '''
@@ -45,10 +46,12 @@ def dataframe_plot(
             e.g. 'tabulator' or 'perspective'
             use Perspective if data size is large or more complicated data manipulation is needed.
         header_filters: whether to enable header filters in the Tabulator.
+        watch: whether to watch the streaming data.
+            if true, you will be able to see the table update and scroll along with the new data.
         panel_kwargs: kwargs for pn.widgets.Tabulator, e.g. theme, page_size, etc.
-        
-        For all the supported panel_kwargs, and more customization examples,
-        please refer to https://panel.holoviz.org/reference/widgets/Tabulator.html
+
+    For all the supported panel_kwargs, and more customization examples,
+    please refer to https://panel.holoviz.org/reference/widgets/Tabulator.html
     '''
 
     display_mode, dataframe_backend = DisplayMode[display_mode.lower()], DataFrameBackend[dataframe_backend.lower()]
@@ -90,7 +93,8 @@ def dataframe_plot(
             new_data = df.tail(1)
             new_data['symbol'] = f'AAPL_{n}'
             n += 1
-            table.stream(new_data, follow=True)
+
+            table.stream(new_data, follow=watch)
         periodic_callback = pn.state.add_periodic_callback(_update_table, period=streaming_freq, start=False)
     else:
         periodic_callback = None

@@ -4,9 +4,15 @@ import hvplot
 import panel as pn
 
 from pfund_plot.config_handler import get_config, configure
-from pfund_plot.plots.line import line_plot as line
-from pfund_plot.plots.dataframe import dataframe_plot as dataframe, dataframe_plot as df
-from pfund_plot.plots.candlestick import candlestick_plot as candlestick, candlestick_plot as ohlc
+from pfund_plot.plots.dataframe import (
+    dataframe_plot as dataframe,
+    dataframe_plot as df,
+)
+from pfund_plot.plots.candlestick import (
+    candlestick_plot as candlestick,
+    candlestick_plot as ohlc,
+    candlestick_plot as kline,
+)
 
 
 config = get_config()
@@ -22,7 +28,9 @@ __all__ = (
     "__version__",
     "get_config",
     "configure",
-    "line",
     "candlestick",
     "ohlc",
+    "kline",
+    "dataframe",
+    "df",
 )
