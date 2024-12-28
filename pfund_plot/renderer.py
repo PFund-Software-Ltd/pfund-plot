@@ -5,10 +5,10 @@ if TYPE_CHECKING:
     from panel.layout import Panel
     from panel.widgets import Widget
     from panel.io.threads import StoppableThread
-    from panel.io.server import Server
     from panel.io.state import PeriodicCallback
     from holoviews.core.overlay import Overlay
-
+    from pfund_plot.types.core import tOutput
+    
 import socket
 from threading import Thread
 from multiprocessing import Process, Event
@@ -37,7 +37,7 @@ def render(
     raw_figure: bool = False,
     plotting_backend: PlottingBackend | None = None,
     periodic_callback: PeriodicCallback | None = None
-) -> tFigure | Panel | Server | StoppableThread:
+) -> tOutput:
     if raw_figure:
         assert plotting_backend is not None, "plotting_backend must be provided when raw_figure is True"
         # fig is of type "Overlay" -> convert to tFigure (bokeh figure or plotly figure)
@@ -50,7 +50,7 @@ def render(
                 periodic_callback.start()
             return panel_fig
         elif display_mode == DisplayMode.browser:
-            server: Server = pn.serve(fig, show=True, threaded=False)
+            server: StoppableThread = pn.serve(fig, show=True, threaded=True)
             if periodic_callback:
                 periodic_callback.start()
             return server

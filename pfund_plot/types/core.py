@@ -2,8 +2,8 @@ from bokeh.plotting import figure
 from plotly.graph_objects import Figure
 from panel.io.threads import StoppableThread
 from panel.layout import Panel
-from panel.io.server import Server
+from panel.widgets import Widget
 
 
 tFigure = figure | Figure
-tOutput = tFigure | Panel | Server | StoppableThread
+tOutput = tFigure | Panel | Widget | StoppableThread
