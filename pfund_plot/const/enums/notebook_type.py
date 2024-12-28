@@ -2,5 +2,6 @@ from enum import StrEnum
 
 
 class NotebookType(StrEnum):
-    JUPYTER = 'JUPYTER'
-    MARIMO = 'MARIMO'
+    jupyter = 'jupyter'
+    marimo = 'marimo'
+    vscode = 'vscode'

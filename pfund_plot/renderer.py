@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from holoviews.core.overlay import Overlay
     from pfund_plot.types.core import tOutput
     
+import time
 import socket
 from threading import Thread
 from multiprocessing import Process, Event
@@ -16,7 +17,8 @@ from multiprocessing import Process, Event
 import panel as pn
 import holoviews as hv
 
-from pfund_plot.const.enums import DisplayMode, PlottingBackend
+from pfund_plot.const.enums import DisplayMode, PlottingBackend, NotebookType
+from pfund_plot.utils.utils import get_notebook_type
     
 
 def run_webview(title: str, port: int, window_ready: Event):
@@ -29,7 +31,29 @@ def run_webview(title: str, port: int, window_ready: Event):
     window.events.loaded.wait()
     window_ready.set()
     wv.start()
-    
+
+
+def _handle_periodic_callback(periodic_callback: PeriodicCallback | None):
+    # the main idea is don't use the thread created by periodic_callback.start(), instead create a marimo thread to stream updates
+    def _handle_marimo_streaming(periodic_callback: PeriodicCallback):
+        import marimo as mo
+        get_streaming_active, set_streaming_active = mo.state(True)
+        
+        def stream_updates():
+            while get_streaming_active():  # Use the getter function
+                periodic_callback.callback()
+                time.sleep(periodic_callback.period / 1000)
+        
+        stream_thread = mo.Thread(target=stream_updates, daemon=True)
+        stream_thread.start()
+
+    notebook_type: NotebookType = get_notebook_type()
+    if periodic_callback:
+        if notebook_type == NotebookType.marimo:
+            _handle_marimo_streaming(periodic_callback)
+        else:
+            periodic_callback.start()
+
 
 def render(
     fig: Overlay | Panel,
@@ -46,13 +70,11 @@ def render(
     else:
         if display_mode == DisplayMode.notebook:
             panel_fig: Panel | Widget = fig
-            if periodic_callback:
-                periodic_callback.start()
+            _handle_periodic_callback(periodic_callback)
             return panel_fig
         elif display_mode == DisplayMode.browser:
             server: StoppableThread = pn.serve(fig, show=True, threaded=True)
-            if periodic_callback:
-                periodic_callback.start()
+            _handle_periodic_callback(periodic_callback)
             return server
         elif display_mode == DisplayMode.desktop:
             def _get_free_port():
@@ -81,8 +103,7 @@ def render(
             
             # wait for the window to be ready before starting the periodic callback to prevent data loss when streaming=True
             window_ready.wait()
-            if periodic_callback:
-                periodic_callback.start()
+            _handle_periodic_callback(periodic_callback)
             return server
         else:
             raise ValueError(f"Invalid display mode: {display_mode}")

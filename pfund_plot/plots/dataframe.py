@@ -1,24 +1,19 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from narwhals.typing import IntoFrameT, FrameT
     from pfeed.types.core import tDataFrame
     from pfeed.feeds.base_feed import BaseFeed
     from pfund_plot.types.literals import tDISPLAY_MODE, tDATAFRAME_BACKEND
     from pfund_plot.types.core import tOutput
-    from holoviews.core.overlay import Overlay
-    from panel.layout import Panel
     from panel.widgets import Widget
 
-import polars as pl
 import panel as pn
-import narwhals as nw
 from bokeh.models.widgets.tables import DateFormatter
 
 from pfeed.etl import convert_to_pandas_df
-from pfund_plot.const.enums import DisplayMode, DataType, DataFrameBackend
+from pfund_plot.const.enums import DisplayMode, DataType, DataFrameBackend, NotebookType
 from pfund_plot.utils.validate import validate_data_type
-from pfund_plot.utils.utils import is_jupyter_notebook
+from pfund_plot.utils.utils import get_notebook_type
 from pfund_plot.renderer import render
 
 
@@ -56,6 +51,7 @@ def dataframe_plot(
 
     display_mode, dataframe_backend = DisplayMode[display_mode.lower()], DataFrameBackend[dataframe_backend.lower()]
     data_type: DataType = validate_data_type(data, streaming, import_hvplot=False)
+    notebook_type: NotebookType = get_notebook_type()
     if data_type == DataType.datafeed:
         # TODO: get streaming data in the format of dataframe, and then call _validate_df
         # df = data.get_realtime_data(...)
@@ -73,7 +69,7 @@ def dataframe_plot(
             disabled=True,  # not allow user to edit the table
             # HACK: jupyter notebook is running in a server, use remote pagination to work around the update error when streaming=True
             # the error is: "ValueError: Must have equal len keys and value when setting with an iterable"
-            pagination='local' if not is_jupyter_notebook() else 'remote',
+            pagination='local' if notebook_type == NotebookType.vscode else 'remote',
             formatters={
                 # NOTE: %f somehow doesn't work for microseconds, and %N (nanoseconds) only preserves up to milliseconds precision
                 # so just use %3N to display milliseconds precision

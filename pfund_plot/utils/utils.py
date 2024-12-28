@@ -5,6 +5,9 @@ if TYPE_CHECKING:
 
 import os
 import datetime
+import importlib.util
+
+from pfund_plot.const.enums.notebook_type import NotebookType
 
 
 def is_daily_data(df: FrameT) -> bool:
@@ -19,9 +22,14 @@ def is_daily_data(df: FrameT) -> bool:
     return delta == datetime.timedelta(days=1)
 
 
-# this excludes vscode notebook, only counts standalone jupyter lab/notebook server
-def is_jupyter_notebook() -> bool:  
-    return any(
-        key.startswith(('JUPYTER_', 'JPY_')) 
-        for key in os.environ
-    )
+def get_notebook_type() -> NotebookType:
+    marimo_spec = importlib.util.find_spec("marimo")
+    if marimo_spec is not None:
+        import marimo as mo
+        if mo.running_in_notebook():
+            return NotebookType.marimo
+        
+    if any(key.startswith(('JUPYTER_', 'JPY_')) for key in os.environ):
+        return NotebookType.jupyter
+    
+    return NotebookType.vscode
