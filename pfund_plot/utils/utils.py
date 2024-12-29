@@ -33,3 +33,10 @@ def get_notebook_type() -> NotebookType:
         return NotebookType.jupyter
     
     return NotebookType.vscode
+
+
+def get_free_port():
+    import socket
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(('', 0))  # Bind to a random free port
+        return s.getsockname()[1]

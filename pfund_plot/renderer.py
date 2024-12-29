@@ -10,7 +10,6 @@ if TYPE_CHECKING:
     from pfund_plot.types.core import tOutput
     
 import time
-import socket
 from threading import Thread
 from multiprocessing import Process, Event
 
@@ -18,7 +17,7 @@ import panel as pn
 import holoviews as hv
 
 from pfund_plot.const.enums import DisplayMode, PlottingBackend, NotebookType
-from pfund_plot.utils.utils import get_notebook_type
+from pfund_plot.utils.utils import get_notebook_type, get_free_port
     
 
 def run_webview(title: str, port: int, window_ready: Event):
@@ -56,12 +55,19 @@ def _handle_periodic_callback(periodic_callback: PeriodicCallback | None):
 
 
 def render(
-    fig: Overlay | Panel,
+    fig: Overlay | Panel | Widget,
     display_mode: DisplayMode,
     raw_figure: bool = False,
     plotting_backend: PlottingBackend | None = None,
-    periodic_callback: PeriodicCallback | None = None
+    periodic_callback: PeriodicCallback | None = None,
+    use_iframe_in_notebook: bool = False,
+    iframe_style: str | None = None,
 ) -> tOutput:
+    '''
+    Args:
+        use_iframe_in_notebook: if True, use an iframe to display the plot in a notebook.
+            It is a workaround when the plot can't be displayed in a notebook.
+    '''
     if raw_figure:
         assert plotting_backend is not None, "plotting_backend must be provided when raw_figure is True"
         # fig is of type "Overlay" -> convert to tFigure (bokeh figure or plotly figure)
@@ -69,7 +75,20 @@ def render(
         return fig
     else:
         if display_mode == DisplayMode.notebook:
-            panel_fig: Panel | Widget = fig
+            if not use_iframe_in_notebook:
+                panel_fig: Panel | Widget = fig
+            else:
+                assert iframe_style is not None, "iframe_style must be provided when use_iframe_in_notebook is True"
+                port = get_free_port()
+                server: StoppableThread = pn.serve(fig, show=False, threaded=True, port=port)
+                panel_fig = pn.pane.HTML(
+                    f'''
+                    <iframe 
+                        src="http://localhost:{port}" 
+                        style="{iframe_style}"
+                    </iframe>
+                    ''',
+                )
             _handle_periodic_callback(periodic_callback)
             return panel_fig
         elif display_mode == DisplayMode.browser:
@@ -77,12 +96,7 @@ def render(
             _handle_periodic_callback(periodic_callback)
             return server
         elif display_mode == DisplayMode.desktop:
-            def _get_free_port():
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    s.bind(('', 0))  # Bind to a random free port
-                    return s.getsockname()[1]
-            
-            port = _get_free_port()
+            port = get_free_port()
             server: StoppableThread = pn.serve(fig, show=False, threaded=True, port=port)
             title = getattr(fig, 'name', "PFund Plot")
             window_ready = Event()

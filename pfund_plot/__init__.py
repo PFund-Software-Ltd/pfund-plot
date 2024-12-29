@@ -15,7 +15,6 @@ from pfund_plot.plots.candlestick import (
 )
 
 
-config = get_config()
 hvplot.extension('bokeh', 'plotly')
 pn.extension('tabulator', 'perspective')
 # used to throttle updates in panel plots

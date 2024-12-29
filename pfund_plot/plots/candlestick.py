@@ -84,12 +84,11 @@ def _create_hover_tool(df: FrameT) -> HoverTool:
     )
 
 
-# REVIEW: this function only supports bokeh (so no "plotting_backend" in the kwargs), hvplot.ohlc won't work with plotly, probably a bug
 def candlestick_plot(
     data: tDataFrame | BaseFeed, 
     streaming: bool = False, 
     display_mode: tDISPLAY_MODE = "notebook", 
-    num_points: int = 100,
+    num_data: int = 100,
     raw_figure: bool = False,
     slider_step: int = 100,
     show_volume: bool = True,
@@ -109,7 +108,7 @@ def candlestick_plot(
         display_mode: where to display the plot, either "notebook", "browser", or "desktop"
         raw_figure: if True, returns the raw figure object (e.g. bokeh.plotting.figure or plotly.graph_objects.Figure)
             if False, returns the holoviews.core.overlay.Overlay object
-        num_points: the initial number of data points to display.
+        num_data: the initial number of data points to display.
             This can be changed by a slider in the plot.
         up_color: the color of the up candle, hex code is supported
         down_color: the color of the down candle, hex code is supported
@@ -135,11 +134,11 @@ def candlestick_plot(
     
     
     # Define reactive values    
-    max_num_points = pn.rx(df.shape[0])
+    max_num_data = pn.rx(df.shape[0])
     
     # Main Component: candlestick plot
-    def _create_plot(_df: FrameT, _num_points: int):
-        plot_df: tDataFrame = _df.tail(_num_points).to_native()
+    def _create_plot(_df: FrameT, _num_data: int):
+        plot_df: tDataFrame = _df.tail(_num_data).to_native()
         return (
             plot_df
             .hvplot
@@ -162,9 +161,9 @@ def candlestick_plot(
     # Side Components 1: data points slider
     points_slider = pn.widgets.IntSlider(
         name='Number of Most Recent Data Points', 
-        value=min(num_points, max_num_points.rx.value),
-        start=num_points,
-        end=max_num_points,
+        value=min(num_data, max_num_data.rx.value),
+        start=num_data,
+        end=max_num_data,
         step=slider_step,
     )
     
@@ -174,7 +173,7 @@ def candlestick_plot(
         button_type='primary',
     )
     def max_out_slider(event):
-        points_slider.value = max_num_points.rx.value
+        points_slider.value = max_num_data.rx.value
     show_all_data_button.on_click(max_out_slider)
     
 
@@ -183,7 +182,7 @@ def candlestick_plot(
     else:
         if not streaming:
             plot_pane = pn.pane.HoloViews(
-                pn.bind(_create_plot, _df=df, _num_points=points_slider)
+                pn.bind(_create_plot, _df=df, _num_data=points_slider)
             )
             periodic_callback = None
         else:
@@ -214,7 +213,7 @@ def candlestick_plot(
                 df = nw.from_native(df2)
 
                 # this will also update the slider's end value since it's a reactive object
-                max_num_points.rx.value = df.shape[0]
+                max_num_data.rx.value = df.shape[0]
                 
                 plot_pane.object = _create_plot(df, points_slider.value)
 
