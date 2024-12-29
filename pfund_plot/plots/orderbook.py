@@ -18,5 +18,30 @@ from pfund_plot.renderer import render
 
 
 # TODO: use perspective to plot orderbook
-def orderbook_plot(data: tDataFrame) -> tOutput:
-    dataframe_plot(..., dataframe_backend='perspective')
+def orderbook_plot(
+    data: tDataFrame | BaseFeed,
+    display_mode: tDISPLAY_MODE = 'notebook',
+    streaming: bool = False,
+    streaming_freq: int = 1000,  # in milliseconds
+    height: int = 600,
+    **kwargs
+) -> tOutput:
+    '''
+    Args:
+        height: height of the orderbook plot in pixels.
+            Only applicable when display_mode is 'notebook'.
+        kwargs: kwargs for pn.pane.Perspective
+
+    For all the supported kwargs, and more customization examples,
+    please refer to https://panel.holoviz.org/reference/panes/Perspective.html.
+    '''
+    return dataframe_plot(
+        data, 
+        display_mode=display_mode,
+        streaming=streaming,
+        streaming_freq=streaming_freq,
+        dataframe_backend='perspective', 
+        max_streaming_data=1,
+        height=height,
+        **kwargs
+    )

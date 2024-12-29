@@ -46,6 +46,10 @@ def dataframe_plot(
 ) -> tOutput:
     '''
     Args:
+        data: the data to plot, either a dataframe or pfeed's feed object
+        display_mode: where to display the plot, either "notebook", "browser", or "desktop"
+        streaming: if True, the plot will be updated in real-time as new data is received
+        streaming_freq: the update frequency of the streaming data in milliseconds
         max_streaming_data: maximum number of data points used when streaming.
             If None, data will continue to grow unbounded.
         dataframe_backend: backend to use for the dataframe plot.

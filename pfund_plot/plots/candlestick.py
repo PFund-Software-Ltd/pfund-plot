@@ -106,6 +106,7 @@ def candlestick_plot(
         data: the data to plot, either a dataframe or pfeed's feed object
         streaming: if True, the plot will be updated in real-time as new data is received
         display_mode: where to display the plot, either "notebook", "browser", or "desktop"
+        streaming_freq: the update frequency of the streaming data in milliseconds
         raw_figure: if True, returns the raw figure object (e.g. bokeh.plotting.figure or plotly.graph_objects.Figure)
             if False, returns the holoviews.core.overlay.Overlay object
         num_data: the initial number of data points to display.
