@@ -1,0 +1,31 @@
+# See docs at: https://mystmd.org/guide/frontmatter
+version: 1
+project:
+  id: 9ef23ea6-8e87-40ea-b3e9-5b4782dfc759
+  title: PFund-Plot's Documentation
+  description: A library for financial data visualization, dashboard creation, and template sharing.
+  keywords: ["financial data", "plotting", "dashboards", "charts", "data visualization", "graphs", "plots"]
+  exclude: 
+    - README.md
+  github: https://github.com/PFund-Software-Ltd/pfund-plot
+site:
+  template: book-theme
+  nav:
+    - title: pfund
+      url: https://github.com/PFund-Software-Ltd/pfund
+    - title: pfeed
+      url: https://github.com/PFund-Software-Ltd/pfeed
+    - title: pfolio
+      url: https://github.com/PFund-Software-Ltd/pfolio
+    - title: pytrade.org
+      url: https://pytrade.org
+  options:
+    favicon: images/favicon.ico
+    logo: images/logo-light.svg
+    logo_text: democratize algo-trading
+    analytics_google: GA_TRACKING_ID_PLACEHOLDER
+  actions:
+    - title: Join Our Community
+      url: https://pfund.ai
+    - title: ⭐ Star
+      url: https://github.com/PFund-Software-Ltd/pfund-plot
