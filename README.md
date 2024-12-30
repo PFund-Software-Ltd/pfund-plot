@@ -16,6 +16,15 @@ For example, plotting an orderbook should be as simple as writing a single line 
 We created a high-level plotting library that combines the best features from existing plotting and dashboarding libraries into an easy-to-use interface.
 
 ---
+<img src="docs/assets/candlestick.gif" alt="pfund-plot candlestick streaming example" width="450">
+
+<!-- <div style="display: flex; justify-content: space-around; align-items: center;">
+    <img src="docs/assets/candlestick.gif" alt="pfund-plot streaming example" width="450">
+    <img src="docs/assets/orderbook.gif" alt="pfund-plot streaming example" width="450">
+</div> -->
+
+---
+
 PFund-Plot is a super high-level, out-of-the-box, domain-specific plotting library designed for traders that supports **financial data visualization**, **dashboard creation**, and **template sharing**.
 
 > This library is not ready, please wait for version 0.0.1 release.
