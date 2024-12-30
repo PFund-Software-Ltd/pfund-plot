@@ -1,9 +1,11 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 if TYPE_CHECKING:
-    from pfund_plot.types.core import tFigure
+    from bokeh.plotting import figure
+    from plotly.graph_objects import Figure
     from panel.layout import Panel
     from panel.widgets import Widget
+    from panel.pane import Pane
     from panel.io.threads import StoppableThread
     from panel.io.state import PeriodicCallback
     from holoviews.core.overlay import Overlay
@@ -16,6 +18,7 @@ from multiprocessing import Process, Event
 import panel as pn
 import holoviews as hv
 
+from pfund import print_warning
 from pfund_plot.const.enums import DisplayMode, PlottingBackend, NotebookType
 from pfund_plot.utils.utils import get_notebook_type, get_free_port
     
@@ -55,33 +58,50 @@ def _handle_periodic_callback(periodic_callback: PeriodicCallback | None):
 
 
 def render(
-    fig: Overlay | Panel | Widget,
-    display_mode: DisplayMode,
+    fig: Overlay | Panel | Pane | Widget,
+    display_mode: Literal["notebook", "browser", "desktop"] | DisplayMode,
     raw_figure: bool = False,
-    plotting_backend: PlottingBackend | None = None,
+    plotting_backend: Literal["bokeh", "plotly"] | PlottingBackend | None = None,
     periodic_callback: PeriodicCallback | None = None,
     use_iframe_in_notebook: bool = False,
     iframe_style: str | None = None,
 ) -> tOutput:
     '''
     Args:
+        fig: the figure to render.
+            supports plots from "hvplot", "holoviews" and panels, panes or widgets from "panel"
+        display_mode: the mode to display the plot.
+            supports "notebook", "browser" and "desktop"
+        raw_figure: if True, return the figure object instead of rendering it.
+            useful for customizing the figure.
+        plotting_backend: the backend to use for rendering the figure.
+            supports "bokeh" and "plotly"
+        periodic_callback: panel's periodic callback to stream updates to the plot.
+            It is created by `panel.state.add_periodic_callback`.
         use_iframe_in_notebook: if True, use an iframe to display the plot in a notebook.
             It is a workaround when the plot can't be displayed in a notebook.
+        iframe_style: the style of the iframe when use_iframe_in_notebook is True.
     '''
+    if isinstance(display_mode, str):
+        display_mode = DisplayMode[display_mode.lower()]
+    if isinstance(plotting_backend, str):
+        plotting_backend = PlottingBackend[plotting_backend.lower()]
+
     if raw_figure:
         assert plotting_backend is not None, "plotting_backend must be provided when raw_figure is True"
         # fig is of type "Overlay" -> convert to tFigure (bokeh figure or plotly figure)
-        fig: tFigure = hv.render(fig, backend=plotting_backend.value)
+        fig: figure | Figure = hv.render(fig, backend=plotting_backend.value)
         return fig
     else:
         if display_mode == DisplayMode.notebook:
             if not use_iframe_in_notebook:
                 panel_fig: Panel | Widget = fig
             else:
-                assert iframe_style is not None, "iframe_style must be provided when use_iframe_in_notebook is True"
+                if iframe_style is None:
+                    print_warning("No iframe_style is provided for iframe in notebook")
                 port = get_free_port()
                 server: StoppableThread = pn.serve(fig, show=False, threaded=True, port=port)
-                panel_fig = pn.pane.HTML(
+                panel_fig: Pane = pn.pane.HTML(
                     f'''
                     <iframe 
                         src="http://localhost:{port}" 

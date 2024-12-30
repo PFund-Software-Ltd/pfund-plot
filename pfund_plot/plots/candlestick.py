@@ -44,7 +44,13 @@ def _validate_df(df: IntoFrameT) -> FrameT:
     missing_cols = [col for col in REQUIRED_COLS if col not in df.columns]
     if missing_cols:
         raise ValueError(f"Missing required columns: {missing_cols}")
-    assert isinstance(df.select('ts').row(0)[0], datetime.datetime), '"ts" column must be of type datetime'
+    ts_value = df.select('ts').row(0)[0]
+    # convert ts to datetime if not already
+    if not isinstance(ts_value, datetime.datetime):
+        # REVIEW: this might mess up the datetime format
+        df = df.with_columns(
+            nw.col('ts').str.to_datetime(format=None),
+        )
     return df
 
 
@@ -178,14 +184,14 @@ def candlestick_plot(
     show_all_data_button.on_click(max_out_slider)
     
 
+    periodic_callback = None
     if raw_figure:
-        fig: Overlay = _create_plot(df)
+        fig: Overlay = _create_plot(df, _num_data=num_data)
     else:
         if not streaming:
             plot_pane = pn.pane.HoloViews(
                 pn.bind(_create_plot, _df=df, _num_data=points_slider)
             )
-            periodic_callback = None
         else:
             # NOTE: do NOT bind the plot to the slider, otherwise the change of slider value and the periodic callback 
             # will BOTH trigger the plot update, causing an error, probably a race condition

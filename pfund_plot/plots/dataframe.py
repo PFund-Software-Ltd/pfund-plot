@@ -81,7 +81,7 @@ def dataframe_plot(
     iframe_style = None
     
     if dataframe_backend == DataFrameBackend.tabulator:
-        if max_streaming_data < SUGGESTED_MIN_STREAMING_DATA_FOR_TABULATOR:
+        if max_streaming_data is not None and max_streaming_data < SUGGESTED_MIN_STREAMING_DATA_FOR_TABULATOR:
             # FIXME: this is a workaround for a bug in panel Tabulator, see if panel will fix it, or create a github issue
             print_warning(
                 f"max_streaming_data < {SUGGESTED_MIN_STREAMING_DATA_FOR_TABULATOR} will lead to buggy behaviors (possibly a bug in panel Tabulator's rollover). "
