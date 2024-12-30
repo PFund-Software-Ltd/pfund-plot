@@ -88,4 +88,3 @@ def your_plot(
 
 For a full example, see the function `candlestick_plot()` in `pfund_plot/plots/candlestick.py`.
 It is a standard way to make a plot using hvplot, and pn.state.add_periodic_callback() to make the plot streaming.
-
