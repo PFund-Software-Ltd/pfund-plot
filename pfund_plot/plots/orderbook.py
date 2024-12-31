@@ -40,7 +40,7 @@ def orderbook_plot(
         display_mode=display_mode,
         streaming=streaming,
         streaming_freq=streaming_freq,
-        dataframe_backend='perspective', 
+        backend='perspective', 
         max_streaming_data=1,
         height=height,
         **kwargs

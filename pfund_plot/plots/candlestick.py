@@ -13,7 +13,7 @@ import panel as pn
 import narwhals as nw
 from bokeh.models import HoverTool, CrosshairTool
 
-from pfund_plot.const.enums import DisplayMode, PlottingBackend, DataType
+from pfund_plot.const.enums import DisplayMode, DataType
 from pfund_plot.utils.validate import validate_data_type
 from pfund_plot.renderer import render
 
@@ -129,7 +129,7 @@ def candlestick_plot(
     # TODO: using tick data to update the current candlestick
     
     
-    display_mode, plotting_backend = DisplayMode[display_mode.lower()], PlottingBackend.bokeh
+    display_mode = DisplayMode[display_mode.lower()]
     data_type: DataType = validate_data_type(data, streaming, import_hvplot=True)
     if data_type == DataType.datafeed:
         # TODO: get streaming data in the format of dataframe, and then call _validate_df
@@ -231,4 +231,4 @@ def candlestick_plot(
             sizing_mode='stretch_both',
             name=DEFAULT_STYLE['title'],
         )
-    return render(fig, display_mode, raw_figure=raw_figure, plotting_backend=plotting_backend, periodic_callback=periodic_callback)
+    return render(fig, display_mode, raw_figure=raw_figure, periodic_callback=periodic_callback)

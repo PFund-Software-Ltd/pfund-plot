@@ -34,7 +34,7 @@ DEFAULT_IFRAME_STYLE = {
 def dataframe_plot(
     data: tDataFrame | BaseFeed,
     display_mode: tDISPLAY_MODE = "notebook",
-    dataframe_backend: tDATAFRAME_BACKEND = "tabulator",
+    backend: tDATAFRAME_BACKEND = "tabulator",
     streaming: bool = False,
     streaming_freq: int = 1000,  # in milliseconds
     max_streaming_data: int | None = None,
@@ -52,7 +52,7 @@ def dataframe_plot(
         streaming_freq: the update frequency of the streaming data in milliseconds
         max_streaming_data: maximum number of data points used when streaming.
             If None, data will continue to grow unbounded.
-        dataframe_backend: backend to use for the dataframe plot.
+        backend: backend to use for the dataframe plot.
             e.g. 'tabulator' or 'perspective'
             use Perspective if data size is large or more complicated data manipulation is needed.
         page_size: number of data points to display on each page when using Tabulator backend.
@@ -68,7 +68,7 @@ def dataframe_plot(
     and https://panel.holoviz.org/reference/panes/Perspective.html for Perspective backend.
     '''
 
-    display_mode, dataframe_backend = DisplayMode[display_mode.lower()], DataFrameBackend[dataframe_backend.lower()]
+    display_mode, backend = DisplayMode[display_mode.lower()], DataFrameBackend[backend.lower()]
     data_type: DataType = validate_data_type(data, streaming, import_hvplot=False)
     if data_type == DataType.datafeed:
         # TODO: get streaming data in the format of dataframe, and then call _validate_df
@@ -77,10 +77,10 @@ def dataframe_plot(
     else:
         df = data
     df = convert_to_pandas_df(df)
-    use_iframe_in_notebook = streaming or (dataframe_backend == DataFrameBackend.perspective)
+    use_iframe_in_notebook = streaming or (backend == DataFrameBackend.perspective)
     iframe_style = None
     
-    if dataframe_backend == DataFrameBackend.tabulator:
+    if backend == DataFrameBackend.tabulator:
         if max_streaming_data is not None and max_streaming_data < SUGGESTED_MIN_STREAMING_DATA_FOR_TABULATOR:
             # FIXME: this is a workaround for a bug in panel Tabulator, see if panel will fix it, or create a github issue
             print_warning(
@@ -109,7 +109,7 @@ def dataframe_plot(
             },
             **kwargs
         )
-    elif dataframe_backend == DataFrameBackend.perspective:
+    elif backend == DataFrameBackend.perspective:
         data_size = df.shape[0]
         if data_size > SUGGESTED_MAX_DATA_SIZE_FOR_PERSPECTIVE:
             print_warning(f"Data size is large (data_size={data_size}), consider using Tabulator backend, which supports for better performance.")
@@ -130,7 +130,7 @@ def dataframe_plot(
             **kwargs
         )
     else:
-        raise ValueError(f"Unsupported dataframe backend: {dataframe_backend}")
+        raise ValueError(f"Unsupported dataframe backend: {backend}")
     
     if not streaming:
         periodic_callback = None
@@ -144,9 +144,9 @@ def dataframe_plot(
             new_data['symbol'] = f'AAPL_{n}'
             n += 1
 
-            if dataframe_backend == DataFrameBackend.tabulator:
+            if backend == DataFrameBackend.tabulator:
                 table.stream(new_data, follow=watch, rollover=max_streaming_data)
-            elif dataframe_backend == DataFrameBackend.perspective:
+            elif backend == DataFrameBackend.perspective:
                 table.stream(new_data, rollover=max_streaming_data)
         periodic_callback = pn.state.add_periodic_callback(_update_table, period=streaming_freq, start=False)
         

@@ -13,6 +13,7 @@ from pfund_plot.plots.candlestick import (
     candlestick_plot as ohlc,
     candlestick_plot as kline,
 )
+from pfund_plot.layout import layout_plot as layout
 
 
 hvplot.extension('bokeh', 'plotly')

@@ -1,8 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Literal
 if TYPE_CHECKING:
-    from bokeh.plotting import figure
-    from plotly.graph_objects import Figure
     from panel.layout import Panel
     from panel.widgets import Widget
     from panel.pane import Pane
@@ -19,7 +17,7 @@ import panel as pn
 import holoviews as hv
 
 from pfund import print_warning
-from pfund_plot.const.enums import DisplayMode, PlottingBackend, NotebookType
+from pfund_plot.const.enums import DisplayMode, NotebookType
 from pfund_plot.utils.utils import get_notebook_type, get_free_port
     
 
@@ -61,7 +59,6 @@ def render(
     fig: Overlay | Panel | Pane | Widget,
     display_mode: Literal["notebook", "browser", "desktop"] | DisplayMode,
     raw_figure: bool = False,
-    plotting_backend: Literal["bokeh", "plotly"] | PlottingBackend | None = None,
     periodic_callback: PeriodicCallback | None = None,
     use_iframe_in_notebook: bool = False,
     iframe_style: str | None = None,
@@ -84,13 +81,8 @@ def render(
     '''
     if isinstance(display_mode, str):
         display_mode = DisplayMode[display_mode.lower()]
-    if isinstance(plotting_backend, str):
-        plotting_backend = PlottingBackend[plotting_backend.lower()]
 
     if raw_figure:
-        assert plotting_backend is not None, "plotting_backend must be provided when raw_figure is True"
-        # fig is of type "Overlay" -> convert to tFigure (bokeh figure or plotly figure)
-        fig: figure | Figure = hv.render(fig, backend=plotting_backend.value)
         return fig
     else:
         if display_mode == DisplayMode.notebook:
