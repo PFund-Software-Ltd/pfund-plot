@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pfund-plot"
-version = "0.0.1.dev2"
+version = "0.0.1.dev3"
 description = "A library for financial data visualization, dashboard creation, and template sharing."
 license = "Apache-2.0"
 authors = ["stephenyau <softwareentrepreneer+pfund-plot@gmail.com>"]
