@@ -58,7 +58,6 @@ def _handle_periodic_callback(periodic_callback: PeriodicCallback | None):
 def render(
     fig: Overlay | Panel | Pane | Widget,
     display_mode: Literal["notebook", "browser", "desktop"] | DisplayMode,
-    raw_figure: bool = False,
     periodic_callback: PeriodicCallback | None = None,
     use_iframe_in_notebook: bool = False,
     iframe_style: str | None = None,
@@ -69,8 +68,6 @@ def render(
             supports plots from "hvplot", "holoviews" and panels, panes or widgets from "panel"
         display_mode: the mode to display the plot.
             supports "notebook", "browser" and "desktop"
-        raw_figure: if True, return the figure object instead of rendering it.
-            useful for customizing the figure.
         plotting_backend: the backend to use for rendering the figure.
             supports "bokeh" and "plotly"
         periodic_callback: panel's periodic callback to stream updates to the plot.
@@ -82,54 +79,51 @@ def render(
     if isinstance(display_mode, str):
         display_mode = DisplayMode[display_mode.lower()]
 
-    if raw_figure:
-        return fig
-    else:
-        if display_mode == DisplayMode.notebook:
-            if not use_iframe_in_notebook:
-                panel_fig: Panel | Widget = fig
-            else:
-                if iframe_style is None:
-                    print_warning("No iframe_style is provided for iframe in notebook")
-                port = get_free_port()
-                server: StoppableThread = pn.serve(fig, show=False, threaded=True, port=port)
-                panel_fig: Pane = pn.pane.HTML(
-                    f'''
-                    <iframe 
-                        src="http://localhost:{port}" 
-                        style="{iframe_style}"
-                    </iframe>
-                    ''',
-                )
-            _handle_periodic_callback(periodic_callback)
-            return panel_fig
-        elif display_mode == DisplayMode.browser:
-            server: StoppableThread = pn.serve(fig, show=True, threaded=True)
-            _handle_periodic_callback(periodic_callback)
-            return server
-        elif display_mode == DisplayMode.desktop:
+    if display_mode == DisplayMode.notebook:
+        if not use_iframe_in_notebook:
+            panel_fig: Panel | Widget = fig
+        else:
+            if iframe_style is None:
+                print_warning("No iframe_style is provided for iframe in notebook")
             port = get_free_port()
             server: StoppableThread = pn.serve(fig, show=False, threaded=True, port=port)
-            title = getattr(fig, 'name', "PFund Plot")
-            window_ready = Event()
-            def run_process():
-                try:
-                    # NOTE: need to run in a separate process, otherwise jupyter notebook will hang after closing the webview window
-                    process = Process(target=run_webview, name=title, args=(title, port, window_ready,), daemon=True)
-                    process.start()
-                    process.join()
-                except Exception as e:
-                    print(f"An error occurred: {e}")
-                finally:
-                    server.stop()
-            # NOTE: need to run the process in a separate thread, otherwise periodic callbacks when streaming=True won't work
-            # because process.join() will block the thread
-            thread = Thread(target=run_process, daemon=True)
-            thread.start()
-            
-            # wait for the window to be ready before starting the periodic callback to prevent data loss when streaming=True
-            window_ready.wait()
-            _handle_periodic_callback(periodic_callback)
-            return server
-        else:
-            raise ValueError(f"Invalid display mode: {display_mode}")
+            panel_fig: Pane = pn.pane.HTML(
+                f'''
+                <iframe 
+                    src="http://localhost:{port}" 
+                    style="{iframe_style}"
+                </iframe>
+                ''',
+            )
+        _handle_periodic_callback(periodic_callback)
+        return panel_fig
+    elif display_mode == DisplayMode.browser:
+        server: StoppableThread = pn.serve(fig, show=True, threaded=True)
+        _handle_periodic_callback(periodic_callback)
+        return server
+    elif display_mode == DisplayMode.desktop:
+        port = get_free_port()
+        server: StoppableThread = pn.serve(fig, show=False, threaded=True, port=port)
+        title = getattr(fig, 'name', "PFund Plot")
+        window_ready = Event()
+        def run_process():
+            try:
+                # NOTE: need to run in a separate process, otherwise jupyter notebook will hang after closing the webview window
+                process = Process(target=run_webview, name=title, args=(title, port, window_ready,), daemon=True)
+                process.start()
+                process.join()
+            except Exception as e:
+                print(f"An error occurred: {e}")
+            finally:
+                server.stop()
+        # NOTE: need to run the process in a separate thread, otherwise periodic callbacks when streaming=True won't work
+        # because process.join() will block the thread
+        thread = Thread(target=run_process, daemon=True)
+        thread.start()
+        
+        # wait for the window to be ready before starting the periodic callback to prevent data loss when streaming=True
+        window_ready.wait()
+        _handle_periodic_callback(periodic_callback)
+        return server
+    else:
+        raise ValueError(f"Invalid display mode: {display_mode}")

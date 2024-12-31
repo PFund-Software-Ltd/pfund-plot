@@ -139,10 +139,6 @@ def candlestick_plot(
         df = data
     df: FrameT = _validate_df(df)
     
-    
-    # Define reactive values    
-    max_num_data = pn.rx(df.shape[0])
-    
     # Main Component: candlestick plot
     def _create_plot(_df: FrameT, _num_data: int):
         plot_df: tDataFrame = _df.tail(_num_data).to_native()
@@ -164,31 +160,35 @@ def candlestick_plot(
             )
             .opts(**_get_style(_df, display_mode, height, width))
         )
-
-    # Side Components 1: data points slider
-    points_slider = pn.widgets.IntSlider(
-        name='Number of Most Recent Data Points', 
-        value=min(num_data, max_num_data.rx.value),
-        start=num_data,
-        end=max_num_data,
-        step=slider_step,
-    )
-    
-    # Side Components 2: show all data button
-    show_all_data_button = pn.widgets.Button(
-        name='Show All',
-        button_type='primary',
-    )
-    def max_out_slider(event):
-        points_slider.value = max_num_data.rx.value
-    show_all_data_button.on_click(max_out_slider)
-    
-
-    periodic_callback = None
+        
     if raw_figure:
         fig: Overlay = _create_plot(df, _num_data=num_data)
+        return fig
     else:
+        # Define reactive values    
+        max_num_data = pn.rx(df.shape[0])
+        
+        # Side Components 1: data points slider
+        points_slider = pn.widgets.IntSlider(
+            name='Number of Most Recent Data Points', 
+            value=min(num_data, max_num_data.rx.value),
+            start=num_data,
+            end=max_num_data,
+            step=slider_step,
+        )
+        
+        # Side Components 2: show all data button
+        show_all_data_button = pn.widgets.Button(
+            name='Show All',
+            button_type='primary',
+        )
+        def max_out_slider(event):
+            points_slider.value = max_num_data.rx.value
+        show_all_data_button.on_click(max_out_slider)
+        
+
         if not streaming:
+            periodic_callback = None
             plot_pane = pn.pane.HoloViews(
                 pn.bind(_create_plot, _df=df, _num_data=points_slider)
             )
@@ -231,4 +231,4 @@ def candlestick_plot(
             sizing_mode='stretch_both',
             name=DEFAULT_STYLE['title'],
         )
-    return render(fig, display_mode, raw_figure=raw_figure, periodic_callback=periodic_callback)
+        return render(fig, display_mode, periodic_callback=periodic_callback)
