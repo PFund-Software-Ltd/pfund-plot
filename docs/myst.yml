@@ -18,6 +18,7 @@ project:
           children:
             - file: getting-started/quickstart/candlestick.ipynb
             - file: getting-started/quickstart/dataframe.ipynb
+    - file: layout.ipynb
     - file: customization.ipynb
     - file: rendering.ipynb
     - file: cli_commands.md

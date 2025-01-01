@@ -17,6 +17,7 @@ from pfund_plot.const.enums import DisplayMode, DataType, DataFrameBackend, Note
 from pfund_plot.utils.validate import validate_data_type
 from pfund_plot.utils.utils import get_notebook_type, get_sizing_mode
 from pfund_plot.renderer import render
+from pfund_plot.state import state
 
 
 __all__ = ['dataframe_plot']
@@ -71,6 +72,8 @@ def dataframe_plot(
     '''
 
     display_mode, backend = DisplayMode[display_mode.lower()], DataFrameBackend[backend.lower()]
+    if state.layout.in_layout:
+        streaming = streaming or state.layout.streaming
     data_type: DataType = validate_data_type(data, streaming, import_hvplot=False)
     if data_type == DataType.datafeed:
         # TODO: get streaming data in the format of dataframe, and then call _validate_df
@@ -79,9 +82,10 @@ def dataframe_plot(
     else:
         df = data
     df = convert_to_pandas_df(df)
-    use_iframe_in_notebook = (backend == DataFrameBackend.perspective)
-    iframe_style = None
+
+    use_iframe_in_notebook, iframe_style = False, None
     if display_mode == DisplayMode.notebook:
+        use_iframe_in_notebook = (backend == DataFrameBackend.perspective)
         height = height or DEFAULT_HEIGHT_FOR_NOTEBOOK
     if 'sizing_mode' not in kwargs:
         kwargs['sizing_mode'] = get_sizing_mode(height, width)
@@ -96,15 +100,17 @@ def dataframe_plot(
             )
             max_streaming_data = SUGGESTED_MIN_STREAMING_DATA_FOR_TABULATOR
         notebook_type: NotebookType = get_notebook_type()
+        # FIXME: this is a workaround for a bug in panel Tabulator, see if panel will fix it, or create a github issue
+        if display_mode == DisplayMode.notebook and notebook_type in [NotebookType.jupyter, NotebookType.marimo]:
+            pagination = 'remote'
+        else:
+            pagination = 'local'
         table: Widget = pn.widgets.Tabulator(
             df,
             page_size=page_size if not max_streaming_data else max(page_size, max_streaming_data), 
             header_filters=header_filters,
             disabled=True,  # not allow user to edit the table
-            # HACK: jupyter notebook is running in a server, use remote pagination to work around the update error when streaming=True
-            # the error is: "ValueError: Must have equal len keys and value when setting with an iterable"
-            # FIXME: this is a workaround for a bug in panel Tabulator, see if panel will fix it, or create a github issue
-            pagination='local' if notebook_type == NotebookType.vscode else 'remote',
+            pagination=pagination,
             formatters={
                 # NOTE: %f somehow doesn't work for microseconds, and %N (nanoseconds) only preserves up to milliseconds precision
                 # so just use %3N to display milliseconds precision
@@ -148,7 +154,8 @@ def dataframe_plot(
             # TEMP: fake streaming data
             # NOTE: must be pandas dataframe, pandas series, or dict
             new_data = df.tail(1)
-            new_data['symbol'] = f'AAPL_{n}'
+            if 'symbol' in new_data.columns:
+                new_data['symbol'] = f'AAPL_{n}'
             n += 1
 
             if backend == DataFrameBackend.tabulator:
@@ -160,7 +167,7 @@ def dataframe_plot(
     return render(
         table, 
         display_mode, 
-        periodic_callback=periodic_callback, 
+        periodic_callbacks=[periodic_callback], 
         use_iframe_in_notebook=use_iframe_in_notebook,
         iframe_style=iframe_style,
     )

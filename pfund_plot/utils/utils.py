@@ -22,7 +22,7 @@ def is_daily_data(df: FrameT) -> bool:
     return delta == datetime.timedelta(days=1)
 
 
-def get_notebook_type() -> NotebookType:
+def get_notebook_type() -> NotebookType | None:
     marimo_spec = importlib.util.find_spec("marimo")
     if marimo_spec is not None:
         import marimo as mo
@@ -32,7 +32,11 @@ def get_notebook_type() -> NotebookType:
     if any(key.startswith(('JUPYTER_', 'JPY_')) for key in os.environ):
         return NotebookType.jupyter
     
-    return NotebookType.vscode
+    if 'VSCODE_PID' in os.environ:
+        return NotebookType.vscode
+    
+    # None means not in a notebook environment
+    return None
 
 
 def get_free_port():

@@ -17,6 +17,7 @@ from pfund_plot.const.enums import DisplayMode, DataType
 from pfund_plot.utils.validate import validate_data_type
 from pfund_plot.utils.utils import get_sizing_mode
 from pfund_plot.renderer import render
+from pfund_plot.state import state
 
 
 __all__ = ['candlestick_plot']
@@ -130,6 +131,8 @@ def candlestick_plot(
     
     
     display_mode = DisplayMode[display_mode.lower()]
+    if state.layout.in_layout:
+        streaming = streaming or state.layout.streaming
     data_type: DataType = validate_data_type(data, streaming, import_hvplot=True)
     if data_type == DataType.datafeed:
         # TODO: get streaming data in the format of dataframe, and then call _validate_df
@@ -236,4 +239,4 @@ def candlestick_plot(
             height=height,
             width=width,
         )
-        return render(fig, display_mode, periodic_callback=periodic_callback)
+        return render(fig, display_mode, periodic_callbacks=[periodic_callback])
