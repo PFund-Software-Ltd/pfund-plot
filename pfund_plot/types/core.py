@@ -5,5 +5,5 @@ from panel.pane import Pane
 from holoviews.core.overlay import Overlay
 
 
-tFigure = Overlay | Panel | Pane | Widget
-tOutput = tFigure | StoppableThread
+tFigure = Panel | Pane | Widget
+tOutput = tFigure | Overlay | StoppableThread

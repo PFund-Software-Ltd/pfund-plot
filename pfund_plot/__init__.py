@@ -17,7 +17,7 @@ from pfund_plot.layout import layout_plot as layout
 
 
 hvplot.extension('bokeh', 'plotly')
-pn.extension('tabulator', 'perspective')
+pn.extension('tabulator', 'perspective', 'gridstack')
 # used to throttle updates in panel plots
 # NOTE: without it, e.g. dragging a slider will cause the plot to update rapidly and lead to an error
 pn.config.throttled = True
@@ -33,4 +33,5 @@ __all__ = (
     "kline",
     "dataframe",
     "df",
+    "layout",
 )

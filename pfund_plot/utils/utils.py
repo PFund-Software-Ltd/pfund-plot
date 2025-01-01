@@ -40,3 +40,14 @@ def get_free_port():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind(('', 0))  # Bind to a random free port
         return s.getsockname()[1]
+
+
+def get_sizing_mode(height: int | None, width: int | None) -> str | None:
+    if height is None and width is None:
+        return 'stretch_both'
+    elif height is None:
+        return 'stretch_height'
+    elif width is None:
+        return 'stretch_width'
+    else:
+        return None

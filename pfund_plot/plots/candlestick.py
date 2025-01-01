@@ -15,6 +15,7 @@ from bokeh.models import HoverTool, CrosshairTool
 
 from pfund_plot.const.enums import DisplayMode, DataType
 from pfund_plot.utils.validate import validate_data_type
+from pfund_plot.utils.utils import get_sizing_mode
 from pfund_plot.renderer import render
 
 
@@ -54,15 +55,14 @@ def _validate_df(df: IntoFrameT) -> FrameT:
     return df
 
 
-def _get_style(df: FrameT, display_mode: DisplayMode, height: int | None, width: int | None) -> dict:
+def _get_style(df: FrameT, raw_figure: bool, height: int | None = None, width: int | None = None) -> dict:
     style = DEFAULT_STYLE.copy()
-    if height is not None:
-        style['height'] = height
-    else:
-        if display_mode == DisplayMode.notebook:
-            style['height'] = DEFAULT_HEIGHT_FOR_NOTEBOOK
-    if width is not None:
-        style['width'] = width
+    # set height and width if raw_figure is True since pn.Column won't be used
+    if raw_figure:
+        if height is not None:
+            style['height'] = height
+        if width is not None:
+            style['width'] = width
     product_or_symbol = None
     if 'symbol' in df.columns:
         product_or_symbol = df.select('symbol').row(0)[0]
@@ -138,6 +138,9 @@ def candlestick_plot(
     else:
         df = data
     df: FrameT = _validate_df(df)
+    if display_mode == DisplayMode.notebook:
+        height = height or DEFAULT_HEIGHT_FOR_NOTEBOOK
+        
     
     # Main Component: candlestick plot
     def _create_plot(_df: FrameT, _num_data: int):
@@ -158,7 +161,7 @@ def candlestick_plot(
                 responsive=True,
                 bgcolor=bg_color,
             )
-            .opts(**_get_style(_df, display_mode, height, width))
+            .opts(**_get_style(_df, raw_figure, height, width))
         )
         
     if raw_figure:
@@ -228,7 +231,9 @@ def candlestick_plot(
         fig: Panel = pn.Column(
             plot_pane,
             pn.Row(points_slider, show_all_data_button, align='center'),
-            sizing_mode='stretch_both',
             name=DEFAULT_STYLE['title'],
+            sizing_mode=get_sizing_mode(height, width),
+            height=height,
+            width=width,
         )
         return render(fig, display_mode, periodic_callback=periodic_callback)

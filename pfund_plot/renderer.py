@@ -6,7 +6,6 @@ if TYPE_CHECKING:
     from panel.pane import Pane
     from panel.io.threads import StoppableThread
     from panel.io.state import PeriodicCallback
-    from holoviews.core.overlay import Overlay
     from pfund_plot.types.core import tOutput
     
 import time
@@ -14,7 +13,6 @@ from threading import Thread
 from multiprocessing import Process, Event
 
 import panel as pn
-import holoviews as hv
 
 from pfund import print_warning
 from pfund_plot.const.enums import DisplayMode, NotebookType
@@ -56,7 +54,7 @@ def _handle_periodic_callback(periodic_callback: PeriodicCallback | None):
 
 
 def render(
-    fig: Overlay | Panel | Pane | Widget,
+    fig: Panel | Pane | Widget,
     display_mode: Literal["notebook", "browser", "desktop"] | DisplayMode,
     periodic_callback: PeriodicCallback | None = None,
     use_iframe_in_notebook: bool = False,
@@ -94,6 +92,12 @@ def render(
                     style="{iframe_style}"
                 </iframe>
                 ''',
+            )
+            # let iframe inherit the height, width and sizing_mode from the figure
+            panel_fig.param.update(
+                height=fig.height,
+                width=fig.width,
+                sizing_mode=fig.sizing_mode,
             )
         _handle_periodic_callback(periodic_callback)
         return panel_fig
