@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from narwhals.typing import FrameT
+    from narwhals.typing import Frame
 
 import os
 import datetime
@@ -10,7 +10,7 @@ import importlib.util
 from pfund_plot.const.enums.notebook_type import NotebookType
 
 
-def is_daily_data(df: FrameT) -> bool:
+def is_daily_data(df: Frame) -> bool:
     '''Checks if the 'resolution' column is '1d' and the "ts" column by comparing the first two rows to see if the data is daily data.'''
     if 'resolution' in df.columns and df.select('resolution').row(0)[0] == '1d':
         return True

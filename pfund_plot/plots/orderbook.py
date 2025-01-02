@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from narwhals.typing import IntoFrameT, FrameT
+    from narwhals.typing import IntoFrame, Frame
     from pfeed.types.core import tDataFrame
     from pfeed.feeds.base_feed import BaseFeed
     from pfund_plot.types.literals import tDISPLAY_MODE, tDATAFRAME_BACKEND

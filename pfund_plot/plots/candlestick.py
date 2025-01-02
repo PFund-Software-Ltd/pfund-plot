@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from narwhals.typing import IntoFrameT, FrameT
+    from narwhals.typing import IntoFrame, Frame
     from pfeed.types.core import tDataFrame
     from pfeed.feeds.base_feed import BaseFeed
     from pfund_plot.types.literals import tDISPLAY_MODE
@@ -33,9 +33,9 @@ DEFAULT_STYLE = {
 DEFAULT_HEIGHT_FOR_NOTEBOOK = 280
 
 
-def _validate_df(df: IntoFrameT) -> FrameT:
+def _validate_df(df: IntoFrame) -> Frame:
     import datetime
-    df: FrameT = nw.from_native(df)
+    df: Frame = nw.from_native(df)
     if isinstance(df, nw.LazyFrame):
         df = df.collect()
     # convert all columns to lowercase
@@ -56,7 +56,7 @@ def _validate_df(df: IntoFrameT) -> FrameT:
     return df
 
 
-def _get_style(df: FrameT, raw_figure: bool, height: int | None = None, width: int | None = None) -> dict:
+def _get_style(df: Frame, raw_figure: bool, height: int | None = None, width: int | None = None) -> dict:
     style = DEFAULT_STYLE.copy()
     # set height and width if raw_figure is True since pn.Column won't be used
     if raw_figure:
@@ -74,7 +74,7 @@ def _get_style(df: FrameT, raw_figure: bool, height: int | None = None, width: i
     return style
 
 
-def _create_hover_tool(df: FrameT) -> HoverTool:
+def _create_hover_tool(df: Frame) -> HoverTool:
     from pfund_plot.utils.utils import is_daily_data
     ts_format = '%Y-%m-%d' if is_daily_data(df) else '%Y-%m-%d %H:%M:%S'
     return HoverTool(
@@ -140,13 +140,13 @@ def candlestick_plot(
         pass
     else:
         df = data
-    df: FrameT = _validate_df(df)
+    df: Frame = _validate_df(df)
     if display_mode == DisplayMode.notebook:
         height = height or DEFAULT_HEIGHT_FOR_NOTEBOOK
         
     
     # Main Component: candlestick plot
-    def _create_plot(_df: FrameT, _num_data: int):
+    def _create_plot(_df: Frame, _num_data: int):
         plot_df: tDataFrame = _df.tail(_num_data).to_native()
         return (
             plot_df

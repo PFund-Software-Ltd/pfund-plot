@@ -46,9 +46,11 @@ pip install pfund-plot
 
 ## Usage
 ```python
+import pfeed as pe
 import pfund_plot as plt
 
-# TODO: get some sample data using pfeed
-data = ...
-fig = plt.ohlc(data)
+feed = pe.YahooFinanceFeed()
+df = feed.get_historical_data(product='AAPL_USD_STK', resolution='1d', rollback_period='1y')
+
+fig = plt.ohlc(df, display_mode='browser', streaming=False)
 ```
