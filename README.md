@@ -8,6 +8,8 @@
 [![PyPI](https://img.shields.io/pypi/v/pfund-plot.svg)](https://pypi.org/project/pfund-plot)
 ![PyPI - Support Python Versions](https://img.shields.io/pypi/pyversions/pfund-plot)
 
+> **This library is NOT ready for use, please wait for 0.1.0 release.**
+
 ## Problem
 Traders often need to quickly visualize their data without investing time in learning new tools.
 For example, plotting an orderbook should be as simple as writing a single line of code.
@@ -27,7 +29,6 @@ We created a high-level plotting library that combines the best features from ex
 
 PFund-Plot is a super high-level, out-of-the-box, domain-specific plotting library designed for traders that supports **financial data visualization**, **dashboard creation**, and **template sharing**.
 
-> This library is not ready, please wait for version 0.0.1 release.
 
 ## Core Features
 - [x] Multi-Display Mode: support displaying plots in a *Jupyter notebook*, *Marimo notebook*, *browser* and *desktop window*
