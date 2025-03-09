@@ -1,13 +1,12 @@
-[tool.poetry]
+[project]
 name = "pfund-plot"
 version = "0.0.1.dev3"
 description = "A library for financial data visualization, dashboard creation, and template sharing."
 license = "Apache-2.0"
-authors = ["stephenyau <softwareentrepreneer+pfund-plot@gmail.com>"]
+authors = [
+    {name = "Stephen Yau", email = "softwareentrepreneer+pfund-plot@gmail.com"}
+]
 readme = "README.md"
-homepage = "https://pfund.ai"
-repository = "https://github.com/PFund-Software-Ltd/pfund-plot"
-documentation = "https://pfund-plot-docs.pfund.ai"
 keywords = ["financial data", "plotting", "dashboards", "charts", "data visualization", "graphs", "plots"]
 classifiers = [
     "Operating System :: OS Independent",
@@ -23,36 +22,34 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
 ]
-
-[tool.poetry.dependencies]
-python = "^3.10"
-pfeed = "^0.0.2"
-hvplot = {extras = ["plotly", "datashader"], version = "^0.11.2"}
-panel = "^1.5.5"
-pywebview = "^5.3.2"
-papermill = "^2.6.0"
-voila = "^0.5.8"
-jupyter-bokeh = "^4.0.5"
-narwhals = "^1.20.1"
-streamlit = {version = "^1.41.1", optional = true}
-dash = {version = "^2.18.1", optional = true}
-taipy = {version = "^4.0.0", optional = true}
-gradio = {version = "^5.9.1", optional = true}
-
-[tool.poetry.extras]
-streamlit = ["streamlit"]
-dash = ["dash"]
-taipy = ["taipy"]
-gradio = ["gradio"]
-solara = ["solara"]
-all = [
-    "streamlit", "dash", "taipy", "gradio", "solara",
+requires-python = ">=3.10"
+dependencies = [
+    "pfeed (>=0.0.2,<0.1.0)",
+    "hvplot[plotly,datashader] (>=0.11.2,<0.12.0)",
+    "panel (>=1.5.5,<2.0.0)",
+    "pywebview (>=5.3.2,<6.0.0)",
+    "papermill (>=2.6.0,<3.0.0)",
+    "voila (>=0.5.8,<0.6.0)",
+    "jupyter-bokeh (>=4.0.5,<5.0.0)",
 ]
 
-[tool.poetry.scripts]
+[project.optional-dependencies]
+streamlit = ["streamlit (>=1.41.1,<2.0.0)"]
+dash = ["dash (>=2.18.1,<3.0.0)"]
+gradio = ["gradio (>=5.9.1,<6.0.0)"]
+# taipy = ["taipy (>=4.0.0,<5.0.0)"]
+solara = ["solara (>=1.44.1,<2.0.0)"]
+rio = ["rio-ui (>=0.11.1,<1.0.0) ; python_version < '4.0.0'"]
+
+[project.scripts]
 pfund-plot = "pfund_plot.main:run_cli"
 pfplot = "pfund_plot.main:run_cli"
 pfplt = "pfund_plot.main:run_cli"
+
+[project.urls]
+homepage = "https://pfund.ai"
+repository = "https://github.com/PFund-Software-Ltd/pfund-plot"
+documentation = "https://pfund-plot-docs.pfund.ai"
 
 [tool.poetry.group.dev]
 optional = true
@@ -78,5 +75,5 @@ bandit = "^1.7.10"
 pre-commit = "^4.0.1"
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
