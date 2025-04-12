@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from narwhals.typing import IntoFrame, Frame
-    from pfeed.types.core import tDataFrame
+    from pfeed.typing import GenericFrame
     from pfeed.feeds.base_feed import BaseFeed
     from pfund_plot.types.literals import tDISPLAY_MODE, tDATAFRAME_BACKEND
     from pfund_plot.types.core import tOutput
@@ -19,7 +19,7 @@ from pfund_plot.renderer import render
 
 # TODO: use perspective to plot orderbook
 def orderbook_plot(
-    data: tDataFrame | BaseFeed,
+    data: GenericFrame | BaseFeed,
     display_mode: tDISPLAY_MODE = 'notebook',
     streaming: bool = False,
     streaming_freq: int = 1000,  # in milliseconds

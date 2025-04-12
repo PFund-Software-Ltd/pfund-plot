@@ -1,6 +1,6 @@
 import click
 
-from pfeed.const.enums import DataTool
+from pfeed.enums import DataTool
 from pfund_plot.const.paths import PROJ_NAME
 
 

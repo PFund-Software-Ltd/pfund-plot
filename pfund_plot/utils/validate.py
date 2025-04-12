@@ -11,13 +11,13 @@ except ImportError:
     dd = None
 import pandas as pd
 
-from pfeed.types.core import tDataFrame, is_dataframe
+from pfeed.typing import GenericFrame, is_dataframe
 from pfeed.feeds.base_feed import BaseFeed
 
 from pfund_plot.const.enums import DataType
 
 
-def _import_hvplot(data: tDataFrame | BaseFeed) -> None:
+def _import_hvplot(data: GenericFrame | BaseFeed) -> None:
     if is_dataframe(data):
         if isinstance(data, pd.DataFrame):
             import hvplot.pandas
@@ -33,7 +33,7 @@ def _import_hvplot(data: tDataFrame | BaseFeed) -> None:
         raise ValueError("Input data must be a dataframe or pfeed's feed object")
 
 
-def validate_data_type(data: tDataFrame | BaseFeed, streaming: bool, import_hvplot: bool = True) -> DataType:
+def validate_data_type(data: GenericFrame | BaseFeed, streaming: bool, import_hvplot: bool = True) -> DataType:
     if is_dataframe(data):
         data_type = DataType.dataframe
     elif isinstance(data, BaseFeed):

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from pfeed.types.core import tDataFrame
+    from pfeed.typing import GenericFrame
     from pfeed.feeds.base_feed import BaseFeed
     from pfund_plot.types.literals import tDISPLAY_MODE, tDATAFRAME_BACKEND
     from pfund_plot.types.core import tOutput
@@ -12,7 +12,7 @@ import panel as pn
 from bokeh.models.widgets.tables import DateFormatter
 
 from pfund import print_warning
-from pfeed.etl import convert_to_pandas_df
+from pfeed._etl.base import convert_to_pandas_df
 from pfund_plot.const.enums import DisplayMode, DataType, DataFrameBackend, NotebookType
 from pfund_plot.utils.validate import validate_data_type
 from pfund_plot.utils.utils import get_notebook_type, get_sizing_mode
@@ -34,7 +34,7 @@ DEFAULT_HEIGHT_FOR_NOTEBOOK = 650
 
 # EXTEND: maybe add some common functionalities here, e.g. search, sort, filter etc. not sure what users want for now.
 def dataframe_plot(
-    data: tDataFrame | BaseFeed,
+    data: GenericFrame | BaseFeed,
     display_mode: tDISPLAY_MODE = "notebook",
     backend: tDATAFRAME_BACKEND = "tabulator",
     streaming: bool = False,

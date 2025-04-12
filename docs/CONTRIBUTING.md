@@ -69,14 +69,14 @@ e.g. there are also `pn.pane.Bokeh`, `pn.pane.Matplotlib`, `pn.pane.ECharts`, `p
 ## Example
 Your function will look something like this:
 ```python
-# tDataFrame is just a type alias for pandas, polars and dask dataframes
-from pfeed.types.core import tDataFrame
+# GenericFrame is just a type alias for pandas, polars and dask dataframes
+from pfeed.typing import GenericFrame
 from typing import Literal
 from pfund_plot.renderer import render
 
 
 def your_plot(
-    data: tDataFrame,
+    data: GenericFrame,
     streaming: bool = False,
     display_mode: Literal['notebook', 'browser', 'desktop'] = "notebook",
     raw_figure: bool = False,  # add this if your function uses hvplot

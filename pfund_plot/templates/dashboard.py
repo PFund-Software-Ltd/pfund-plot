@@ -1,4 +1,4 @@
-from pfeed.types.literals import tDATA_SOURCE
+from pfeed.typing import tDATA_SOURCE
 from pfund_plot.templates.template import Template
 from pfund_plot.const.enums import DashboardType
 

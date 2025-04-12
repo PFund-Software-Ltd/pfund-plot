@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from narwhals.typing import IntoFrame, Frame
-    from pfeed.types.core import tDataFrame
+    from pfeed.typing import GenericFrame
     from pfeed.feeds.base_feed import BaseFeed
     from pfund_plot.types.literals import tDISPLAY_MODE
     from pfund_plot.types.core import tOutput
@@ -92,7 +92,7 @@ def _create_hover_tool(df: Frame) -> HoverTool:
 
 
 def candlestick_plot(
-    data: tDataFrame | BaseFeed, 
+    data: GenericFrame | BaseFeed, 
     streaming: bool = False, 
     display_mode: tDISPLAY_MODE = "notebook", 
     num_data: int = 100,
@@ -147,7 +147,7 @@ def candlestick_plot(
     
     # Main Component: candlestick plot
     def _create_plot(_df: Frame, _num_data: int):
-        plot_df: tDataFrame = _df.tail(_num_data).to_native()
+        plot_df: GenericFrame = _df.tail(_num_data).to_native()
         return (
             plot_df
             .hvplot
