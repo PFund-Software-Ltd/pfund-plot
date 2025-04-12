@@ -1,7 +1,7 @@
 import click
 from trogon import tui
 
-from pfund_plot.config_handler import get_config
+from pfund_plot.config import get_config
 from pfund_plot.cli.commands.plot import plot
 from pfund_plot.cli.commands.config import config
 

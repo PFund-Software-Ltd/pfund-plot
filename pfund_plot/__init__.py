@@ -3,7 +3,7 @@ from importlib.metadata import version
 import hvplot
 import panel as pn
 
-from pfund_plot.config_handler import get_config, configure
+from pfund_plot.config import get_config, configure
 from pfund_plot.plots.dataframe import (
     dataframe_plot as dataframe,
     dataframe_plot as df,
@@ -35,3 +35,5 @@ __all__ = (
     "df",
     "layout",
 )
+def __dir__():
+    return sorted(__all__)

@@ -11,7 +11,8 @@ except ImportError:
     dd = None
 import pandas as pd
 
-from pfeed.typing import GenericFrame, is_dataframe
+from pfeed.typing import GenericFrame
+from pfeed.utils.dataframe import is_dataframe
 from pfeed.feeds.base_feed import BaseFeed
 
 from pfund_plot.const.enums import DataType

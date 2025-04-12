@@ -20,7 +20,7 @@ __all__ = [
 
 
 @dataclass
-class ConfigHandler:
+class Configuration:
     data_path: str = str(DATA_PATH)
     cache_path: str = str(CACHE_PATH)
     
@@ -39,7 +39,7 @@ class ConfigHandler:
     
     @classmethod
     def load(cls):
-        '''Loads user's config file and returns a ConfigHandler object'''
+        '''Loads user's config file and returns a Configuration object'''
         CONFIG_FILE_PATH.parent.mkdir(parents=True, exist_ok=True)
         # Create default config from dataclass fields
         default_config = {
@@ -131,6 +131,6 @@ def configure(
     return config
 
 
-def get_config(verbose: bool = False) -> ConfigHandler:
-    ConfigHandler.set_verbose(verbose)
-    return ConfigHandler.get_instance()
+def get_config(verbose: bool = False) -> Configuration:
+    Configuration.set_verbose(verbose)
+    return Configuration.get_instance()

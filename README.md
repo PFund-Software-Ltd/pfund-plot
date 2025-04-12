@@ -1,4 +1,4 @@
-# PFund-Plot
+# PFund-Plot: Financial Charts in One Line of Code
 
 [![Twitter Follow](https://img.shields.io/twitter/follow/pfund_ai?style=social)](https://x.com/pfund_ai)
 ![GitHub stars](https://img.shields.io/github/stars/PFund-Software-Ltd/pfund-plot?style=social)
@@ -9,6 +9,8 @@
 ![PyPI - Support Python Versions](https://img.shields.io/pypi/pyversions/pfund-plot)
 
 > **This library is NOT ready for use, please wait for 0.1.0 release.**
+
+## TL;DR: pfund-plot handles the plotting libraries, so traders just get charts that work
 
 ## Problem
 Traders often need to quickly visualize their data without investing time in learning new tools.
