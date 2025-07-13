@@ -35,7 +35,7 @@ DEFAULT_HEIGHT_FOR_NOTEBOOK = 650
 # EXTEND: maybe add some common functionalities here, e.g. search, sort, filter etc. not sure what users want for now.
 def dataframe_plot(
     data: GenericFrame | BaseFeed,
-    display_mode: tDISPLAY_MODE = "notebook",
+    mode: tDISPLAY_MODE = "notebook",
     backend: tDATAFRAME_BACKEND = "tabulator",
     streaming: bool = False,
     streaming_freq: int = 1000,  # in milliseconds
@@ -50,7 +50,7 @@ def dataframe_plot(
     '''
     Args:
         data: the data to plot, either a dataframe or pfeed's feed object
-        display_mode: where to display the plot, either "notebook", "browser", or "desktop"
+        mode: where to display the plot, either "notebook", "browser", or "desktop"
         streaming: if True, the plot will be updated in real-time as new data is received
         streaming_freq: the update frequency of the streaming data in milliseconds
         max_streaming_data: maximum number of data points used when streaming.
@@ -71,7 +71,7 @@ def dataframe_plot(
     and https://panel.holoviz.org/reference/panes/Perspective.html for Perspective backend.
     '''
 
-    display_mode, backend = DisplayMode[display_mode.lower()], DataFrameBackend[backend.lower()]
+    mode, backend = DisplayMode[mode.lower()], DataFrameBackend[backend.lower()]
     if state.layout.in_layout:
         streaming = streaming or state.layout.streaming
     data_type: DataType = validate_data_type(data, streaming, import_hvplot=False)
@@ -84,7 +84,7 @@ def dataframe_plot(
     df = convert_to_pandas_df(df)
 
     use_iframe_in_notebook, iframe_style = False, None
-    if display_mode == DisplayMode.notebook:
+    if mode == DisplayMode.notebook:
         use_iframe_in_notebook = (backend == DataFrameBackend.perspective)
         height = height or DEFAULT_HEIGHT_FOR_NOTEBOOK
     if 'sizing_mode' not in kwargs:
@@ -101,7 +101,7 @@ def dataframe_plot(
             max_streaming_data = SUGGESTED_MIN_STREAMING_DATA_FOR_TABULATOR
         notebook_type: NotebookType = get_notebook_type()
         # FIXME: this is a workaround for a bug in panel Tabulator, see if panel will fix it, or create a github issue
-        if display_mode == DisplayMode.notebook and notebook_type in [NotebookType.jupyter, NotebookType.marimo]:
+        if mode == DisplayMode.notebook and notebook_type in [NotebookType.jupyter, NotebookType.marimo]:
             pagination = 'remote'
         else:
             pagination = 'local'
@@ -166,7 +166,7 @@ def dataframe_plot(
         
     return render(
         table, 
-        display_mode, 
+        mode, 
         periodic_callbacks=[periodic_callback], 
         use_iframe_in_notebook=use_iframe_in_notebook,
         iframe_style=iframe_style,

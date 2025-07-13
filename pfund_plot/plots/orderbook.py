@@ -20,7 +20,7 @@ from pfund_plot.renderer import render
 # TODO: use perspective to plot orderbook
 def orderbook_plot(
     data: GenericFrame | BaseFeed,
-    display_mode: tDISPLAY_MODE = 'notebook',
+    mode: tDISPLAY_MODE = 'notebook',
     streaming: bool = False,
     streaming_freq: int = 1000,  # in milliseconds
     height: int = 600,
@@ -29,7 +29,7 @@ def orderbook_plot(
     '''
     Args:
         height: height of the orderbook plot in pixels.
-            Only applicable when display_mode is 'notebook'.
+            Only applicable when mode is 'notebook'.
         kwargs: kwargs for pn.pane.Perspective
 
     For all the supported kwargs, and more customization examples,
@@ -37,7 +37,7 @@ def orderbook_plot(
     '''
     return dataframe_plot(
         data, 
-        display_mode=display_mode,
+        mode=mode,
         streaming=streaming,
         streaming_freq=streaming_freq,
         backend='perspective', 

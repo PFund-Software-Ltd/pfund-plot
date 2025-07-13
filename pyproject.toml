@@ -17,40 +17,43 @@ classifiers = [
     "Topic :: Office/Business :: Financial :: Investment",
     "Topic :: Scientific/Engineering :: Visualization",
     "Topic :: Software Development :: Libraries",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
-    "pfeed (>=0.0.4,<0.1.0)",
-    "hvplot[plotly] (>=0.11.2,<0.12.0)",
-    "panel (>=1.6.2,<2.0.0)",
-    "anywidget (>=0.9.18,<0.10.0)",
-    "jupyter-bokeh (>=4.0.5,<5.0.0)",
-    "altair (>=5.5.0,<6.0.0)",
+    "pfeed>=0.0.5",
+    "hvplot>=0.11.3",
+    "panel>=1.7.3",
+    "anywidget>=0.9.18",
+    "altair>=5.5.0",
+    "plotly>=6.2.0",
 ]
 
 [project.optional-dependencies]
 core = [
-    "hvplot[datashader] (>=0.11.2,<0.12.0)",
-    "pywebview (>=5.4.0,<6.0.0)",
-    "marimo[recommended] (>=0.12.8,<0.13.0)", 
-    "notebook (>=7.3.2,<8.0.0)", 
-    "papermill (>=2.6.0,<3.0.0)", 
-    "voila (>=0.5.8,<0.6.0)", 
-    "vegafusion (>=2.0.2,<3.0.0)"
+    "pywebview>=5.4.0",
+    "vegafusion>=2.0.2",
+    "datashader>=0.18.1",
+    "marimo[recommended]>=0.14.10",
+    "litestar[standard]>=2.16.0",
 ]
-# streamlit = ["streamlit (>=1.44.1,<2.0.0)"]
-# dash = ["dash (>=3.0.2,<4.0.0)"]
-# gradio = ["gradio (>=5.23.3,<6.0.0)"]
-# taipy = ["taipy (>=4.0.0,<5.0.0)"]
-# solara = ["solara (>=1.44.1,<2.0.0)"]
-# rio = ["rio-ui (>=0.11.1,<1.0.0) ; python_version < '4.0.0'"]
+jupyter = [
+    "jupyter-bokeh>=4.0.5",
+    "notebook>=7.4.4",
+    "papermill>=2.6.0",
+    "voila>=0.5.8",
+]
+# streamlit = ["streamlit>=1.44.1"]
+# dash = ["dash>=3.0.2"]
+# gradio = ["gradio>=5.23.3"]
+# taipy = ["taipy>=4.0.0"]
+# solara = ["solara>=1.44.1"]
+# rio = ["rio-ui>=0.11.1"]
 
 [project.scripts]
-pfund-plot = "pfund_plot.main:run_cli"
 pfplot = "pfund_plot.main:run_cli"
 pfplt = "pfund_plot.main:run_cli"
 
@@ -59,30 +62,15 @@ homepage = "https://pfund.ai"
 repository = "https://github.com/PFund-Software-Ltd/pfund-plot"
 documentation = "https://pfund-plot-docs.pfund.ai"
 
-[tool.poetry.group.dev]
-optional = true
-
-[tool.poetry.group.dev.dependencies]
-pfeed = {path = "../pfeed", develop = true}
-pfund = {path = "../pfund", develop = true}
-pfolio = {path = "../pfolio", develop = true}
-mtflow = {path = "../mtflow", develop = true}
-bokeh-sampledata = "^2024.2"
-watchfiles = "^1.0.5"
-
-[tool.poetry.group.test]
-optional = true
-
-[tool.poetry.group.test.dependencies]
-pytest = "^8.3.3"
-pytest-cov = "^6.0.0"
-pytest-mock = "^3.14.0"
-pytest-xdist = "^3.6.1"
-tox = "^4.23.2"
-faker = "^33.1.0"
-bandit = "^1.7.10"
-pre-commit = "^4.0.1"
+[dependency-groups]
+dev = [
+    "bokeh-sampledata>=2024.2",
+    "watchfiles>=1.0.5",
+]
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv.sources]
+pfeed = { path = "../pfeed", editable = true }

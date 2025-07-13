@@ -1,0 +1,49 @@
+[workspace]
+authors = ["softwareentrepreneer <softwareentrepreneer+pfund-plot@gmail.com>"]
+channels = ["conda-forge"]
+name = "pfund-plot"
+platforms = ["osx-arm64", "linux-64"]
+version = "0.0.1.dev3"
+
+
+[tasks]
+
+[tasks.test-all]
+depends-on = [
+  { task = "test", environment = "test-py311" },
+  { task = "test", environment = "test-py312" },
+  { task = "test", environment = "test-py313" },
+]
+
+[dependencies]
+python = ">=3.11"
+uv = ">=0.7.11"
+
+[environments]
+core = ["core"]
+dev = ["dev"]
+test-py311 = ["py311", "test"]
+test-py312 = ["py312", "test"]
+test-py313 = ["py313", "test"]
+
+# [feature.core.pypi-dependencies]
+
+[feature.dev.pypi-dependencies]
+ruff = ">=0.11.12"
+
+[feature.test.dependencies]
+pytest = ">=8.4.0"
+pytest-cov = ">=6.1.1"
+pytest-mock = ">=3.14.1"
+pytest-xdist = ">=3.7.0"
+[feature.test.tasks]
+test = "pytest"
+
+[feature.py311.dependencies]
+python = "3.11.*"
+
+[feature.py312.dependencies]
+python = "3.12.*"
+
+[feature.py313.dependencies]
+python = "3.13.*"

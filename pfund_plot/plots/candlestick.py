@@ -94,7 +94,7 @@ def _create_hover_tool(df: Frame) -> HoverTool:
 def candlestick_plot(
     data: GenericFrame | BaseFeed, 
     streaming: bool = False, 
-    display_mode: tDISPLAY_MODE = "notebook", 
+    mode: tDISPLAY_MODE = "notebook", 
     num_data: int = 100,
     raw_figure: bool = False,
     slider_step: int = 100,
@@ -112,7 +112,7 @@ def candlestick_plot(
     Args:
         data: the data to plot, either a dataframe or pfeed's feed object
         streaming: if True, the plot will be updated in real-time as new data is received
-        display_mode: where to display the plot, either "notebook", "browser", or "desktop"
+        mode: where to display the plot, either "notebook", "browser", or "desktop"
         streaming_freq: the update frequency of the streaming data in milliseconds
         raw_figure: if True, returns the raw figure object (e.g. bokeh.plotting.figure or plotly.graph_objects.Figure)
             if False, returns the holoviews.core.overlay.Overlay object
@@ -130,7 +130,7 @@ def candlestick_plot(
     # TODO: using tick data to update the current candlestick
     
     
-    display_mode = DisplayMode[display_mode.lower()]
+    mode = DisplayMode[mode.lower()]
     if state.layout.in_layout:
         streaming = streaming or state.layout.streaming
     data_type: DataType = validate_data_type(data, streaming, import_hvplot=True)
@@ -141,7 +141,7 @@ def candlestick_plot(
     else:
         df = data
     df: Frame = _validate_df(df)
-    if display_mode == DisplayMode.notebook:
+    if mode == DisplayMode.notebook:
         height = height or DEFAULT_HEIGHT_FOR_NOTEBOOK
         
     
@@ -239,4 +239,4 @@ def candlestick_plot(
             height=height,
             width=width,
         )
-        return render(fig, display_mode, periodic_callbacks=[periodic_callback])
+        return render(fig, mode, periodic_callbacks=[periodic_callback])

@@ -65,7 +65,7 @@ def run_callbacks(periodic_callbacks: list[PeriodicCallback], notebook_type: Not
 
 def render(
     fig: Panel | Pane | Widget,
-    display_mode: Literal["notebook", "browser", "desktop"] | DisplayMode,
+    mode: Literal["notebook", "browser", "desktop"] | DisplayMode,
     periodic_callbacks: list[PeriodicCallback] | PeriodicCallback | None = None,
     use_iframe_in_notebook: bool = False,
     iframe_style: str | None = None,
@@ -74,7 +74,7 @@ def render(
     Args:
         fig: the figure to render.
             supports plots from "hvplot", "holoviews" and panels, panes or widgets from "panel"
-        display_mode: the mode to display the plot.
+        mode: the mode to display the plot.
             supports "notebook", "browser" and "desktop"
         plotting_backend: the backend to use for rendering the figure.
             supports "bokeh" and "plotly"
@@ -84,8 +84,8 @@ def render(
             It is a workaround when the plot can't be displayed in a notebook.
         iframe_style: the style of the iframe when use_iframe_in_notebook is True.
     '''
-    if isinstance(display_mode, str):
-        display_mode = DisplayMode[display_mode.lower()]    
+    if isinstance(mode, str):
+        mode = DisplayMode[mode.lower()]    
     
     if isinstance(periodic_callbacks, PeriodicCallback):
         periodic_callbacks = [periodic_callbacks]
@@ -94,7 +94,7 @@ def render(
     # NOTE: handling differs between notebook environment and python script
     is_notebook_env = (notebook_type is not None)
     
-    if display_mode == DisplayMode.notebook:
+    if mode == DisplayMode.notebook:
         if not use_iframe_in_notebook:
             panel_fig: Panel | Pane | Widget = fig
             run_callbacks(periodic_callbacks, notebook_type)
@@ -121,14 +121,14 @@ def render(
             if is_notebook_env:
                 server: StoppableThread = pn.serve(fig, show=False, threaded=True, port=port)
                 run_callbacks(periodic_callbacks, notebook_type)
-            else:  # only happens when running layout_plot() where components are all using display_mode="notebook" in a python script 
+            else:  # only happens when running layout_plot() where components are all using mode="notebook" in a python script 
                 def run_server():
                     run_callbacks(periodic_callbacks, notebook_type)
                     pn.serve(fig, show=False, threaded=True, port=port)  # this will block the main thread
                 thread = Thread(target=run_server, daemon=True)
                 thread.start()
         return panel_fig
-    elif display_mode == DisplayMode.browser:
+    elif mode == DisplayMode.browser:
         if is_notebook_env:
             server: StoppableThread = pn.serve(fig, show=True, threaded=True)
             run_callbacks(periodic_callbacks, notebook_type)
@@ -136,7 +136,7 @@ def render(
         else:  # run in a python script
             run_callbacks(periodic_callbacks, notebook_type)
             pn.serve(fig, show=True, threaded=False)  # this will block the main thread
-    elif display_mode == DisplayMode.desktop:
+    elif mode == DisplayMode.desktop:
         port = get_free_port()
         title = getattr(fig, 'name', "PFund Plot")
         window_ready = Event()
@@ -168,4 +168,4 @@ def render(
             thread.start()
             process.join()
     else:
-        raise ValueError(f"Invalid display mode: {display_mode}")
+        raise ValueError(f"Invalid display mode: {mode}")

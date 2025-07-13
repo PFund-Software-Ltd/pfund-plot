@@ -17,13 +17,13 @@ __all__ = ['layout']
 @contextmanager
 def layout(
     streaming: bool = False,
-    display_mode: Literal['browser', 'desktop'] = 'browser', 
+    mode: Literal['browser', 'desktop'] = 'browser', 
     num_cols: int = 3,
     allow_drag: bool = True,
     # FIXME: plots can't be resized when using GridStack, not sure if it's a bottleneck or a bug
     # allow_resize: bool = True,
 ):
-    assert display_mode.lower() in ['browser', 'desktop'], "display_mode must be 'browser' or 'desktop'"
+    assert mode.lower() in ['browser', 'desktop'], "mode must be 'browser' or 'desktop'"
 
     # Setup state
     state.layout.in_layout = True
@@ -36,7 +36,7 @@ def layout(
         components = state.layout.components
         return _layout_plot(
             *components,
-            display_mode=display_mode,
+            mode=mode,
             num_cols=num_cols,
             allow_drag=allow_drag,
             # allow_resize=allow_resize,
@@ -45,7 +45,7 @@ def layout(
 
 def _layout_plot(
     *figs: tFigure,
-    display_mode: Literal['browser', 'desktop'] = 'browser',
+    mode: Literal['browser', 'desktop'] = 'browser',
     num_cols: int = 3,
     allow_drag: bool = True,
     # allow_resize: bool = False,
@@ -71,4 +71,4 @@ def _layout_plot(
 
     periodic_callbacks = state.layout.periodic_callbacks
     state.reset_layout()
-    return render(gstack, display_mode, periodic_callbacks=periodic_callbacks)
+    return render(gstack, mode, periodic_callbacks=periodic_callbacks)

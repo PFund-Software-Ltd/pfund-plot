@@ -29,7 +29,7 @@ We created a high-level plotting library that combines the best features from ex
 
 ---
 
-PFund-Plot is a super high-level, out-of-the-box, domain-specific plotting library designed for traders that supports **financial data visualization**, **dashboard creation**, and **template sharing**.
+`pfund-plot` is a super high-level, out-of-the-box, domain-specific plotting library designed for traders, supporting **financial data visualization**, **dashboard creation**, and **template sharing**.
 
 
 ## Core Features
@@ -55,5 +55,5 @@ import pfund_plot as plt
 feed = pe.YahooFinanceFeed()
 df = feed.get_historical_data(product='AAPL_USD_STK', resolution='1d', rollback_period='1y')
 
-fig = plt.ohlc(df, display_mode='browser', streaming=False)
+fig = plt.ohlc(df, mode='browser', streaming=False)
 ```
