@@ -23,9 +23,19 @@ pn.extension('tabulator', 'perspective', 'gridstack')
 pn.config.throttled = True
 
 
+Matplotlib = pn.pane.Matplotlib
+Bokeh = pn.pane.Bokeh
+Plotly = pn.pane.Plotly
+Vega = pn.pane.Vega
+
+
 __version__ = version("pfund_plot")
 __all__ = (
     "__version__",
+    "Matplotlib",
+    "Bokeh",
+    "Plotly",
+    "Vega",
     "get_config",
     "configure",
     "candlestick",

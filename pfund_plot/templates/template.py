@@ -1,4 +1,4 @@
-from pfeed.typing import tDATA_SOURCE
+from pfeed._typing import tDATA_SOURCE
 from pfeed.enums import DataSource
 
 

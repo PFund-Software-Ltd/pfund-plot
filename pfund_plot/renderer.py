@@ -5,7 +5,7 @@ if TYPE_CHECKING:
     from panel.widgets import Widget
     from panel.pane import Pane
     from panel.io.threads import StoppableThread
-    from pfund_plot.types.core import tOutput
+    from pfund_plot._typing import tOutput
     
 import time
 from threading import Thread
@@ -27,7 +27,6 @@ def run_webview(title: str, port: int, window_ready: Event):
         url=f"http://localhost:{port}",
         resizable=True,
     )
-    window.events.loaded.wait()
     window_ready.set()
     wv.start()
 
@@ -85,7 +84,7 @@ def render(
         iframe_style: the style of the iframe when use_iframe_in_notebook is True.
     '''
     if isinstance(mode, str):
-        mode = DisplayMode[mode.lower()]    
+        mode = DisplayMode[mode.lower()]
     
     if isinstance(periodic_callbacks, PeriodicCallback):
         periodic_callbacks = [periodic_callbacks]
@@ -121,7 +120,8 @@ def render(
             if is_notebook_env:
                 server: StoppableThread = pn.serve(fig, show=False, threaded=True, port=port)
                 run_callbacks(periodic_callbacks, notebook_type)
-            else:  # only happens when running layout_plot() where components are all using mode="notebook" in a python script 
+            # NOTE: only happens when running layout_plot() where components are all using mode="notebook" in a python script 
+            else:
                 def run_server():
                     run_callbacks(periodic_callbacks, notebook_type)
                     pn.serve(fig, show=False, threaded=True, port=port)  # this will block the main thread
@@ -160,11 +160,15 @@ def render(
         else:
             process = Process(target=run_webview, name=title, args=(title, port, window_ready,), daemon=True)
             process.start()
-            def run_server():
+            def app():
                 run_callbacks(periodic_callbacks, notebook_type)
-                pn.serve(fig, show=False, threaded=False, port=port)  # this will block the main thread
+                return fig
+                
             window_ready.wait()
-            thread = Thread(target=run_server, daemon=True)
+            thread = Thread(
+                target=lambda: pn.serve(app, show=False, threaded=False, port=port),
+                daemon=True
+            )
             thread.start()
             process.join()
     else:

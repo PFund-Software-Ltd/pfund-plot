@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from pfund_plot.types.core import tFigure
+    from pfund_plot._typing import tFigure
     from panel.io.callbacks import PeriodicCallback
     
 from threading import Lock

@@ -2,10 +2,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from narwhals.typing import IntoFrame, Frame
-    from pfeed.typing import GenericFrame
+    from pfeed._typing import GenericFrame
     from pfeed.feeds.base_feed import BaseFeed
-    from pfund_plot.types.literals import tDISPLAY_MODE, tDATAFRAME_BACKEND
-    from pfund_plot.types.core import tOutput
+    from pfund_plot._typing import tDisplayMode, tDataframeBackend
+    from pfund_plot._typing import tOutput
     from holoviews.core.overlay import Overlay
     from panel.layout import Panel
 
@@ -20,7 +20,7 @@ from pfund_plot.renderer import render
 # TODO: use perspective to plot orderbook
 def orderbook_plot(
     data: GenericFrame | BaseFeed,
-    mode: tDISPLAY_MODE = 'notebook',
+    mode: tDisplayMode = 'notebook',
     streaming: bool = False,
     streaming_freq: int = 1000,  # in milliseconds
     height: int = 600,

@@ -1,10 +1,10 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from pfeed.typing import GenericFrame
+    from pfeed._typing import GenericFrame
     from pfeed.feeds.base_feed import BaseFeed
-    from pfund_plot.types.literals import tDISPLAY_MODE, tDATAFRAME_BACKEND
-    from pfund_plot.types.core import tOutput
+    from pfund_plot._typing import tDisplayMode, tDataframeBackend
+    from pfund_plot._typing import tOutput
     from panel.widgets import Widget
     from panel.pane import Pane
 
@@ -35,8 +35,8 @@ DEFAULT_HEIGHT_FOR_NOTEBOOK = 650
 # EXTEND: maybe add some common functionalities here, e.g. search, sort, filter etc. not sure what users want for now.
 def dataframe_plot(
     data: GenericFrame | BaseFeed,
-    mode: tDISPLAY_MODE = "notebook",
-    backend: tDATAFRAME_BACKEND = "tabulator",
+    mode: tDisplayMode = "notebook",
+    backend: tDataframeBackend = "tabulator",
     streaming: bool = False,
     streaming_freq: int = 1000,  # in milliseconds
     max_streaming_data: int | None = None,
@@ -114,7 +114,7 @@ def dataframe_plot(
             formatters={
                 # NOTE: %f somehow doesn't work for microseconds, and %N (nanoseconds) only preserves up to milliseconds precision
                 # so just use %3N to display milliseconds precision
-                'ts': DateFormatter(format='%Y-%m-%d %H:%M:%S.%3N')
+                'date': DateFormatter(format='%Y-%m-%d %H:%M:%S.%3N')
             },
             height=height,
             width=width, 
@@ -130,7 +130,7 @@ def dataframe_plot(
         table: Pane = pn.pane.Perspective(
             df, 
             columns_config={
-                'ts': {
+                'date': {
                     # FIXME: this doesn't work (only 'datetime_color_mode' works), see if panel will fix it, or create a github issue
                     'timeZone': 'Asia/Hong_Kong',  # can't even set timezone to UTC...
                     'dateStyle': 'full',

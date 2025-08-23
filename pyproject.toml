@@ -25,26 +25,28 @@ classifiers = [
 requires-python = ">=3.11"
 dependencies = [
     "pfeed>=0.0.5",
-    "hvplot>=0.11.3",
-    "panel>=1.7.3",
-    "anywidget>=0.9.18",
+    "panel>=1.7.5",
+    "hvplot>=0.12.0",
+    "plotly>=6.3.0",
     "altair>=5.5.0",
-    "plotly>=6.2.0",
+    "anywidget>=0.9.18",
+    "great-tables>=0.18.0",
 ]
 
 [project.optional-dependencies]
 core = [
-    "pywebview>=5.4.0",
+    "pywebview>=6.0.0",
     "vegafusion>=2.0.2",
-    "datashader>=0.18.1",
-    "marimo[recommended]>=0.14.10",
-    "litestar[standard]>=2.16.0",
+    "datashader>=0.18.2",
+    "marimo[recommended]>=0.15.0",
+    "litestar[standard]>=2.17.0",
 ]
 jupyter = [
     "jupyter-bokeh>=4.0.5",
-    "notebook>=7.4.4",
+    "notebook>=7.4.5",
     "papermill>=2.6.0",
-    "voila>=0.5.8",
+    "voila>=0.5.10",
+    # "jupytext>=1.17.2",
 ]
 # streamlit = ["streamlit>=1.44.1"]
 # dash = ["dash>=3.0.2"]
@@ -64,13 +66,18 @@ documentation = "https://pfund-plot-docs.pfund.ai"
 
 [dependency-groups]
 dev = [
-    "bokeh-sampledata>=2024.2",
-    "watchfiles>=1.0.5",
+    "bokeh-sampledata>=2025.0",
+    "vega-datasets>=0.9.0",
+    "watchfiles>=1.1.0",
 ]
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["uv_build>=0.8.13,<0.9.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "pfund_plot"
+module-root = ""
 
 [tool.uv.sources]
 pfeed = { path = "../pfeed", editable = true }

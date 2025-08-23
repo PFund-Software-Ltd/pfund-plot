@@ -2,15 +2,17 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from narwhals.typing import IntoFrame, Frame
-    from pfeed.typing import GenericFrame
+    from pfeed._typing import GenericFrame
     from pfeed.feeds.base_feed import BaseFeed
-    from pfund_plot.types.literals import tDISPLAY_MODE
-    from pfund_plot.types.core import tOutput
+    from pfund_plot._typing import tDisplayMode
+    from pfund_plot._typing import tOutput
     from holoviews.core.overlay import Overlay
     from panel.layout import Panel
     
 import panel as pn
 import narwhals as nw
+from holoviews import DynamicMap
+from holoviews.streams import Pipe
 from bokeh.models import HoverTool, CrosshairTool
 
 from pfund_plot.const.enums import DisplayMode, DataType
@@ -23,7 +25,7 @@ from pfund_plot.state import state
 __all__ = ['candlestick_plot']
 
 
-REQUIRED_COLS = ['ts', 'open', 'high', 'low', 'close', 'volume']
+REQUIRED_COLS = ['date', 'open', 'high', 'low', 'close', 'volume']
 DEFAULT_STYLE = {
     'title': 'Candlestick Chart',
     'ylabel': 'price',
@@ -40,18 +42,18 @@ def _validate_df(df: IntoFrame) -> Frame:
         df = df.collect()
     # convert all columns to lowercase
     df = df.rename({col: col.lower() for col in df.columns})
-    # rename 'date' to 'ts'
-    if 'date' in df.columns and 'ts' not in df.columns:
-        df = df.rename({'date': 'ts'})
+    # rename 'datetime' to 'date'
+    if 'datetime' in df.columns and 'date' not in df.columns:
+        df = df.rename({'datetime': 'date'})
     missing_cols = [col for col in REQUIRED_COLS if col not in df.columns]
     if missing_cols:
         raise ValueError(f"Missing required columns: {missing_cols}")
-    ts_value = df.select('ts').row(0)[0]
-    # convert ts to datetime if not already
-    if not isinstance(ts_value, datetime.datetime):
+    date_value = df.select('date').row(0)[0]
+    # convert date to datetime if not already
+    if not isinstance(date_value, datetime.datetime):
         # REVIEW: this might mess up the datetime format
         df = df.with_columns(
-            nw.col('ts').str.to_datetime(format=None),
+            nw.col('date').str.to_datetime(format=None),
         )
     return df
 
@@ -76,17 +78,17 @@ def _get_style(df: Frame, raw_figure: bool, height: int | None = None, width: in
 
 def _create_hover_tool(df: Frame) -> HoverTool:
     from pfund_plot.utils.utils import is_daily_data
-    ts_format = '%Y-%m-%d' if is_daily_data(df) else '%Y-%m-%d %H:%M:%S'
+    date_format = '%Y-%m-%d' if is_daily_data(df) else '%Y-%m-%d %H:%M:%S'
     return HoverTool(
         tooltips=[
-            ('ts', f'@ts{{{ts_format}}}'),
+            ('date', f'@date{{{date_format}}}'),
             ('open', '@open'),
             ('high', '@high'),
             ('low', '@low'),
             ('close', '@close'),
             ('volume', '@volume'),
         ],
-        formatters={'@ts': 'datetime'},
+        formatters={'@date': 'datetime'},
         mode='vline',
     )
 
@@ -94,7 +96,7 @@ def _create_hover_tool(df: Frame) -> HoverTool:
 def candlestick_plot(
     data: GenericFrame | BaseFeed, 
     streaming: bool = False, 
-    mode: tDISPLAY_MODE = "notebook", 
+    mode: tDisplayMode = "notebook", 
     num_data: int = 100,
     raw_figure: bool = False,
     slider_step: int = 100,
@@ -143,19 +145,18 @@ def candlestick_plot(
     df: Frame = _validate_df(df)
     if mode == DisplayMode.notebook:
         height = height or DEFAULT_HEIGHT_FOR_NOTEBOOK
-        
     
-    # Main Component: candlestick plot
-    def _create_plot(_df: Frame, _num_data: int):
-        plot_df: GenericFrame = _df.tail(_num_data).to_native()
+    # Define the DynamicMap with the pipe (plot structure created once)
+    def _create_plot(data: Frame):
         return (
-            plot_df
+            data
+            .to_native()
             .hvplot
             .ohlc(
-                'ts', ['open', 'low', 'high', 'close'],
+                'date', ['open', 'low', 'high', 'close'],
                 hover_cols=REQUIRED_COLS,
                 tools=[
-                    _create_hover_tool(_df), 
+                    _create_hover_tool(data), 
                     CrosshairTool(dimensions='height', line_color='gray', line_alpha=0.3)
                 ],
                 grid=grid,
@@ -164,11 +165,11 @@ def candlestick_plot(
                 responsive=True,
                 bgcolor=bg_color,
             )
-            .opts(**_get_style(_df, raw_figure, height, width))
+            .opts(**_get_style(data, raw_figure, height, width))
         )
-        
+    
     if raw_figure:
-        fig: Overlay = _create_plot(df, _num_data=num_data)
+        fig: Overlay = _create_plot(df)
         return fig
     else:
         # Define reactive values    
@@ -188,34 +189,40 @@ def candlestick_plot(
             name='Show All',
             button_type='primary',
         )
-        def max_out_slider(event):
-            points_slider.value = max_num_data.rx.value
-        show_all_data_button.on_click(max_out_slider)
         
+        # Create a Pipe stream for data updates
+        pipe = Pipe(data=df.tail(min(num_data, df.shape[0])))
+
+        # Update function: send new tail of data via pipe on slider change
+        def _update_data(event):
+            new_data = df.tail(points_slider.value)
+            pipe.send(new_data)
+        points_slider.param.watch(_update_data, 'value')
+
+        # Also update for show_all_data_button
+        def _max_out_slider(event):
+            points_slider.value = max_num_data.rx.value
+            _update_data(None)  # Trigger update
+        show_all_data_button.on_click(_max_out_slider)
+            
+        dmap = DynamicMap(_create_plot, streams=[pipe])
+        plot_pane = pn.pane.HoloViews(dmap)
 
         if not streaming:
             periodic_callback = None
-            plot_pane = pn.pane.HoloViews(
-                pn.bind(_create_plot, _df=df, _num_data=points_slider)
-            )
         else:
-            # NOTE: do NOT bind the plot to the slider, otherwise the change of slider value and the periodic callback 
-            # will BOTH trigger the plot update, causing an error, probably a race condition
-            plot_pane = pn.pane.HoloViews(_create_plot(df, points_slider.value))
-            
             def _update_plot():
                 # FIXME
                 # TEMP: fake streaming data
                 import pandas as pd
                 nonlocal df
                 pandas_df = df.to_native()
-                last_ts = pandas_df['ts'].iloc[-1]
-                new_ts = last_ts + pd.Timedelta(days=1)
+                last_date = pandas_df['date'].iloc[-1]
+                new_date = last_date + pd.Timedelta(days=1)
                 new_row = pd.DataFrame({
-                    'date': [new_ts.date()],
-                    'ts': [new_ts],
-                    'symbol': ['AAPL'],
-                    'product': ['AAPL_USD_STK'],
+                    'date': [new_date],
+                    # 'symbol': ['AAPL'],
+                    # 'product': ['AAPL_USD_STK'],
                     'open': [pandas_df['open'].iloc[-1] * 1.01],  # 1% higher than last price
                     'high': [pandas_df['high'].iloc[-1] * 1.02],
                     'low': [pandas_df['low'].iloc[-1] * 0.99],
@@ -225,10 +232,17 @@ def candlestick_plot(
                 df2 = pd.concat([pandas_df, new_row], ignore_index=True)
                 df = nw.from_native(df2)
 
+                old_max = max_num_data.rx.value
+                
                 # this will also update the slider's end value since it's a reactive object
                 max_num_data.rx.value = df.shape[0]
                 
-                plot_pane.object = _create_plot(df, points_slider.value)
+                # if slider was at max, auto-increment to include new data; otherwise, new points aren't visible until manual adjustment
+                if points_slider.value == old_max:
+                    points_slider.value = max_num_data.rx.value
+                
+                new_data = df.tail(points_slider.value)
+                pipe.send(new_data)
 
             periodic_callback = pn.state.add_periodic_callback(_update_plot, period=streaming_freq, start=False)  # period in milliseconds
         fig: Panel = pn.Column(
