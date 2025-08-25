@@ -15,7 +15,7 @@ import panel as pn
 from panel.io.callbacks import PeriodicCallback
 
 from pfund import print_warning
-from pfund_plot.const.enums import DisplayMode, NotebookType
+from pfund_plot.enums import DisplayMode, NotebookType
 from pfund_plot.utils.utils import get_notebook_type, get_free_port
 from pfund_plot.state import state
     

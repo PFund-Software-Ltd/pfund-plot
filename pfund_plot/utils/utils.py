@@ -7,7 +7,7 @@ import os
 import datetime
 import importlib.util
 
-from pfund_plot.const.enums.notebook_type import NotebookType
+from pfund_plot.enums.notebook_type import NotebookType
 
 
 def is_daily_data(df: Frame) -> bool:

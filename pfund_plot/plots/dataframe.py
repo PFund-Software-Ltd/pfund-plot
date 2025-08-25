@@ -13,8 +13,7 @@ from bokeh.models.widgets.tables import DateFormatter
 
 from pfund import print_warning
 from pfeed._etl.base import convert_to_pandas_df
-from pfund_plot.const.enums import DisplayMode, DataType, DataFrameBackend, NotebookType
-from pfund_plot.utils.validate import validate_data_type
+from pfund_plot.enums import DisplayMode, DataFrameBackend, NotebookType
 from pfund_plot.utils.utils import get_notebook_type, get_sizing_mode
 from pfund_plot.renderer import render
 from pfund_plot.state import state

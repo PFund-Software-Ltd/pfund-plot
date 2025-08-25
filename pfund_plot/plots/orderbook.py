@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 import panel as pn
 
 from pfund_plot.plots.dataframe import dataframe_plot
-from pfund_plot.const.enums import DisplayMode, DataType, DataFrameBackend
+from pfund_plot.enums import DisplayMode, DataType, DataFrameBackend
 from pfund_plot.utils.validate import validate_data_type
 from pfund_plot.renderer import render
 

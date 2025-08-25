@@ -9,9 +9,9 @@ from pfund_plot.plots.dataframe import (
     dataframe_plot as df,
 )
 from pfund_plot.plots.candlestick import (
-    candlestick_plot as candlestick,
-    candlestick_plot as ohlc,
-    candlestick_plot as kline,
+    candlestick,
+    candlestick as ohlc,
+    candlestick as kline,
 )
 from pfund_plot.layout import layout
 
@@ -26,7 +26,7 @@ pn.config.throttled = True
 Matplotlib = pn.pane.Matplotlib
 Bokeh = pn.pane.Bokeh
 Plotly = pn.pane.Plotly
-Vega = pn.pane.Vega
+Altair = Vega = pn.pane.Vega
 
 
 __version__ = version("pfund_plot")
@@ -35,7 +35,7 @@ __all__ = (
     "Matplotlib",
     "Bokeh",
     "Plotly",
-    "Vega",
+    "Vega", "Altair",
     "get_config",
     "configure",
     "candlestick",

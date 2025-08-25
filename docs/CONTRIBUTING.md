@@ -62,6 +62,61 @@ The same logic can be applied to other plotting libraries as long as `panel` sup
 e.g. there are also `pn.pane.Bokeh`, `pn.pane.Matplotlib`, `pn.pane.ECharts`, `pn.pane.HoloViews`, etc.
 
 
+## Svelte + AnyWidget Integration
+
+For advanced UI components not available in the Python ecosystem, we use **Svelte components with AnyWidget** integration:
+
+### Architecture Overview
+```
+pfund-plot/
+├── ui/                           # Frontend components
+│   ├── src/
+│   │   ├── components/           # Pure Svelte components
+│   │   │   └── tradingview/
+│   │   │       └── Candlestick.svelte
+│   │   └── widgets/              # AnyWidget wrappers
+│   │       └── tradingview/
+│   │           └── candlestick/
+│   │               ├── index.ts          # AnyWidget export
+│   │               └── CandlestickWrapper.svelte
+├── vite.config.ts               # SvelteKit web app & dashboards
+└── vite.widget.config.ts        # AnyWidget builds for notebooks
+```
+
+### Component Development Workflow
+
+1. **Pure Svelte Components** (`ui/src/components/`)
+   - Build reusable UI components independent of AnyWidget
+   - Can be used in web apps via `pnpm dev`
+   - Example: `Candlestick.svelte` takes `data` prop
+
+2. **AnyWidget Wrappers** (`ui/src/widgets/`)
+   - Thin wrappers that handle AnyWidget bindings
+   - Each widget folder contains:
+     - `index.ts` - exports `defineWidget()`
+     - `*Wrapper.svelte` - handles `bindings` prop from Python
+
+3. **Build Process**
+   - `pnpm build:widget` - builds widgets for Jupyter/Marimo
+   - Auto-discovers all `src/widgets/**/index.ts` files
+   - Outputs standalone ES modules in `dist/`
+
+
+### When to Use Svelte Components
+- Complex interactive visualizations (TradingView charts, custom controls)
+- JavaScript libraries not available in Python ecosystem
+- Need for high-performance frontend interactions
+- Custom UI components that benefit from reactive frameworks
+
+### Development Commands
+```bash
+cd ui/
+pnpm dev                    # Develop components in web app
+pnpm build:widget:watch     # Build widgets with hot reload
+pnpm build:widget           # Production widget builds
+```
+
+
 ## Dataframe Manipulation
 `pfund-plot` supports `pandas`, `polars` and `dask` dataframes. If you need to manipulate the input dataframe, please use the [narwhals] library.
 

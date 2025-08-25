@@ -12,5 +12,5 @@ tOutput = tFigure | Overlay | StoppableThread
 
 
 tDisplayMode = Literal['notebook', 'browser', 'desktop']
-tPlottingBackend = Literal['bokeh', 'plotly']
+tPlottingBackend = Literal['bokeh', 'svelte']  # TODO: add 'plotly', 'altair', 'matplotlib' etc.
 tDataframeBackend = Literal['tabulator', 'perspective']
