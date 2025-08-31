@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from narwhals.typing import Frame
+    from holoviews.core.overlay import Overlay
 
 from bokeh.models import HoverTool, CrosshairTool
 
@@ -15,8 +16,8 @@ PLOT_OPTIONS = ['title', 'xlabel', 'ylabel', 'height']  # specified options supp
 
 def style(
     title: str = 'Candlestick Chart',
-    xlabel: str = 'time',
-    ylabel: str = 'price',
+    xlabel: str = 'Date',
+    ylabel: str = 'Price',
     up_color: str = 'green',
     down_color: str = 'red',
     bg_color: str = 'white',
@@ -51,13 +52,13 @@ def style(
 
 def control(
     num_data: int = 100,
-    slider_step: int = 100,
+    slider_step: int = 3600000,
 ):
     '''
     Args:
         num_data: the initial number of data points to display.
             This can be changed by a slider in the plot.
-        slider_step: the step size of the slider.
+        slider_step: the step size of the datetime range slider. default is 60 min (3600000 ms).
     '''
     return locals()
     
@@ -81,7 +82,7 @@ def _create_crosshair_tool():
     return CrosshairTool(dimensions='height', line_color='gray', line_alpha=0.3)
     
 
-def plot(df: Frame, style: dict):
+def plot(df: Frame, style: dict) -> Overlay:
     from pfund_plot.plots.candlestick import Candlestick
     from pfund_plot.utils.utils import is_daily_data
     date_format = '%Y-%m-%d' if is_daily_data(df) else '%Y-%m-%d %H:%M:%S'

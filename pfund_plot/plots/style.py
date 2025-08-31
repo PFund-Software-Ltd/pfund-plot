@@ -39,10 +39,10 @@ class Style:
         assert self._backend == PlottingBackend.svelte, "Backend is not svelte"
         return self._get_style_function()
     
-    def __call__(self):
+    def __call__(self, *args, **kwargs):
         if self._backend == PlottingBackend.bokeh:
-            return self.bokeh()
+            return self.bokeh(*args, **kwargs)
         elif self._backend == PlottingBackend.svelte:
-            return self.svelte()
+            return self.svelte(*args, **kwargs)
         else:
             raise ValueError(f"Unsupported backend: {self._backend}")

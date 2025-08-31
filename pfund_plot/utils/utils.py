@@ -18,14 +18,20 @@ def load_js(path: str) -> str:
 
 def is_daily_data(df: Frame) -> bool:
     '''Checks if the 'resolution' column is '1d' and the "ts" column by comparing the first two rows to see if the data is daily data.'''
+    if df.is_empty():
+        return False
     if 'resolution' in df.columns and df.select('resolution').row(0)[0] == '1d':
         return True
     assert 'date' in df.columns, "DataFrame must have a 'date' column"
     assert isinstance(df.select('date').row(0)[0], datetime.datetime), '"date" column must be of type datetime'
     date1 = df.select('date').row(0)[0]
-    date2 = df.select('date').row(1)[0]
-    delta = date2 - date1
-    return delta == datetime.timedelta(days=1)
+    if df.shape[0] >= 2:
+        date2 = df.select('date').row(1)[0]
+        delta = date2 - date1
+        return delta == datetime.timedelta(days=1)
+    else:
+        # if only has one data point, check if the time is '00:00:00'
+        return str(date1.time()) == '00:00:00'
 
 
 def get_notebook_type() -> NotebookType | None:

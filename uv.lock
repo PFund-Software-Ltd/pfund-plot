@@ -1557,7 +1557,7 @@ wheels = [
 
 [[package]]
 name = "hvplot"
-version = "0.12.0"
+version = "0.12.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "bokeh" },
@@ -1569,9 +1569,9 @@ dependencies = [
     { name = "panel" },
     { name = "param" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/dd/24/84e289508f8ac69dd5d574fea3ae2e6aba9cb7469a334d84331f8eb58de9/hvplot-0.12.0.tar.gz", hash = "sha256:85c9d324d27fd227de54fdde5a25faa2aada92b8956b56c4f241b12f46bfe7f7", size = 7071377, upload-time = "2025-08-01T12:07:06.087Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/fe/5d/b067021c7dedfbe45c43b2e34287430320942d63814eeafed0bfabc35c3e/hvplot-0.12.1.tar.gz", hash = "sha256:66f4c9dbb7e5580c09ade55b14864ff6fcc96ed9ce11f7b67e9eb7072e2ed875", size = 7078235, upload-time = "2025-08-29T08:27:38.361Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/06/51/b8cd6be4a303e6b88ca4b56feecf523f2a2e286ebd7cb56f0dbe986917f7/hvplot-0.12.0-py3-none-any.whl", hash = "sha256:479b16d8cce87921d83ef5df747d4ae87c180519f5615fbffc50cdaf2d2cdd2b", size = 175381, upload-time = "2025-08-01T12:07:04.055Z" },
+    { url = "https://files.pythonhosted.org/packages/60/f5/99be28b5d19644343f51391841dadf48b91ade96c1885e1630727cbcb4bf/hvplot-0.12.1-py3-none-any.whl", hash = "sha256:034b5061cba597877f85dd427523364f11677d9d04c5e845c17e6d733a7bfaed", size = 175470, upload-time = "2025-08-29T08:27:35.939Z" },
 ]
 
 [[package]]
@@ -3328,7 +3328,7 @@ requires-dist = [
     { name = "anywidget", specifier = ">=0.9.18" },
     { name = "datashader", marker = "extra == 'core'", specifier = ">=0.18.2" },
     { name = "great-tables", specifier = ">=0.18.0" },
-    { name = "hvplot", specifier = ">=0.12.0" },
+    { name = "hvplot", specifier = ">=0.12.1" },
     { name = "ipywidgets-bokeh", specifier = ">=1.6.0" },
     { name = "jupyter-bokeh", marker = "extra == 'jupyter'", specifier = ">=4.0.5" },
     { name = "litestar", extras = ["standard"], marker = "extra == 'core'", specifier = ">=2.17.0" },

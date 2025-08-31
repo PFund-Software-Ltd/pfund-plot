@@ -81,7 +81,7 @@ class Candlestick(Plot):
             style['height'] = style['height'] or self.DEFAULT_HEIGHT_FOR_NOTEBOOK
         return style
         
-    # TODO: add range selector, date input
+    # TODO: add ticker selector: ticker = pn.widgets.Select(options=['AAPL', 'IBM', 'GOOG', 'MSFT'], name='Ticker')
     # TODO: use tick data to update the current candlestick
     def plot(self, df: Frame, style: dict, control: dict, streaming_feed: MarketFeed | None=None) -> tOutput:
         from pfund_plot.renderer import render
@@ -89,7 +89,8 @@ class Candlestick(Plot):
         # show_volume = style['show_volume']
         pane: pn.pane.Pane = self._create_plot(df, style, control)
         widgets = CandlestickWidgets(df, control, self._update_plot)
-        max_data, data_slider, show_all_button = widgets.max_data, widgets.data_slider, widgets.show_all_button
+        max_data = widgets.max_data
+        datetime_range_input, datetime_range_slider = widgets.datetime_range_input, widgets.datetime_range_slider
 
         if self.is_streaming():
             def _update_plot():
@@ -132,7 +133,7 @@ class Candlestick(Plot):
 
         fig: Panel = pn.Column(
             pane,
-            pn.Row(data_slider, show_all_button, align='center'),
+            pn.FlexBox(datetime_range_input, datetime_range_slider, align_items="center", justify_content="center"),
             name='Candlestick Chart',
             sizing_mode=style['sizing_mode'],
             height=style['height'],

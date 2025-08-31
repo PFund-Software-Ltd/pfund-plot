@@ -26,7 +26,7 @@ requires-python = ">=3.11"
 dependencies = [
     "pfeed>=0.0.5",
     "panel>=1.7.5",
-    "hvplot>=0.12.0",
+    "hvplot>=0.12.1",
     "plotly>=6.3.0",
     "great-tables>=0.18.0",
     "anywidget>=0.9.18",

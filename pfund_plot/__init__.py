@@ -20,10 +20,9 @@ config = get_config()
 
 
 
-hvplot.extension('bokeh', 'plotly')
-pn.extension('tabulator', 'perspective', 'gridstack', 'ipywidgets')
-# used to throttle updates in panel plots
-pn.config.throttled = False
+hvplot.extension('bokeh', 'plotly', 'matplotlib')
+pn.extension('ipywidgets', 'gridstack', 'tabulator', 'perspective')
+pn.config.throttled = True  # If panel sliders and inputs should be throttled until release of mouse.
 # NOTE: /assets can only recognized when setting pn.serve(static_dirs=pfund_plot.config.static_dirs)
 # see static_dirs in config.py
 pn.config.js_files = {
