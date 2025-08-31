@@ -1,3 +1,4 @@
+// VIBE-CODED: Claude Sonnet 4
 import { glob } from 'glob';
 import path from 'path';
 

@@ -28,18 +28,21 @@ dependencies = [
     "panel>=1.7.5",
     "hvplot>=0.12.0",
     "plotly>=6.3.0",
-    "altair>=5.5.0",
-    "anywidget>=0.9.18",
     "great-tables>=0.18.0",
+    "anywidget>=0.9.18",
+    "ipywidgets-bokeh>=1.6.0",
 ]
 
 [project.optional-dependencies]
 core = [
     "pywebview>=6.0.0",
-    "vegafusion>=2.0.2",
     "datashader>=0.18.2",
-    "marimo[recommended]>=0.15.0",
+    "marimo[recommended]>=0.15.2",
     "litestar[standard]>=2.17.0",
+]
+vega = [
+    "vegafusion>=2.0.2",
+    "altair>=5.5.0",
 ]
 jupyter = [
     "jupyter-bokeh>=4.0.5",
@@ -56,8 +59,7 @@ jupyter = [
 # rio = ["rio-ui>=0.11.1"]
 
 [project.scripts]
-pfplot = "pfund_plot.main:run_cli"
-pfplt = "pfund_plot.main:run_cli"
+plt = "pfund_plot.main:run_cli"
 
 [project.urls]
 homepage = "https://pfund.ai"
@@ -72,7 +74,7 @@ dev = [
 ]
 
 [build-system]
-requires = ["uv_build>=0.8.13,<0.9.0"]
+requires = ["uv_build>=0.8.14,<0.9.0"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]

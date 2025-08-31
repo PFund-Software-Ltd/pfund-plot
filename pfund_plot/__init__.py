@@ -16,11 +16,19 @@ from pfund_plot.plots.candlestick import (
 from pfund_plot.layout import layout
 
 
+config = get_config()
+
+
+
 hvplot.extension('bokeh', 'plotly')
-pn.extension('tabulator', 'perspective', 'gridstack')
+pn.extension('tabulator', 'perspective', 'gridstack', 'ipywidgets')
 # used to throttle updates in panel plots
-# NOTE: without it, e.g. dragging a slider will cause the plot to update rapidly and lead to an error
-pn.config.throttled = True
+pn.config.throttled = False
+# NOTE: /assets can only recognized when setting pn.serve(static_dirs=pfund_plot.config.static_dirs)
+# see static_dirs in config.py
+pn.config.js_files = {
+    "widgets_amd_config": "/assets/widgets-amd-config.js",
+}
 
 
 Matplotlib = pn.pane.Matplotlib
@@ -32,12 +40,12 @@ Altair = Vega = pn.pane.Vega
 __version__ = version("pfund_plot")
 __all__ = (
     "__version__",
+    "config",
+    "configure",
     "Matplotlib",
     "Bokeh",
     "Plotly",
     "Vega", "Altair",
-    "get_config",
-    "configure",
     "candlestick",
     "ohlc",
     "kline",

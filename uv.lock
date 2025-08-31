@@ -1692,6 +1692,20 @@ wheels = [
 ]
 
 [[package]]
+name = "ipywidgets-bokeh"
+version = "1.6.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "bokeh" },
+    { name = "ipykernel" },
+    { name = "ipywidgets" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/04/8e/109c4241e39f9412836674cb6d4eb2ca5fb348af548eeb17e5ce3b447da9/ipywidgets_bokeh-1.6.0.tar.gz", hash = "sha256:42f3dbe39bd1618a98f1b9ea43ac2573533fc56badb85fee5145d1235467f636", size = 1032615, upload-time = "2024-03-25T17:52:50.204Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ae/b8/7f129828a2188be26e57d819abeb23dd22411f1e51937cad40a03c6688ec/ipywidgets_bokeh-1.6.0-py3-none-any.whl", hash = "sha256:8d036f7337f3e13ecec814c0a08263dae1d176159dfacad276d060e374c65a28", size = 1037058, upload-time = "2024-03-25T17:52:48.064Z" },
+]
+
+[[package]]
 name = "isodate"
 version = "0.7.2"
 source = { registry = "https://pypi.org/simple" }
@@ -2071,22 +2085,6 @@ wheels = [
 ]
 
 [[package]]
-name = "jupytext"
-version = "1.17.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "markdown-it-py" },
-    { name = "mdit-py-plugins" },
-    { name = "nbformat" },
-    { name = "packaging" },
-    { name = "pyyaml" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/30/ce/0bd5290ca4978777154e2683413dca761781aacf57f7dc0146f5210df8b1/jupytext-1.17.2.tar.gz", hash = "sha256:772d92898ac1f2ded69106f897b34af48ce4a85c985fa043a378ff5a65455f02", size = 3748577, upload-time = "2025-06-01T21:31:48.231Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ed/f1/82ea8e783433707cafd9790099a2d19f113c22f32a31c8bb5abdc7a61dbb/jupytext-1.17.2-py3-none-any.whl", hash = "sha256:4f85dc43bb6a24b75491c5c434001ad5ef563932f68f15dd3e1c8ce12a4a426b", size = 164401, upload-time = "2025-06-01T21:31:46.319Z" },
-]
-
-[[package]]
 name = "kiwisolver"
 version = "1.4.8"
 source = { registry = "https://pypi.org/simple" }
@@ -2310,7 +2308,7 @@ wheels = [
 
 [[package]]
 name = "marimo"
-version = "0.15.0"
+version = "0.15.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
@@ -2330,9 +2328,9 @@ dependencies = [
     { name = "uvicorn" },
     { name = "websockets" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/02/00/b10b887a8242cdf05941dbfe15ae0c04dace745f8a3d89b13478627c8ad0/marimo-0.15.0.tar.gz", hash = "sha256:021c3a77eda44b1c880f317449c4a5354a5bbf581491e101551d3812fde1acd4", size = 31143943, upload-time = "2025-08-21T21:06:52.11Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/6f/b8/fb55e2943bf2ac958b3c2975ed3d8022edc7763b674f65af75ded2859bd2/marimo-0.15.2.tar.gz", hash = "sha256:726933fd9c9561fa73e323b1821b173c5e0f85196ec2a497a3509cc2fc245c58", size = 31191439, upload-time = "2025-08-29T16:56:46.748Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b6/4b/6ae6b73d67981ee8d95fd38d1e6bd2e7247ee9bfb52eaf9510f95b9378f2/marimo-0.15.0-py3-none-any.whl", hash = "sha256:b089b51b625e59dffff36a19293684b458440045e5c600cf426b6a5ca69ce924", size = 31382684, upload-time = "2025-08-21T21:06:56.578Z" },
+    { url = "https://files.pythonhosted.org/packages/6e/e6/eb732caaea80ca1d0b3a66c862a062dcd031ed1348291b78362aec9dd1c2/marimo-0.15.2-py3-none-any.whl", hash = "sha256:630cbad0217fb6cd8f78e6775b955242c1528a673233095dec5901781588bee9", size = 31427634, upload-time = "2025-08-29T16:56:52.564Z" },
 ]
 
 [package.optional-dependencies]
@@ -2755,11 +2753,11 @@ wheels = [
 
 [[package]]
 name = "narwhals"
-version = "2.1.2"
+version = "2.2.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/37/f0/b0550d9b84759f4d045fd43da2f811e8b23dc2001e38c3254456da7f3adb/narwhals-2.1.2.tar.gz", hash = "sha256:afb9597e76d5b38c2c4b7c37d27a2418b8cc8049a66b8a5aca9581c92ae8f8bf", size = 533772, upload-time = "2025-08-15T08:24:50.916Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/01/8f/6b3d8c19540eaaa50778a8bbbe54e025d3f93aca6cdd5a4de3044c36f83c/narwhals-2.2.0.tar.gz", hash = "sha256:f6a34f2699acabe2c17339c104f0bec28b9f7a55fbc7f8d485d49bea72d12b8a", size = 547070, upload-time = "2025-08-25T07:51:58.904Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a8/01/824fff6789ce92a53242d24b6f5f3a982df2f610c51020f934bf878d2a99/narwhals-2.1.2-py3-none-any.whl", hash = "sha256:136b2f533a4eb3245c54254f137c5d14cef5c4668cff67dc6e911a602acd3547", size = 392064, upload-time = "2025-08-15T08:24:48.788Z" },
+    { url = "https://files.pythonhosted.org/packages/dd/54/1ecca75e51d7da8ca53d1ffa8636ef9077a6eaa31f43ade71360b3e6449a/narwhals-2.2.0-py3-none-any.whl", hash = "sha256:2b5e3d61a486fa4328c286b0c8018b3e781a964947ff725d66ba12f6d5ca3d2a", size = 401021, upload-time = "2025-08-25T07:51:56.97Z" },
 ]
 
 [[package]]
@@ -3198,7 +3196,7 @@ requires-dist = [
     { name = "lancedb", marker = "extra == 'core'", specifier = ">=0.24.3" },
     { name = "minio", marker = "extra == 'core'", specifier = ">=7.2.16" },
     { name = "msgspec", specifier = ">=0.19.0" },
-    { name = "narwhals", specifier = ">=2.1.2" },
+    { name = "narwhals", specifier = ">=2.2.0" },
     { name = "pandas", specifier = ">=2.3.1" },
     { name = "pandera", specifier = ">=0.26.0" },
     { name = "pfund", editable = "../pfund" },
@@ -3218,8 +3216,6 @@ provides-extras = ["core", "dask", "spark"]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "marimo", extras = ["recommended"], specifier = ">=0.14.17" },
-    { name = "notebook", specifier = ">=7.4.4" },
     { name = "pre-commit", specifier = ">=4.3.0" },
     { name = "ruff", specifier = ">=0.12.9" },
 ]
@@ -3283,8 +3279,8 @@ provides-extras = ["core"]
 dev = [
     { name = "pybit", specifier = ">=5.11.0" },
     { name = "ruff", specifier = ">=0.11.12" },
-    { name = "ta-lib", specifier = ">=0.6.4" },
-    { name = "torch", specifier = ">=2.6.0" },
+    { name = "ta-lib", specifier = ">=0.6.6" },
+    { name = "torch", specifier = ">=2.8.0" },
 ]
 
 [[package]]
@@ -3292,10 +3288,10 @@ name = "pfund-plot"
 version = "0.0.1.dev3"
 source = { editable = "." }
 dependencies = [
-    { name = "altair" },
     { name = "anywidget" },
     { name = "great-tables" },
     { name = "hvplot" },
+    { name = "ipywidgets-bokeh" },
     { name = "panel" },
     { name = "pfeed" },
     { name = "plotly" },
@@ -3307,14 +3303,16 @@ core = [
     { name = "litestar", extra = ["standard"] },
     { name = "marimo", extra = ["recommended"] },
     { name = "pywebview" },
-    { name = "vegafusion" },
 ]
 jupyter = [
     { name = "jupyter-bokeh" },
-    { name = "jupytext" },
     { name = "notebook" },
     { name = "papermill" },
     { name = "voila" },
+]
+vega = [
+    { name = "altair" },
+    { name = "vegafusion" },
 ]
 
 [package.dev-dependencies]
@@ -3326,25 +3324,25 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "altair", specifier = ">=5.5.0" },
+    { name = "altair", marker = "extra == 'vega'", specifier = ">=5.5.0" },
     { name = "anywidget", specifier = ">=0.9.18" },
     { name = "datashader", marker = "extra == 'core'", specifier = ">=0.18.2" },
     { name = "great-tables", specifier = ">=0.18.0" },
     { name = "hvplot", specifier = ">=0.12.0" },
+    { name = "ipywidgets-bokeh", specifier = ">=1.6.0" },
     { name = "jupyter-bokeh", marker = "extra == 'jupyter'", specifier = ">=4.0.5" },
-    { name = "jupytext", marker = "extra == 'jupyter'", specifier = ">=1.17.2" },
     { name = "litestar", extras = ["standard"], marker = "extra == 'core'", specifier = ">=2.17.0" },
-    { name = "marimo", extras = ["recommended"], marker = "extra == 'core'", specifier = ">=0.15.0" },
+    { name = "marimo", extras = ["recommended"], marker = "extra == 'core'", specifier = ">=0.15.2" },
     { name = "notebook", marker = "extra == 'jupyter'", specifier = ">=7.4.5" },
     { name = "panel", specifier = ">=1.7.5" },
     { name = "papermill", marker = "extra == 'jupyter'", specifier = ">=2.6.0" },
     { name = "pfeed", editable = "../pfeed" },
     { name = "plotly", specifier = ">=6.3.0" },
     { name = "pywebview", marker = "extra == 'core'", specifier = ">=6.0.0" },
-    { name = "vegafusion", marker = "extra == 'core'", specifier = ">=2.0.2" },
+    { name = "vegafusion", marker = "extra == 'vega'", specifier = ">=2.0.2" },
     { name = "voila", marker = "extra == 'jupyter'", specifier = ">=0.5.10" },
 ]
-provides-extras = ["core", "jupyter"]
+provides-extras = ["core", "vega", "jupyter"]
 
 [package.metadata.requires-dev]
 dev = [

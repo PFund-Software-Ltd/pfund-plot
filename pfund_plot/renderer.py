@@ -1,17 +1,18 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from panel.layout import Panel
     from panel.widgets import Widget
     from panel.pane import Pane
     from panel.io.threads import StoppableThread
-    from pfund_plot._typing import tOutput
+    from pfund_plot._typing import tOutput, tDisplayMode
     
 import time
 from threading import Thread
 from multiprocessing import Process, Event
 
 import panel as pn
+import pfund_plot as plt
 from panel.io.callbacks import PeriodicCallback
 
 from pfund import print_warning
@@ -64,7 +65,7 @@ def run_callbacks(periodic_callbacks: list[PeriodicCallback], notebook_type: Not
 
 def render(
     fig: Panel | Pane | Widget,
-    mode: Literal["notebook", "browser", "desktop"] | DisplayMode,
+    mode: tDisplayMode,
     periodic_callbacks: list[PeriodicCallback] | PeriodicCallback | None = None,
     use_iframe_in_notebook: bool = False,
     iframe_style: str | None = None,
@@ -83,12 +84,12 @@ def render(
             It is a workaround when the plot can't be displayed in a notebook.
         iframe_style: the style of the iframe when use_iframe_in_notebook is True.
     '''
-    if isinstance(mode, str):
-        mode = DisplayMode[mode.lower()]
+    mode = DisplayMode[mode.lower()]
     
     if isinstance(periodic_callbacks, PeriodicCallback):
         periodic_callbacks = [periodic_callbacks]
     
+    static_dirs = plt.config.static_dirs
     notebook_type: NotebookType | None = get_notebook_type()
     # NOTE: handling differs between notebook environment and python script
     is_notebook_env = (notebook_type is not None)
@@ -118,30 +119,30 @@ def render(
                 sizing_mode=fig.sizing_mode,
             )
             if is_notebook_env:
-                server: StoppableThread = pn.serve(fig, show=False, threaded=True, port=port)
+                server: StoppableThread = pn.serve(fig, show=False, threaded=True, port=port, static_dirs=static_dirs)
                 run_callbacks(periodic_callbacks, notebook_type)
             # NOTE: only happens when running layout_plot() where components are all using mode="notebook" in a python script 
             else:
                 def run_server():
                     run_callbacks(periodic_callbacks, notebook_type)
-                    pn.serve(fig, show=False, threaded=True, port=port)  # this will block the main thread
+                    pn.serve(fig, show=False, threaded=True, port=port, static_dirs=static_dirs)  # this will block the main thread
                 thread = Thread(target=run_server, daemon=True)
                 thread.start()
         return panel_fig
     elif mode == DisplayMode.browser:
         if is_notebook_env:
-            server: StoppableThread = pn.serve(fig, show=True, threaded=True)
+            server: StoppableThread = pn.serve(fig, show=True, threaded=True, static_dirs=static_dirs)
             run_callbacks(periodic_callbacks, notebook_type)
             return server
         else:  # run in a python script
             run_callbacks(periodic_callbacks, notebook_type)
-            pn.serve(fig, show=True, threaded=False)  # this will block the main thread
+            pn.serve(fig, show=True, threaded=False, static_dirs=static_dirs)  # this will block the main thread
     elif mode == DisplayMode.desktop:
         port = get_free_port()
         title = getattr(fig, 'name', "PFund Plot")
         window_ready = Event()
         if is_notebook_env:
-            server: StoppableThread = pn.serve(fig, show=False, threaded=True, port=port)
+            server: StoppableThread = pn.serve(fig, show=False, threaded=True, port=port, static_dirs=static_dirs)
             def run_process():
                 try:
                     process = Process(target=run_webview, name=title, args=(title, port, window_ready,), daemon=True)
@@ -166,7 +167,7 @@ def render(
                 
             window_ready.wait()
             thread = Thread(
-                target=lambda: pn.serve(app, show=False, threaded=False, port=port),
+                target=lambda: pn.serve(app, show=False, threaded=False, port=port, static_dirs=static_dirs),
                 daemon=True
             )
             thread.start()

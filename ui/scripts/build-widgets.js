@@ -1,3 +1,4 @@
+// VIBE-CODED: Claude Sonnet 4
 import { spawn } from 'child_process';
 import { getAllWidgetEntries } from './widget-entries.js';
 

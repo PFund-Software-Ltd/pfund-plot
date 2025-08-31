@@ -15,9 +15,24 @@ Thank you for your interest in contributing to PFund-Plot! This guide will help 
 ```bash
 git clone https://github.com/PFund-Software-Ltd/pfund-plot.git
 cd pfund-plot
-poetry install --with dev,test --all-extras
+uv sync --all-extras --all-groups
+cd ui
+pnpm install
 ```
 
+## How to develop a Svelte component
+1. create a .svelte file in ui/src/components/
+2. create a widget wrapper of it in ui/src/widgets/
+3. set PYTHON_ENV=development in .env
+4. run `pnpm dev`
+
+Fallback: if the above doesn't work, you can watch and build the widget(s) automatically:
+```bash
+# {widget_name} is e.g. candlestick
+WIDGET_TARGET={widget_name} pnpm build:widget:watch  
+# or build ALL widgets for convenience
+pnpm build:widgets:watch
+```
 
 ## Adding a new plot
 1. if the plot is supported by [hvplot], use hvplot to implement the plot

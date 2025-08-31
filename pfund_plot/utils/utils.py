@@ -6,8 +6,14 @@ if TYPE_CHECKING:
 import os
 import datetime
 import importlib.util
+from pathlib import Path
 
 from pfund_plot.enums.notebook_type import NotebookType
+
+
+def load_js(path: str) -> str:
+    js_code = Path(path).read_text()
+    return f"<script>{js_code}</script>"
 
 
 def is_daily_data(df: Frame) -> bool:

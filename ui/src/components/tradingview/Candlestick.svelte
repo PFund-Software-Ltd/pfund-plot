@@ -41,6 +41,7 @@
       }
     }
   });
-  </script>
-  
-  <div bind:this={chartContainer}></div>
+
+</script>
+
+<div bind:this={chartContainer}></div>

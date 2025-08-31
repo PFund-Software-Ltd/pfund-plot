@@ -4,9 +4,7 @@ import path from 'path';
 import { getAllWidgetEntries } from './scripts/widget-entries.js';
 
 // Plain Vite library build (no SvelteKit plugin)
-export default defineConfig(({ mode }) => {
-  const isDev = mode === "development";
-  
+export default defineConfig(() => {
   // Get widget entries from shared module
   const widgetEntries = getAllWidgetEntries();
 
@@ -29,9 +27,10 @@ export default defineConfig(({ mode }) => {
         // Bundle all deps so the JS is self-contained for Jupyter
         external: [],
       },
+      outDir: 'dist/widgets',
       emptyOutDir: false,     // keep multiple widget files side-by-side
-      minify: isDev ? false : "esbuild",
-      sourcemap: isDev,
+      minify: "esbuild",
+      sourcemap: false,
     },
   };
 });

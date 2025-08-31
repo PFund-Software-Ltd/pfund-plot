@@ -1,6 +1,5 @@
 import click
 
-from pfeed.enums import DataTool
 from pfund_plot.const.paths import PROJ_NAME
 
 
@@ -30,8 +29,6 @@ def reset(ctx):
 
 
 @config.command()
-@click.option('--data-tool', '--dt', type=click.Choice(DataTool, case_sensitive=False), help='Set the data tool')
-@click.option('--max-points', '--mp', type=int, help='Set the maximum number of points to display in the plot')
 @click.option('--data-path', '--dp', type=click.Path(resolve_path=True), help='Set the data path')
 @click.option('--cache-path', '--cp', type=click.Path(resolve_path=True), help='Set the cache path')
 def set(**kwargs):
