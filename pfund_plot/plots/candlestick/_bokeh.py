@@ -12,6 +12,8 @@ from bokeh.models import HoverTool, CrosshairTool
 
 __all__ = ['plot', 'style', 'control']
 PLOT_OPTIONS = ['title', 'xlabel', 'ylabel', 'height']  # specified options supported in .opts()
+# needs a default value for bokeh's "responsive=True" to work properly in notebook environment
+DEFAULT_HEIGHT_FOR_NOTEBOOK = 280
 
 
 def style(
@@ -38,20 +40,17 @@ def style(
         width: the width of the plot
     '''
     from pfund_plot.enums import NotebookType
-    from pfund_plot.utils.utils import get_notebook_type, get_sizing_mode
+    from pfund_plot.utils.utils import get_notebook_type
     style_dict = locals()
-    # needs a default value for bokeh's "responsive=True" to work properly in notebook environment
-    DEFAULT_HEIGHT_FOR_NOTEBOOK = 280
     notebook_type: NotebookType | None = get_notebook_type()
     if notebook_type is not None and height is None:
         height = DEFAULT_HEIGHT_FOR_NOTEBOOK
         style_dict['height'] = height
-    style_dict['sizing_mode'] = get_sizing_mode(height, width)
     return style_dict
 
 
 def control(
-    num_data: int = 100,
+    num_data: int = 150,
     slider_step: int = 3600000,
 ):
     '''

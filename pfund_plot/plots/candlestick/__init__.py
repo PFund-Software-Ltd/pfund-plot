@@ -6,11 +6,15 @@ if TYPE_CHECKING:
     from panel.layout import Panel
     from pfeed._typing import GenericFrame
     from pfeed.feeds.market_feed import MarketFeed
-    from pfund_plot._typing import tOutput, tDisplayMode
+    from anywidget import AnyWidget
+    from panel.pane import Pane
+    from pfund_plot._typing import Output, tDisplayMode
 
 import panel as pn
 from pfund_plot.plots.plot import Plot
 from pfund_plot.plots.candlestick.widgets import CandlestickWidgets
+from pfund_plot.enums import NotebookType
+from pfund_plot.utils.utils import get_sizing_mode
 
 
 __all__ = ['candlestick']
@@ -29,7 +33,7 @@ class Candlestick(Plot):
         streaming_freq: int = 1000,  # in milliseconds
         raw_figure: bool = False,
         mode: tDisplayMode | None = None,
-    ) -> tOutput:
+    ) -> Output:
         '''
         Args:
             streaming_freq: the update frequency of the streaming data in milliseconds
@@ -40,16 +44,15 @@ class Candlestick(Plot):
         '''
         style, control = self._setup_plotting(df, style, control, streaming_feed, mode)
         self._setup_streaming(streaming_feed, streaming_freq)
-        style, control = self._adjust_style(style).copy(), control.copy()
         if df is not None:
             df = self._standardize_df(df) 
-        if raw_figure:  # FIXME: only handles bokeh
-            fig: Overlay = self._plot(df, style)
+        if raw_figure:
+            fig: AnyWidget | Overlay = self._plot(df, style)
             return fig
         else:
             return self.plot(df, style, control, streaming_feed=streaming_feed)
 
-    def set_backend(self, backend: Literal['bokeh', 'tradingview']):
+    def set_backend(self, backend: Literal['bokeh', 'svelte']):
         return super().set_backend(backend)
         
     def _standardize_df(self, df: GenericFrame) -> Frame:
@@ -75,20 +78,15 @@ class Candlestick(Plot):
             )
         return df
     
-    def _adjust_style(self, style: dict) -> dict:
-        from pfund_plot.enums import DisplayMode
-        if self._mode == DisplayMode.notebook:
-            style['height'] = style['height'] or self.DEFAULT_HEIGHT_FOR_NOTEBOOK
-        return style
-        
     # TODO: add ticker selector: ticker = pn.widgets.Select(options=['AAPL', 'IBM', 'GOOG', 'MSFT'], name='Ticker')
     # TODO: use tick data to update the current candlestick
-    def plot(self, df: Frame, style: dict, control: dict, streaming_feed: MarketFeed | None=None) -> tOutput:
+    def plot(self, df: Frame, style: dict, control: dict, streaming_feed: MarketFeed | None=None) -> Output:
         from pfund_plot.renderer import render
         # TODO: add volume plot when show_volume is True
         # show_volume = style['show_volume']
-        pane: pn.pane.Pane = self._create_plot(df, style, control)
+        component: AnyWidget | Pane = self._create_plot(df, style, control)
         widgets = CandlestickWidgets(df, control, self._update_plot)
+        # TODO: to be removed, max_data not in use?
         max_data = widgets.max_data
         datetime_range_input, datetime_range_slider = widgets.datetime_range_input, widgets.datetime_range_slider
 
@@ -131,14 +129,23 @@ class Candlestick(Plot):
         else:
             periodic_callback = None
 
-        fig: Panel = pn.Column(
-            pane,
-            pn.FlexBox(datetime_range_input, datetime_range_slider, align_items="center", justify_content="center"),
-            name='Candlestick Chart',
-            sizing_mode=style['sizing_mode'],
-            height=style['height'],
-            width=style['width'],
-        )
-        return render(fig, mode=self._mode, periodic_callbacks=[periodic_callback])
+        toolbox = pn.FlexBox(datetime_range_input, datetime_range_slider, align_items="center", justify_content="center")
+        if self._notebook_type == NotebookType.marimo:
+            import marimo as mo
+            return mo.vstack([component, toolbox])
+        else:
+            height = style.get('height', None)
+            width = style.get('width', None)
+            fig: Panel = pn.Column(
+                component,
+                toolbox,
+                name='Candlestick Chart',
+                sizing_mode=get_sizing_mode(height, width),
+                # TODO: separate component height and overall figure height
+                # height=height + 150,
+                height=height,
+                width=width,
+            )
+            return render(fig, mode=self._mode, periodic_callbacks=[periodic_callback])
 
 candlestick = Candlestick()

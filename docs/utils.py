@@ -3,11 +3,11 @@ from io import StringIO
 from bokeh.resources import INLINE
 from IPython.display import HTML, display
 
-from pfund_plot._typing import tFigure
+from pfund_plot._typing import Component
 
 
-def display_html(fig: tFigure):
+def display_html(component: Component):
     html_buffer = StringIO()
-    fig.save(html_buffer, resources=INLINE)
+    component.save(html_buffer, resources=INLINE)
     html_buffer.seek(0)  # Go to the beginning of the buffer
     display(HTML(html_buffer.read()))

@@ -1,12 +1,16 @@
 # PFund-Plot: Financial Charts in One Line of Code
 
 [![Twitter Follow](https://img.shields.io/twitter/follow/pfund_ai?style=social)](https://x.com/pfund_ai)
-![GitHub stars](https://img.shields.io/github/stars/PFund-Software-Ltd/pfund-plot?style=social)
+<!-- ![GitHub stars](https://img.shields.io/github/stars/PFund-Software-Ltd/pfund-plot?style=social) -->
 [![Jupyter Notebook](https://img.shields.io/badge/jupyter-notebook-orange?logo=jupyter)](https://jupyter.org)
 [![Marimo](https://marimo.io/shield.svg)](https://marimo.io)
 ![PyPI downloads](https://img.shields.io/pypi/dm/pfund-plot?label=downloads)
 [![PyPI](https://img.shields.io/pypi/v/pfund-plot.svg)](https://pypi.org/project/pfund-plot)
 ![PyPI - Support Python Versions](https://img.shields.io/pypi/pyversions/pfund-plot)
+[![Discussions](https://img.shields.io/badge/Discussions-Let's%20Chat-green)](https://github.com/PFund-Software-Ltd/pfund-plot/discussions)
+[![afterpython](https://afterpython.org/shield.svg)](https://afterpython.org)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/PFund-Software-Ltd/pfund-plot)
+
 
 > **This library is NOT ready for use, please wait for 0.1.0 release.**
 

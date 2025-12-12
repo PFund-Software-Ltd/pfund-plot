@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from pfund_plot._typing import tFigure
+    from pfund_plot._typing import Component
     from panel.io.callbacks import PeriodicCallback
     
 from threading import Lock
@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 class LayoutState:
     in_layout: bool = False
     streaming: bool = False
-    components: list[tFigure] = field(default_factory=list)
+    components: list[Component] = field(default_factory=list)
     periodic_callbacks: list[PeriodicCallback] = field(default_factory=list)
 
     def add(self, *components):

@@ -1,6 +1,6 @@
 <!-- test script -->
 <script lang="ts">
-	import Candlestick from '@/components/tradingview/Candlestick.svelte';
+	import Candlestick from '$components/tradingview/Candlestick.svelte';
 	import type { CandlestickData } from 'lightweight-charts';
 
 	// Fake candlestick data - 10 days of sample stock data

@@ -5,7 +5,7 @@ if TYPE_CHECKING:
     from panel.widgets import Widget
     from panel.pane import Pane
     from panel.io.threads import StoppableThread
-    from pfund_plot._typing import tOutput, tDisplayMode
+    from pfund_plot._typing import Output, tDisplayMode
     
 import time
 from threading import Thread
@@ -69,7 +69,7 @@ def render(
     periodic_callbacks: list[PeriodicCallback] | PeriodicCallback | None = None,
     use_iframe_in_notebook: bool = False,
     iframe_style: str | None = None,
-) -> tOutput:
+) -> Output:
     '''
     Args:
         fig: the figure to render.

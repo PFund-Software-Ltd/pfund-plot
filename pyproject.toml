@@ -20,35 +20,31 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
 ]
 requires-python = ">=3.11"
 dependencies = [
     "pfeed>=0.0.5",
-    "panel>=1.7.5",
+    "panel>=1.8.4",
     "hvplot>=0.12.1",
-    "plotly>=6.3.0",
-    "great-tables>=0.18.0",
-    "anywidget>=0.9.18",
+    "plotly>=6.5.0",
+    "great-tables>=0.20.0",
+    "anywidget>=0.9.21",
     "ipywidgets-bokeh>=1.6.0",
+    "pywebview>=6.1",
+    "datashader>=0.18.2",
 ]
 
 [project.optional-dependencies]
-core = [
-    "pywebview>=6.0.0",
-    "datashader>=0.18.2",
-    "marimo[recommended]>=0.15.2",
-    "litestar[standard]>=2.17.0",
-]
+marimo = ["marimo[recommended]>=0.18.3"]
 vega = [
-    "vegafusion>=2.0.2",
-    "altair>=5.5.0",
+    "vegafusion>=2.0.3",
+    "altair>=6.0.0",
 ]
 jupyter = [
     "jupyter-bokeh>=4.0.5",
-    "notebook>=7.4.5",
+    "notebook>=7.5.0",
     "papermill>=2.6.0",
-    "voila>=0.5.10",
+    "voila>=0.5.11",
     # "jupytext>=1.17.2",
 ]
 # streamlit = ["streamlit>=1.44.1"]
@@ -66,20 +62,13 @@ homepage = "https://pfund.ai"
 repository = "https://github.com/PFund-Software-Ltd/pfund-plot"
 documentation = "https://pfund-plot-docs.pfund.ai"
 
-[dependency-groups]
-dev = [
-    "bokeh-sampledata>=2025.0",
-    "vega-datasets>=0.9.0",
-    "watchfiles>=1.1.0",
-]
-
 [build-system]
-requires = ["uv_build>=0.8.14,<0.9.0"]
+requires = ["uv_build>=0.9.16,<0.10.0"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]
 module-name = "pfund_plot"
 module-root = ""
 
-[tool.uv.sources]
-pfeed = { path = "../pfeed", editable = true }
+# [tool.uv.sources]
+# pfeed = { path = "../pfeed", editable = true }

@@ -4,7 +4,7 @@ if TYPE_CHECKING:
     from pfeed._typing import GenericFrame
     from pfeed.feeds.base_feed import BaseFeed
     from pfund_plot._typing import tDisplayMode, tDataframeBackend
-    from pfund_plot._typing import tOutput
+    from pfund_plot._typing import Output
     from panel.widgets import Widget
     from panel.pane import Pane
 
@@ -45,7 +45,7 @@ def dataframe_plot(
     height: int | None = None,
     width: int | None = None,
     **kwargs
-) -> tOutput:
+) -> Output:
     '''
     Args:
         data: the data to plot, either a dataframe or pfeed's feed object

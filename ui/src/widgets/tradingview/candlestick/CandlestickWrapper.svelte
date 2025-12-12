@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { AnyModel } from '@anywidget/types';
-  import Candlestick from '@/components/tradingview/Candlestick.svelte';
+  import Candlestick from '$components/tradingview/Candlestick.svelte';
 
   interface Props {
     model?: AnyModel<any>;

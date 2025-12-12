@@ -193,3 +193,5 @@ tests/data/
 *.egg-info
 
 .python-version
+
+!ui/src/lib/

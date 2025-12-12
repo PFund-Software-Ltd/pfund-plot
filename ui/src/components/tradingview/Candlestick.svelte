@@ -11,7 +11,7 @@
   $effect(() => {
     if (chartContainer && !chart) {
       const chartOptions: DeepPartial<ChartOptions> = {
-        width: 600,
+        width: 1000,
         height: 320,
         layout: {
           textColor: "black",

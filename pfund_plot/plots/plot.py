@@ -3,6 +3,8 @@ from typing import Callable, TYPE_CHECKING, ClassVar
 if TYPE_CHECKING:
     from narwhals.typing import Frame
     from pfeed._typing import GenericFrame
+    from panel.pane import Pane
+    from anywidget import AnyWidget
     from pfund_plot._typing import tPlottingBackend, tDisplayMode
 
 import importlib
@@ -24,11 +26,13 @@ class Plot(ABC):
         from pfund_plot.state import state
         self._backend = PlottingBackend.bokeh
         self._mode = DisplayMode.notebook
+        self._notebook_type: NotebookType | None = get_notebook_type()
         self._state = state
         self._streaming_pipe: Pipe | None = None
         self._streaming = False
         self._streaming_freq = 1000  # in milliseconds
-
+        self._anywidget: AnyWidget | None = None
+        
     @property
     def style(self):
         from pfund_plot.plots.style import Style
@@ -49,41 +53,33 @@ class Plot(ABC):
         if self._backend == 'bokeh':
             self._streaming_pipe.send(df)
         elif self._backend == 'svelte':
-            pass
+            assert self._anywidget is not None, "anywidget is not set"
+            self._anywidget.update_data(df)
         else:
             raise ValueError(f"Unsupported backend: {self._backend}")
     
-    def _create_plot(self, df: Frame, style: dict, control: dict) -> pn.pane.Pane:
+    def _create_plot(self, df: Frame, style: dict, control: dict) -> AnyWidget | Pane:
         if self._backend == PlottingBackend.bokeh:
             from holoviews import DynamicMap
             self._streaming_pipe = Pipe(data=df.tail(min(control['num_data'], df.shape[0])))
             dmap = DynamicMap(lambda data: self._plot(data, style), streams=[self._streaming_pipe])
-            pane = pn.pane.HoloViews(dmap)
+            component = pn.pane.HoloViews(dmap)
         elif self._backend == PlottingBackend.svelte:
-            pass
-            # def session_created(session_context):
-            #     widget = self._plot(df, style)
-            #     print(f'Created a session running at the {session_context.request.uri} endpoint')
-            # pn.state.on_session_created(session_created)
-            # TODO
-            # widget = self._plot(df.tail(data_slider.value), style)
-            # height = 400
-            # pane = pn.pane.IPyWidget(widget)
-            # # Update function: send new tail of data via pipe on slider change
-            # def _update_data(event):
-            #     new_df = df.tail(data_slider.value)
-            #     widget.update_data(new_df)
+            self._anywidget: AnyWidget = self._plot(df.tail(control['num_data']), style)
+            if self._notebook_type == NotebookType.marimo:
+                component = self._anywidget
+            else:
+                component = pn.pane.IPyWidget(self._anywidget)
         else:
             raise ValueError(f"Unsupported backend: {self._backend}")
-        return pane
+        return component
     
     def set_backend(self, backend: tPlottingBackend):
         self._backend = PlottingBackend[backend.lower()]
         
     def set_mode(self, mode: tDisplayMode | None) -> None:
         if mode is None:
-            notebook_type: NotebookType | None = get_notebook_type()
-            mode = DisplayMode.notebook if notebook_type is not None else DisplayMode.browser
+            mode = DisplayMode.notebook if self._notebook_type is not None else DisplayMode.browser
         self._mode = DisplayMode[mode.lower()]
     
     def set_streaming(self, streaming_feed: MarketFeed | None, streaming_freq: int=1000) -> None:

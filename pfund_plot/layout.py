@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Literal
 if TYPE_CHECKING:
-    from pfund_plot._typing import tFigure
+    from pfund_plot._typing import Component
 
 from contextlib import contextmanager
 
@@ -44,7 +44,7 @@ def layout(
     
 
 def _layout_plot(
-    *figs: tFigure,
+    *figs: Component,
     mode: Literal['browser', 'desktop'] = 'browser',
     num_cols: int = 3,
     allow_drag: bool = True,

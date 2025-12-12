@@ -2,42 +2,66 @@
 authors = ["softwareentrepreneer <softwareentrepreneer+pfund-plot@gmail.com>"]
 channels = ["conda-forge"]
 name = "pfund-plot"
-platforms = ["osx-arm64", "linux-64"]
-version = "0.0.1.dev3"
-
+platforms = ["osx-arm64", "linux-64"]  # TODO: add "osx-64", "win-64"
+# updating this needs to also update the version in the ci.yml and templates/ci-workflow-template.yml files
+requires-pixi = ">=0.60"  # command: pixi workspace requires-pixi set ">=0.60
 
 [tasks]
 
 [tasks.test-all]
 depends-on = [
-  { task = "test", environment = "test-py311" },
-  { task = "test", environment = "test-py312" },
-  { task = "test", environment = "test-py313" },
+  { task = "test", environment = "py311" },
+  { task = "test", environment = "py312" },
+  { task = "test", environment = "py313" },
 ]
 
 [dependencies]
-python = ">=3.11"
-uv = ">=0.7.11"
+python = ">=3.11.14"
+uv = ">=0.9.16"
+
+[pypi-dependencies]
+pfund-plot = { path = ".", editable = true }
+pfeed = { path = "../pfeed", editable = true }
+panel = ">=1.8.4"
+hvplot = ">=0.12.1"
+plotly = ">=6.5.0"
+great-tables = ">=0.20.0"
+anywidget = ">=0.9.21"
+ipywidgets-bokeh = ">=1.6.0"
+pywebview = ">=6.1"
+datashader = ">=0.18.2"
+
+[pypi-options.dependency-overrides]
+platformdirs = ">=4.5.0"
 
 [environments]
-core = ["core"]
-dev = ["dev"]
-test-py311 = ["py311", "test"]
-test-py312 = ["py312", "test"]
-test-py313 = ["py313", "test"]
+default = ["py311", "dev", "optional"]
+py311 = ["py311", "test", "optional"]
+py312 = ["py312", "test", "optional"]
+py313 = ["py313", "test", "optional"]
 
-# [feature.core.pypi-dependencies]
+[feature.optional.pypi-dependencies]
+marimo = ">=0.18.4"
+vegafusion = ">=2.0.3"
+altair = ">=6.0.0"
+jupyter-bokeh = ">=4.0.5"
+notebook = ">=7.5.0"
+papermill = ">=2.6.0"
+voila = ">=0.5.11"
 
 [feature.dev.pypi-dependencies]
-ruff = ">=0.11.12"
+afterpython = ">=0.1.1"
+bokeh-sampledata = ">=2025.0"
+vega-datasets = ">=0.9.0"
+watchfiles = ">=1.1.1"
 
-[feature.test.dependencies]
-pytest = ">=8.4.0"
-pytest-cov = ">=6.1.1"
-pytest-mock = ">=3.14.1"
-pytest-xdist = ">=3.7.0"
+[feature.test.pypi-dependencies]
+pytest = ">=9.0.2"
+pytest-cov = ">=7.0.0"
+pytest-mock = ">=3.15.1"
+pytest-xdist = ">=3.8.0"
 [feature.test.tasks]
-test = "pytest"
+test = "pytest -v -n auto"
 
 [feature.py311.dependencies]
 python = "3.11.*"

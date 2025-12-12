@@ -67,3 +67,19 @@ def get_sizing_mode(height: int | None, width: int | None) -> str | None:
         return 'stretch_width'
     else:
         return None
+
+
+def load_panel_extensions():
+    notebook_type = get_notebook_type()
+
+    # Skip loading Panel extensions in marimo as it (very likely "ipywidgets") causes conflicts during data update
+    if notebook_type == NotebookType.marimo:
+        return
+
+    import panel as pn
+
+    extensions = ['ipywidgets', 'gridstack', 'tabulator', 'perspective']
+    for extension in extensions:
+        if extension not in pn.extension._loaded_extensions:
+            pn.extension(extension)
+            print(f'loaded Panel extension: {extension}')

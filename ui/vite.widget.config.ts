@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
-import path from 'path';
 import { getAllWidgetEntries } from './scripts/widget-entries.js';
+import path from 'path';
 
 // Plain Vite library build (no SvelteKit plugin)
 export default defineConfig(() => {
@@ -12,7 +12,8 @@ export default defineConfig(() => {
     plugins: [svelte({ compilerOptions: { runes: true } })],
     resolve: {
       alias: {
-        '@': path.resolve('./src')
+        '$components': path.resolve('./src/components/'),
+        '$static': path.resolve('./static/'),
       }
     },
     build: {
@@ -20,7 +21,7 @@ export default defineConfig(() => {
         entry: process.env.WIDGET_NAME && process.env.WIDGET_ENTRY ? {
           [process.env.WIDGET_NAME]: process.env.WIDGET_ENTRY  // WIDGET_ENTRY is the full path to entry file, e.g. ui/src/widgets/tradingview/candlestick/index.ts
         } : widgetEntries,
-        formats: ["es"],
+        formats: ["es"],  // ES modules required by anywidget
         fileName: (_format, name) => `${name}.js`,
       },
       rollupOptions: {

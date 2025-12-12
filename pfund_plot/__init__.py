@@ -14,6 +14,7 @@ from pfund_plot.plots.candlestick import (
     candlestick as kline,
 )
 from pfund_plot.layout import layout
+from pfund_plot.utils.utils import load_panel_extensions
 
 
 config = get_config()
@@ -21,9 +22,10 @@ config = get_config()
 
 
 hvplot.extension('bokeh', 'plotly', 'matplotlib')
-pn.extension('ipywidgets', 'gridstack', 'tabulator', 'perspective')
+load_panel_extensions()
+# NOTE: this MUST be True, otherwise, some widgets won't work properly, e.g. candlestick widgets, slider and input will both trigger each other due to panel's async update, which leads to infinite loop.
 pn.config.throttled = True  # If panel sliders and inputs should be throttled until release of mouse.
-# NOTE: /assets can only recognized when setting pn.serve(static_dirs=pfund_plot.config.static_dirs)
+# NOTE: /assets can only be recognized when setting pn.serve(static_dirs=pfund_plot.config.static_dirs)
 # see static_dirs in config.py
 pn.config.js_files = {
     "widgets_amd_config": "/assets/widgets-amd-config.js",
