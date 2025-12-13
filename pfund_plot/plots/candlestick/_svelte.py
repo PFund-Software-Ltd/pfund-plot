@@ -17,12 +17,14 @@ VITE_PORT = os.getenv("VITE_PORT", "5173")
 DEFAULT_HEIGHT_FOR_NOTEBOOK = 300
 
 
-__all__ = ['CandlestickWidget', 'plot', 'style', 'control']
+__all__ = ["CandlestickWidget", "plot", "style", "control"]
 
 
 class CandlestickWidget(AnyWidget):
     if PYTHON_ENV == "development":
-        _esm = f"http://localhost:{VITE_PORT}/src/widgets/tradingview/candlestick/index.ts"
+        _esm = (
+            f"http://localhost:{VITE_PORT}/src/widgets/tradingview/candlestick/index.ts"
+        )
     else:
         _esm = Path(__file__).parents[3] / "ui" / "dist" / "widgets" / "candlestick.js"
     data = traitlets.List(default_value=[]).tag(
@@ -55,13 +57,15 @@ def style(
     width: int | None = None,
     show_volume: bool = True,
 ):
+    style_dict = locals()
     from pfund_plot.enums import NotebookType
     from pfund_plot.utils.utils import get_notebook_type
-    style_dict = locals()
+
     notebook_type: NotebookType | None = get_notebook_type()
-    if notebook_type is not None and height is None:
+    is_notebook = notebook_type is not None
+    if is_notebook and height is None:
         height = DEFAULT_HEIGHT_FOR_NOTEBOOK
-        style_dict['height'] = height
+        style_dict["height"] = height
     return style_dict
 
 

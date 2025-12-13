@@ -1,1 +1,0 @@
-# TODO: add report generation, e.g. trade report? post-trade analysis?

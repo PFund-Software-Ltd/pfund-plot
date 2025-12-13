@@ -1,8 +1,15 @@
 from __future__ import annotations
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pfund_plot._typing import tPlottingBackend
 
 import os
+from enum import StrEnum
 from pathlib import Path
 from dataclasses import dataclass, asdict, field, MISSING
+
+import yaml
 
 from pfund.utils.utils import load_yaml_file, dump_yaml_file
 from pfund_plot.const.paths import (
@@ -11,6 +18,12 @@ from pfund_plot.const.paths import (
     DATA_PATH,
     CACHE_PATH,
     CONFIG_FILE_PATH
+)
+from pfund_plot.enums import PlottingBackend
+
+yaml.SafeDumper.add_multi_representer(
+    StrEnum,
+    yaml.representer.SafeRepresenter.represent_str,
 )
 
 
@@ -25,7 +38,8 @@ class Configuration:
     data_path: str = str(DATA_PATH)
     cache_path: str = str(CACHE_PATH)
     static_dirs: dict[str, str] = field(default_factory=dict)
-    
+    backend: PlottingBackend = PlottingBackend.bokeh
+
     _instance = None
     _verbose = False
     
@@ -133,6 +147,8 @@ def configure(
     data_path: str | None = None,
     cache_path: str | None = None,
     static_dirs: dict[str, str] | None = None,
+    # EXTEND: save backend choices for different plots
+    backend: tPlottingBackend | None = None,
     verbose: bool = False,
     write: bool = False,
 ):

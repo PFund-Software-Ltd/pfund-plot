@@ -13,5 +13,5 @@ Output = Component | Overlay | StoppableThread
 
 
 tDisplayMode = Literal['notebook', 'browser', 'desktop']
-tPlottingBackend = Literal['bokeh', 'svelte']  # TODO: add 'plotly', 'altair', 'matplotlib' etc.
+tPlottingBackend = Literal['bokeh', 'svelte', 'plotly', 'altair', 'matplotlib']
 tDataframeBackend = Literal['tabulator', 'perspective']

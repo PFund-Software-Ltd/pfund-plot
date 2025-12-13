@@ -35,7 +35,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-marimo = ["marimo[recommended]>=0.18.3"]
+marimo = ["marimo[recommended]>=0.18.4"]
 vega = [
     "vegafusion>=2.0.3",
     "altair>=6.0.0",

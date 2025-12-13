@@ -41,7 +41,7 @@ py312 = ["py312", "test", "optional"]
 py313 = ["py313", "test", "optional"]
 
 [feature.optional.pypi-dependencies]
-marimo = ">=0.18.4"
+marimo = { version = ">=0.18.4", extras = ["recommended"] }
 vegafusion = ">=2.0.3"
 altair = ">=6.0.0"
 jupyter-bokeh = ">=4.0.5"

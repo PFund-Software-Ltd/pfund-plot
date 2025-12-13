@@ -9,9 +9,9 @@ from pfund_plot.plots.dataframe import (
     dataframe_plot as df,
 )
 from pfund_plot.plots.candlestick import (
-    candlestick,
-    candlestick as ohlc,
-    candlestick as kline,
+    Candlestick as candlestick,
+    Candlestick as ohlc,
+    Candlestick as kline,
 )
 from pfund_plot.layout import layout
 from pfund_plot.utils.utils import load_panel_extensions
