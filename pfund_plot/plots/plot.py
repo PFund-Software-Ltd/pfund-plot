@@ -6,12 +6,12 @@ if TYPE_CHECKING:
     from pfeed._typing import GenericFrame
     from anywidget import AnyWidget
     from panel.io.callbacks import PeriodicCallback
+    from panel.pane import Pane
     from pfund_plot._typing import (
         Output,
         tPlottingBackend,
         tDisplayMode,
         Component,
-        WrappedPlot,
         WrappedFigure,
     )
 
@@ -75,7 +75,7 @@ class Plot(ABC):
 
         self._streaming_pipe: Pipe | None = None
         self._anywidget: AnyWidget | None = None
-        self._plot: WrappedPlot | None = None
+        self._pane: Pane | None = None
         self._component: Component | None = None
 
         self._notebook_type: NotebookType | None = get_notebook_type()
@@ -104,9 +104,17 @@ class Plot(ABC):
         pass
 
     def _render(self, periodic_callback: PeriodicCallback | None = None) -> Output:
+        from pfund_plot import print_warning
         from pfund_plot.renderer import render
+        from pfund_plot.utils.utils import load_panel_extensions
+        
+        # NOTE: data update in anywidget (backend=svelte) may have issues (especially in marimo) after loading panel extensions
+        if self._backend != PlottingBackend.svelte:
+            load_panel_extensions()
+        elif pn.extension._loaded_extensions:
+            print_warning("Svelte backend may not work correctly with existing panel extensions. Restart kernel to fix if issues arise.")
 
-        if self._plot is None:
+        if self._pane is None:
             self._create_plot()
         if self._component is None:
             self._create_component()
@@ -190,14 +198,14 @@ class Plot(ABC):
 
     @classmethod
     def set_mode(cls, mode: tDisplayMode):
-        assert mode in DisplayMode, (
+        assert mode in DisplayMode.__members__, (
             f"Mode {mode} is not in supported modes: {DisplayMode}"
         )
         cls._mode = DisplayMode[mode.lower()]
 
     def _set_mode(self, mode: tDisplayMode):
         """Set the instance-level mode for the plot."""
-        assert mode in DisplayMode, (
+        assert mode in DisplayMode.__members__, (
             f"Mode {mode} is not in supported modes: {DisplayMode}"
         )
         self._mode = DisplayMode[mode.lower()]
@@ -207,7 +215,7 @@ class Plot(ABC):
         return self.__class__.__name__.lower()
 
     @property
-    def _run(self) -> Callable:
+    def _plot(self) -> Callable:
         """Runs the plot function for the current backend."""
         module_path = f"pfund_plot.plots.{self.name}._{self._backend}"
         module = importlib.import_module(module_path)
@@ -216,7 +224,7 @@ class Plot(ABC):
     @property
     def figure(self) -> WrappedFigure:
         """Runs the plot function for the current backend and returns the figure."""
-        return self._run(self._df, self._style, self._control)
+        return self._plot(self._df, self._style, self._control)
 
     def _setup(
         self, df: GenericFrame | None, streaming_feed: MarketFeed | None
@@ -235,9 +243,10 @@ class Plot(ABC):
         if streaming_feed is not None:
             self._import_hvplot(streaming_feed)
 
-    def _is_displayed_in_marimo(self):
+    def _is_using_marimo_svelte_combo(self):
         return (
-            self._mode == DisplayMode.notebook
+            self._backend == PlottingBackend.svelte
+            and self._mode == DisplayMode.notebook
             and self._notebook_type == NotebookType.marimo
         )
 
@@ -249,18 +258,15 @@ class Plot(ABC):
                 data=self._df.tail(min(self._control["num_data"], self._df.shape[0]))
             )
             dmap = DynamicMap(
-                lambda data: self._run(data, self._style, self._control),
+                lambda data: self._plot(data, self._style, self._control),
                 streams=[self._streaming_pipe],
             )
-            self._plot = pn.pane.HoloViews(dmap)
+            self._pane = pn.pane.HoloViews(dmap)
         elif self._backend == PlottingBackend.svelte:
-            self._anywidget: AnyWidget = self._run(
+            self._anywidget: AnyWidget = self._plot(
                 self._df.tail(self._control["num_data"]), self._style, self._control
             )
-            if self._is_displayed_in_marimo():
-                self._plot = self._anywidget
-            else:
-                self._plot = pn.pane.IPyWidget(self._anywidget)
+            self._pane = pn.pane.IPyWidget(self._anywidget)
         else:
             raise ValueError(f"Unsupported backend: {self._backend}")
 

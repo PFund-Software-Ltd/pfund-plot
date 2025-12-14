@@ -27,7 +27,6 @@ dependencies = [
     "panel>=1.8.4",
     "hvplot>=0.12.1",
     "plotly>=6.5.0",
-    "great-tables>=0.20.0",
     "anywidget>=0.9.21",
     "ipywidgets-bokeh>=1.6.0",
     "pywebview>=6.1",
@@ -39,10 +38,6 @@ marimo = [
     "marimo[recommended,lsp]>=0.18.4",
     "basedpyright>=1.36.1",
 ]
-vega = [
-    "vegafusion>=2.0.3",
-    "altair>=6.0.0",
-]
 jupyter = [
     "jupyter-bokeh>=4.0.5",
     "notebook>=7.5.0",
@@ -50,10 +45,15 @@ jupyter = [
     "voila>=0.5.11",
     # "jupytext>=1.17.2",
 ]
+# vega = [
+#     "vegafusion>=2.0.3",
+#     "altair>=6.0.0",
+# ]
 # streamlit = ["streamlit>=1.44.1"]
 # dash = ["dash>=3.0.2"]
 # gradio = ["gradio>=5.23.3"]
 # taipy = ["taipy>=4.0.0"]
+# shiny = ["shiny>=1.5.1"]
 # solara = ["solara>=1.44.1"]
 # rio = ["rio-ui>=0.11.1"]
 

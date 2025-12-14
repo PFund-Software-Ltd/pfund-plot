@@ -2,12 +2,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from panel.pane import Pane
     from pfund_plot._typing import (
         Output,
         tPlottingBackend,
         tDisplayMode,
         Component,
-        WrappedPlot,
         WrappedFigure,
         RawFigure,
     )
@@ -57,10 +57,10 @@ class LazyPlot:
         return self._plot_instance.figure
     
     @property
-    def plot(self) -> WrappedPlot:
-        if self._plot_instance._plot is None:
+    def pane(self) -> Pane:
+        if self._plot_instance._pane is None:
             self._plot_instance._create_plot()
-        return self._plot_instance._plot
+        return self._plot_instance._pane
 
     @property
     def component(self) -> Component:

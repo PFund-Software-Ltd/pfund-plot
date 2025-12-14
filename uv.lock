@@ -757,15 +757,6 @@ wheels = [
 ]
 
 [[package]]
-name = "commonmark"
-version = "0.9.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/60/48/a60f593447e8f0894ebb7f6e6c1f25dafc5e89c5879fdc9360ae93ff83f0/commonmark-0.9.1.tar.gz", hash = "sha256:452f9dc859be7f06631ddcb328b6919c67984aca654e5fefb3914d54691aed60", size = 95764, upload-time = "2019-10-04T15:37:39.817Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/b1/92/dfd892312d822f36c55366118b95d914e5f16de11044a27cf10a7d71bbbf/commonmark-0.9.1-py2.py3-none-any.whl", hash = "sha256:da2f38c92590f83de410ba1a3cbceafbc74fee9def35f9251ba9a971d6d66fd9", size = 51068, upload-time = "2019-10-04T15:37:37.674Z" },
-]
-
-[[package]]
 name = "contourpy"
 version = "1.3.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1112,18 +1103,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/91/50/a9d80c47ff289c611ff12e63f7c5d13942c65d68125160cefd768c73e6e4/executing-2.2.0.tar.gz", hash = "sha256:5d108c028108fe2551d1a7b2e8b713341e2cb4fc0aa7dcf966fa4327a5226755", size = 978693, upload-time = "2025-01-22T15:41:29.403Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7b/8f/c4d9bafc34ad7ad5d8dc16dd1347ee0e507a52c3adb6bfa8887e1c6a26ba/executing-2.2.0-py2.py3-none-any.whl", hash = "sha256:11387150cad388d62750327a53d3339fad4888b39a6fe233c3afbb54ecffd3aa", size = 26702, upload-time = "2025-01-22T15:41:25.929Z" },
-]
-
-[[package]]
-name = "faicons"
-version = "0.2.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "htmltools" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/06/e8/c12ef85c4444616ab1c1e96d5ecbadc8046d40b34797308846a2cfc06c80/faicons-0.2.2.tar.gz", hash = "sha256:6b7d7b19180179b6b83783f91bf6c9311c0f00ae0f97d41be1d24d9942361659", size = 604434, upload-time = "2024-01-16T23:27:21.634Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/65/3c/1db1b0f878319bb227f35a0fca7cad64e1f528b518bcab1a708da305c86d/faicons-0.2.2-py3-none-any.whl", hash = "sha256:d45d7c2635b53582a3375c67d7e975a28a91d2c16ef5f6b5033b5cdd507224b6", size = 607225, upload-time = "2024-01-16T23:27:19.475Z" },
 ]
 
 [[package]]
@@ -1524,24 +1503,6 @@ wheels = [
 ]
 
 [[package]]
-name = "great-tables"
-version = "0.20.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "babel" },
-    { name = "commonmark" },
-    { name = "faicons" },
-    { name = "htmltools" },
-    { name = "importlib-metadata" },
-    { name = "importlib-resources" },
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/4b/44/754089cfe705280a7e8ef332b91401a8fa825289c40eb4a1664367d12b83/great_tables-0.20.0.tar.gz", hash = "sha256:5697553cc59c57c06ffc9a1d716ba6c39eb9dbaf69469254e4412bd6d95bd79e", size = 12560894, upload-time = "2025-10-31T20:59:49.763Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/fa/a9/b0f34fe9adbdd86fe98b770fe266c18f66dfdcc3e95680bda00a139fd05d/great_tables-0.20.0-py3-none-any.whl", hash = "sha256:4c88730ec3ebc7f0df6db423a0ffadcb7b1d1a82f5781c802d24b8d1f14f3093", size = 1392666, upload-time = "2025-10-31T20:59:47.355Z" },
-]
-
-[[package]]
 name = "greenlet"
 version = "3.2.3"
 source = { registry = "https://pypi.org/simple" }
@@ -1624,19 +1585,6 @@ wheels = [
 ]
 
 [[package]]
-name = "htmltools"
-version = "0.6.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "packaging" },
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/cd/1d/c568d17e9fb5ad5aa0ca3531c58d36fe69deb8eee4e53ff6425c1f99f210/htmltools-0.6.0.tar.gz", hash = "sha256:e8a3fb023d748935035db7ff17f620612ffc814a6a80b6ae388f7b7ab182adf7", size = 97152, upload-time = "2024-10-29T20:21:43.378Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/0a/ba/aa99706246f1938ca905eb6eeb7db832ac2e157aa4b805acb5cd4cd1791a/htmltools-0.6.0-py3-none-any.whl", hash = "sha256:072a274ff5e2851e0acce13fc5bb2bbdbbad8268dc8b123f881c05012ce7dce0", size = 84954, upload-time = "2024-10-29T20:21:42.067Z" },
-]
-
-[[package]]
 name = "httpcore"
 version = "1.0.9"
 source = { registry = "https://pypi.org/simple" }
@@ -1711,15 +1659,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/76/66/650a33bd90f786193e4de4b3ad86ea60b53c89b669a5c7be931fac31cdb0/importlib_metadata-8.7.0.tar.gz", hash = "sha256:d13b81ad223b890aa16c5471f2ac3056cf76c5f10f82d6f9292f0b415f389000", size = 56641, upload-time = "2025-04-27T15:29:01.736Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/20/b0/36bd937216ec521246249be3bf9855081de4c5e06a0c9b4219dbeda50373/importlib_metadata-8.7.0-py3-none-any.whl", hash = "sha256:e5dd1551894c77868a30651cef00984d50e1002d06942a7101d34870c5f02afd", size = 27656, upload-time = "2025-04-27T15:29:00.214Z" },
-]
-
-[[package]]
-name = "importlib-resources"
-version = "6.5.2"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/cf/8c/f834fbf984f691b4f7ff60f50b514cc3de5cc08abfc3295564dd89c5e2e7/importlib_resources-6.5.2.tar.gz", hash = "sha256:185f87adef5bcc288449d98fb4fba07cea78bc036455dd44c5fc4a2fe78fed2c", size = 44693, upload-time = "2025-01-03T18:51:56.698Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/a4/ed/1f1afb2e9e7f38a545d628f864d562a5ae64fe6f7a10e28ffb9b185b4e89/importlib_resources-6.5.2-py3-none-any.whl", hash = "sha256:789cfdc3ed28c78b67a06acb8126751ced69a3d5f79c095a98298cd8a760ccec", size = 37461, upload-time = "2025-01-03T18:51:54.306Z" },
 ]
 
 [[package]]
@@ -3512,7 +3451,6 @@ source = { editable = "." }
 dependencies = [
     { name = "anywidget" },
     { name = "datashader" },
-    { name = "great-tables" },
     { name = "hvplot" },
     { name = "ipywidgets-bokeh" },
     { name = "panel" },
@@ -3532,18 +3470,12 @@ marimo = [
     { name = "basedpyright" },
     { name = "marimo", extra = ["lsp", "recommended"] },
 ]
-vega = [
-    { name = "altair" },
-    { name = "vegafusion" },
-]
 
 [package.metadata]
 requires-dist = [
-    { name = "altair", marker = "extra == 'vega'", specifier = ">=6.0.0" },
     { name = "anywidget", specifier = ">=0.9.21" },
     { name = "basedpyright", marker = "extra == 'marimo'", specifier = ">=1.36.1" },
     { name = "datashader", specifier = ">=0.18.2" },
-    { name = "great-tables", specifier = ">=0.20.0" },
     { name = "hvplot", specifier = ">=0.12.1" },
     { name = "ipywidgets-bokeh", specifier = ">=1.6.0" },
     { name = "jupyter-bokeh", marker = "extra == 'jupyter'", specifier = ">=4.0.5" },
@@ -3554,10 +3486,9 @@ requires-dist = [
     { name = "pfeed", editable = "../pfeed" },
     { name = "plotly", specifier = ">=6.5.0" },
     { name = "pywebview", specifier = ">=6.1" },
-    { name = "vegafusion", marker = "extra == 'vega'", specifier = ">=2.0.3" },
     { name = "voila", marker = "extra == 'jupyter'", specifier = ">=0.5.11" },
 ]
-provides-extras = ["marimo", "vega", "jupyter"]
+provides-extras = ["marimo", "jupyter"]
 
 [[package]]
 name = "pillow"
@@ -5373,24 +5304,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/5e/42/e0e305207bb88c6b8d3061399c6a961ffe5fbb7e2aa63c9234df7259e9cd/uvicorn-0.35.0.tar.gz", hash = "sha256:bc662f087f7cf2ce11a1d7fd70b90c9f98ef2e2831556dd078d131b96cc94a01", size = 78473, upload-time = "2025-06-28T16:15:46.058Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d2/e2/dc81b1bd1dcfe91735810265e9d26bc8ec5da45b4c0f6237e286819194c3/uvicorn-0.35.0-py3-none-any.whl", hash = "sha256:197535216b25ff9b785e29a0b79199f55222193d47f820816e7da751e9bc8d4a", size = 66406, upload-time = "2025-06-28T16:15:44.816Z" },
-]
-
-[[package]]
-name = "vegafusion"
-version = "2.0.3"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "arro3-core" },
-    { name = "narwhals" },
-    { name = "packaging" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/d5/98/30d1eefcb121bae9afa06661a6a2a1572af2908917a2b0ba42e697f22c09/vegafusion-2.0.3.tar.gz", hash = "sha256:6fc9a89e0a55f7cd46089568c00520b84c07ba3e097570a3491ed207bd040b5b", size = 6734455, upload-time = "2025-09-29T11:57:05.772Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/77/30/fd00de2da4a6093b0d20d7ea3a359a10bf52d656d70821e221376e29e779/vegafusion-2.0.3-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:2a8f68e4425ff7c6513609d8d5308ef16e15f767a7d2b2f02422283b7abcf693", size = 22773704, upload-time = "2025-09-29T11:56:42.522Z" },
-    { url = "https://files.pythonhosted.org/packages/c0/1a/2b8219908173b977419f30ea14e21c4578004906cd3c8e0b450a5b892c6d/vegafusion-2.0.3-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:f80c605c0e759b5bb543d2ddde412083352b4711372eae2af76cd0c9f7da579f", size = 20606199, upload-time = "2025-09-29T11:56:47.455Z" },
-    { url = "https://files.pythonhosted.org/packages/04/d5/81d1403788f072e7d0e2b2fe539a0ae4410f27886ff52df094e5348c99ea/vegafusion-2.0.3-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:0b11c19a70f1bfe3d23d0a09aeecaac7bd03fac01a966d69fbd4dd8679dcb7e7", size = 23761642, upload-time = "2025-09-29T11:56:52.243Z" },
-    { url = "https://files.pythonhosted.org/packages/a0/14/4bc5a66bed302dc47a21c355169c76c9663f7b194de61d8b18e5641919d2/vegafusion-2.0.3-cp39-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:96c3a1a5565769f03cbde819fd71a505030f00247cfac58fda14a8d9fb402ba6", size = 21641082, upload-time = "2025-09-29T11:56:57.017Z" },
-    { url = "https://files.pythonhosted.org/packages/c4/62/3edb3e6bde43ccffcd0dbe70ed085a4c5a6b12ae80e7aad9f475800b3f11/vegafusion-2.0.3-cp39-abi3-win_amd64.whl", hash = "sha256:4f4b4bc21684b656c2b068016468155823c77d9261c76a27e52b510be00aba27", size = 25141399, upload-time = "2025-09-29T11:57:02.719Z" },
 ]
 
 [[package]]

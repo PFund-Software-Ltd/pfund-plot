@@ -15,7 +15,7 @@ import traitlets
 PYTHON_ENV = os.getenv("PYTHON_ENV", "production")
 VITE_PORT = os.getenv("VITE_PORT", "5173")
 # TODO: diff envs have different default heights
-DEFAULT_HEIGHT_FOR_NOTEBOOK = 300
+DEFAULT_HEIGHT = 300
 
 
 __all__ = ["CandlestickWidget", "plot", "style", "control"]
@@ -59,13 +59,8 @@ def style(
     show_volume: bool = True,
 ):
     style_dict = locals()
-    from pfund_plot.enums import NotebookType
-    from pfund_plot.utils.utils import get_notebook_type
-
-    notebook_type: NotebookType | None = get_notebook_type()
-    is_notebook = notebook_type is not None
-    if is_notebook and height is None:
-        height = DEFAULT_HEIGHT_FOR_NOTEBOOK
+    if height is None:
+        height = DEFAULT_HEIGHT
         style_dict["height"] = height
     return style_dict
 

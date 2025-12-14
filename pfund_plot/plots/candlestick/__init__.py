@@ -8,7 +8,6 @@ if TYPE_CHECKING:
 
 import panel as pn
 from pfund_plot.plots.plot import Plot
-from pfund_plot.plots.candlestick.widgets import CandlestickWidgets
 from pfund_plot.plots.candlestick.style import CandlestickStyle
 from pfund_plot.plots.candlestick.control import CandlestickControl
 from pfund_plot.enums import PlottingBackend
@@ -51,11 +50,11 @@ class Candlestick(Plot):
     # TODO: add ticker selector: ticker = pn.widgets.Select(options=['AAPL', 'IBM', 'GOOG', 'MSFT'], name='Ticker')
     # TODO: use tick data to update the current candlestick
     def _create_component(self):
+        from pfund_plot.plots.candlestick.widgets import CandlestickWidgets
+
         widgets = CandlestickWidgets(self._df, self._control, self._update_plot)
         # TODO: add volume plot when show_volume is True
         # show_volume = style['show_volume']
-        # TODO: to be removed, max_data not in use?
-        max_data = widgets.max_data
         toolbox = pn.FlexBox(
             widgets.datetime_range_input,
             widgets.datetime_range_slider,
@@ -111,15 +110,17 @@ class Candlestick(Plot):
         else:
             periodic_callback = None
             
-        if self._is_displayed_in_marimo():
+        # NOTE: somehow data update on anywidget (svelte) in marimo notebook doesn't work correctly using Panel
+        # so use mo.vstack() as a workaround
+        if self._is_using_marimo_svelte_combo():
             import marimo as mo
 
-            self._component = mo.vstack([self._plot, toolbox])
+            self._component = mo.vstack([self._anywidget, toolbox])
         else:
             height = self._style.get("height", None)
             width = self._style.get("width", None)
             self._component: Panel = pn.Column(
-                self._plot,
+                self._pane,
                 toolbox,
                 name="Candlestick Chart",
                 sizing_mode=get_sizing_mode(height, width),

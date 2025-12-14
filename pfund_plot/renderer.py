@@ -12,6 +12,10 @@ from threading import Thread
 from multiprocessing import Process, Event
 
 import panel as pn
+try:
+    import marimo as mo
+except ImportError:
+    mo = None
 import pfund_plot as plt
 from panel.io.callbacks import PeriodicCallback
 
@@ -35,7 +39,6 @@ def run_webview(title: str, port: int, window_ready: Event):
 def _handle_periodic_callback(periodic_callback: PeriodicCallback | None, notebook_type: NotebookType | None):
     # the main idea is don't use the thread created by periodic_callback.start(), instead create a marimo thread to stream updates
     def _handle_marimo_streaming(periodic_callback: PeriodicCallback):
-        import marimo as mo
         get_streaming_active, set_streaming_active = mo.state(True)
         
         def stream_updates():
@@ -52,7 +55,7 @@ def _handle_periodic_callback(periodic_callback: PeriodicCallback | None, notebo
         if state.layout.in_layout:
             state.layout.add_periodic_callback(periodic_callback)
         else:
-            if notebook_type == NotebookType.marimo:
+            if mo and notebook_type == NotebookType.marimo:
                 _handle_marimo_streaming(periodic_callback)
             else:
                 periodic_callback.start()
@@ -98,6 +101,8 @@ def render(
         if not use_iframe_in_notebook:
             panel_fig: Panel | Pane | Widget = fig
             run_callbacks(periodic_callbacks, notebook_type)
+            if mo and notebook_type == NotebookType.marimo:
+                return mo.as_html(panel_fig)
         else:
             if iframe_style is None:
                 print_warning("No iframe_style is provided for iframe in notebook")

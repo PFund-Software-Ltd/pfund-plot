@@ -44,8 +44,8 @@ def get_notebook_type() -> NotebookType | None:
     if any(key.startswith(('JUPYTER_', 'JPY_')) for key in os.environ):
         return NotebookType.jupyter
     
-    if 'VSCODE_PID' in os.environ:
-        return NotebookType.vscode
+    # if 'VSCODE_PID' in os.environ:
+    #     return NotebookType.vscode
     
     # None means not in a notebook environment
     return None
@@ -70,12 +70,6 @@ def get_sizing_mode(height: int | None, width: int | None) -> str | None:
 
 
 def load_panel_extensions():
-    notebook_type = get_notebook_type()
-
-    # Skip loading Panel extensions in marimo as it (very likely "ipywidgets") causes conflicts during data update
-    if notebook_type == NotebookType.marimo:
-        return
-
     import panel as pn
 
     extensions = ['ipywidgets', 'gridstack', 'tabulator', 'perspective']

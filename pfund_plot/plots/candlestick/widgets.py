@@ -15,9 +15,8 @@ class CandlestickWidgets:
     def __init__(self, df: Frame, control: dict, update_plot: Callable):
         self._df: Frame = df
         self._control = control
-        self._max_data = pn.rx(df.shape[0])
         self._update_plot = update_plot
-        num_data_shown = min(control['num_data'], self._max_data.rx.value)
+        num_data_shown = control['num_data']
         date_col = self._df.select('date')
         start_date, end_date = date_col.row(0)[0].to_pydatetime(), date_col.row(-1)[0].to_pydatetime()
         data_shown_start_date = date_col.row(-num_data_shown)[0].to_pydatetime()
@@ -35,7 +34,7 @@ class CandlestickWidgets:
             step=control['slider_step']
         )
         self._slider_watcher = self._datetime_range_slider.param.watch(self._update_datetime_range_slider, 'value')
-        self._is_updating = False
+        # self._max_data = pn.rx(df.shape[0])
         # self._data_slider = pn.widgets.IntSlider(
         #     name='Number of Most Recent Data Points',
         #     value=num_data_shown,
@@ -48,10 +47,6 @@ class CandlestickWidgets:
         # self._show_all_button.on_click(self._max_out_data_slider)
     
     @property
-    def max_data(self) -> pn.rx:
-        return self._max_data
-    
-    @property
     def datetime_range_input(self) -> pn.widgets.DatetimeRangeInput:
         return self._datetime_range_input
     
@@ -60,17 +55,9 @@ class CandlestickWidgets:
         return self._datetime_range_slider
     
     def _filter_df(self, start_date: datetime.datetime, end_date: datetime.datetime) -> Frame:
-        start_date, end_date = self._modify_if_dates_overlap(start_date, end_date)
         return self._df.filter(
             (nw.col("date") >= start_date) & (nw.col("date") <= end_date)
         )
-    
-    def _modify_if_dates_overlap(self, start_date: datetime.datetime, end_date: datetime.datetime) -> tuple[datetime.datetime, datetime.datetime]:
-        # end_date can't be the same as start_date, otherwise some bugs in hvplot will be triggered.
-        # e.g. hvplot/converter.py", line 2974, in ohlc: sampling = np.min(np.diff(ds[x])) * width / 2.0
-        if end_date == start_date:
-            end_date += datetime.timedelta(days=1)
-        return start_date, end_date
     
     def _update_datetime_range_input(self, event: Event):
         start_date, end_date = self._datetime_range_input.value

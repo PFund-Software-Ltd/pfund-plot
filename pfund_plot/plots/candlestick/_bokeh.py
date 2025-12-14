@@ -20,7 +20,7 @@ PLOT_OPTIONS = [
     "height",
 ]  # specified options supported in .opts()
 # needs a default value for bokeh's "responsive=True" to work properly in notebook environment
-DEFAULT_HEIGHT_FOR_NOTEBOOK = 280
+DEFAULT_HEIGHT = 280
 
 
 def style(
@@ -47,13 +47,8 @@ def style(
         width: the width of the plot
     """
     style_dict = locals()
-    from pfund_plot.enums import NotebookType
-    from pfund_plot.utils.utils import get_notebook_type
-
-    notebook_type: NotebookType | None = get_notebook_type()
-    is_notebook = notebook_type is not None
-    if is_notebook and height is None:
-        height = DEFAULT_HEIGHT_FOR_NOTEBOOK
+    if height is None:
+        height = DEFAULT_HEIGHT
         style_dict["height"] = height
     return style_dict
 
@@ -91,8 +86,12 @@ def _create_crosshair_tool():
 
 
 def plot(df: Frame, style: dict, control: dict) -> Overlay:
+    import hvplot
     from pfund_plot.plots.candlestick import Candlestick
     from pfund_plot.utils.utils import is_daily_data
+    from pfund_plot.enums import PlottingBackend
+
+    hvplot.extension(PlottingBackend.bokeh)
 
     date_format = "%Y-%m-%d" if is_daily_data(df) else "%Y-%m-%d %H:%M:%S"
     REQUIRED_COLS = Candlestick.REQUIRED_COLS[:]

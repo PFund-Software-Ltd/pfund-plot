@@ -25,7 +25,6 @@ pfeed = { path = "../pfeed", editable = true }
 panel = ">=1.8.4"
 hvplot = ">=0.12.1"
 plotly = ">=6.5.0"
-great-tables = ">=0.20.0"
 anywidget = ">=0.9.21"
 ipywidgets-bokeh = ">=1.6.0"
 pywebview = ">=6.1"
@@ -43,18 +42,18 @@ py313 = ["py313", "test", "optional"]
 [feature.optional.pypi-dependencies]
 marimo = { version = ">=0.18.4", extras = ["recommended", "lsp"] }
 basedpyright = ">=1.36.1"
-vegafusion = ">=2.0.3"
-altair = ">=6.0.0"
 jupyter-bokeh = ">=4.0.5"
 notebook = ">=7.5.0"
 papermill = ">=2.6.0"
 voila = ">=0.5.11"
 
+[feature.dev.dependencies]
+ta-lib = ">=0.6.4"
+
 [feature.dev.pypi-dependencies]
 afterpython = ">=0.1.1"
+selenium = ">=4.39.0"  # saving bokeh images requires selenium
 bokeh-sampledata = ">=2025.0"
-vega-datasets = ">=0.9.0"
-watchfiles = ">=1.1.1"
 
 [feature.test.pypi-dependencies]
 pytest = ">=9.0.2"
