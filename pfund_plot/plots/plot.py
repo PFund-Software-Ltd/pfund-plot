@@ -4,9 +4,16 @@ from typing import Callable, TYPE_CHECKING, ClassVar, Any
 if TYPE_CHECKING:
     from narwhals.typing import Frame
     from pfeed._typing import GenericFrame
-    from panel.pane import Pane
     from anywidget import AnyWidget
-    from pfund_plot._typing import Output, tPlottingBackend, tDisplayMode
+    from panel.io.callbacks import PeriodicCallback
+    from pfund_plot._typing import (
+        Output,
+        tPlottingBackend,
+        tDisplayMode,
+        Component,
+        WrappedPlot,
+        WrappedFigure,
+    )
 
 import importlib
 from abc import ABC, abstractmethod
@@ -21,11 +28,15 @@ from pfund_plot.enums import PlottingBackend, DisplayMode, NotebookType
 
 
 class Plot(ABC):
-    REQUIRED_COLS: ClassVar[list[str]]
+    REQUIRED_COLS: ClassVar[list[str] | None] = None
     STREAMING_FREQ: ClassVar[int] = 1000  # in milliseconds
-    SUPPORTED_BACKENDS: ClassVar[list[PlottingBackend]] = []
-    style: ClassVar[Any]  # Wrapper class like CandlestickStyle, used to access the style() function based on backend
-    control: ClassVar[Any]  # Wrapper class like CandlestickControl, used to access the control() function based on backend
+    SUPPORTED_BACKENDS: ClassVar[list[PlottingBackend] | None] = None
+    style: ClassVar[
+        Any
+    ]  # Wrapper class like CandlestickStyle, used to access the style() function based on backend
+    control: ClassVar[
+        Any
+    ]  # Wrapper class like CandlestickControl, used to access the control() function based on backend
     _style: ClassVar[dict | None] = None  # actual style dictionary
     _control: ClassVar[dict | None] = None  # actual control dictionary
     _backend: ClassVar[PlottingBackend] = PlottingBackend.bokeh
@@ -33,16 +44,19 @@ class Plot(ABC):
 
     def __new__(cls, *args, **kwargs):
         from pfund_plot.plots.lazy import LazyPlot
+
         instance: Plot = super().__new__(cls)
         # manually call __init__ to initialize the instance
-        instance.__init__(*args, **kwargs)  
+        instance.__init__(*args, **kwargs)
+        return LazyPlot(instance)
 
-        # do some sanity checks for the class variables
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
         assert hasattr(cls, "style"), "class variable 'style' is not defined"
         assert hasattr(cls, "control"), "class variable 'control' is not defined"
-        assert cls.SUPPORTED_BACKENDS, "SUPPORTED_BACKENDS is empty"
+        assert cls.REQUIRED_COLS is not None, "REQUIRED_COLS is not defined"
+        assert cls.SUPPORTED_BACKENDS is not None, "SUPPORTED_BACKENDS is not defined"
         assert cls.STREAMING_FREQ > 0, "STREAMING_FREQ must be greater than 0"
-        return LazyPlot(instance)
 
     def __init__(
         self,
@@ -52,6 +66,7 @@ class Plot(ABC):
     ):
         import pfund_plot as plt
         from pfund_plot.state import state
+
         self._setup(df, streaming_feed)
 
         self._df: Frame | None = self._standardize_df(df) if df is not None else None
@@ -60,13 +75,17 @@ class Plot(ABC):
 
         self._streaming_pipe: Pipe | None = None
         self._anywidget: AnyWidget | None = None
+        self._plot: WrappedPlot | None = None
+        self._component: Component | None = None
 
         self._notebook_type: NotebookType | None = get_notebook_type()
         self._state = state
 
         cls = self.__class__
         cls.set_backend(plt.config.backend)
-        cls.set_mode(DisplayMode.notebook if self._notebook_type else DisplayMode.browser)
+        cls.set_mode(
+            DisplayMode.notebook if self._notebook_type else DisplayMode.browser
+        )
 
         # Initialize instance variables
         self._backend: PlottingBackend
@@ -75,52 +94,77 @@ class Plot(ABC):
         self._control: dict
         self._set_backend(cls._backend)
         self._set_mode(cls._mode)
-    
+
     @abstractmethod
     def _standardize_df(self, df: GenericFrame) -> Frame:
         pass
-    
+
     @abstractmethod
-    def _render(self) -> Output:
+    def _create_component(self):
         pass
-    
+
+    def _render(self, periodic_callback: PeriodicCallback | None = None) -> Output:
+        from pfund_plot.renderer import render
+
+        if self._plot is None:
+            self._create_plot()
+        if self._component is None:
+            self._create_component()
+        return render(
+            self._component, mode=self._mode, periodic_callbacks=[periodic_callback]
+        )
+
     @classmethod
     def set_style(cls, style: dict | None = None):
-        '''Set the class-level style for the plot.'''
-        cls._style = cls._get_style_dict(style, cls._backend, cls.style)
-    
+        """Set the class-level style for the plot."""
+        cls._style = cls._create_style(style, cls._backend, cls.style)
+
     @staticmethod
-    def _get_style_dict(style: dict | None, backend: PlottingBackend, style_wrapper) -> dict:
+    def _create_style(
+        style: dict | None, backend: PlottingBackend, style_wrapper
+    ) -> dict:
+        default_style = getattr(style_wrapper, backend.value)()
+        
         if style is None:
-            style = getattr(style_wrapper, backend.value)()
+            return default_style
+        
         if not isinstance(style, dict):
             raise ValueError("style must be a dictionary")
-        return style
-    
+        
+        return {**default_style, **style}
+
     def _set_style(self, style: dict | None = None):
-        '''Set the instance-level style for the plot.'''
-        self._style = self._get_style_dict(style, self._backend, self.style)
-    
+        """Set the instance-level style for the plot."""
+        self._style = self._create_style(style, self._backend, self.style)
+
     @classmethod
     def set_control(cls, control: dict | None = None):
-        '''Set the class-level control for the plot.'''
-        cls._control = cls._get_control_dict(control, cls._backend, cls.control)
-    
+        """Set the class-level control for the plot."""
+        cls._control = cls._create_control(control, cls._backend, cls.control)
+
     @staticmethod
-    def _get_control_dict(control: dict | None, backend: PlottingBackend, control_wrapper) -> dict:
+    def _create_control(
+        control: dict | None, backend: PlottingBackend, control_wrapper
+    ) -> dict:
+        default_control = getattr(control_wrapper, backend.value)()
+        
         if control is None:
-            control = getattr(control_wrapper, backend.value)()
+            return default_control
+        
         if not isinstance(control, dict):
             raise ValueError("control must be a dictionary")
-        return control
-    
+
+        return {**default_control, **control}
+
     def _set_control(self, control: dict | None = None):
-        '''Set the instance-level control for the plot.'''
-        self._control = self._get_control_dict(control, self._backend, self.control)
-    
+        """Set the instance-level control for the plot."""
+        self._control = self._create_control(control, self._backend, self.control)
+
     @classmethod
     def set_backend(cls, backend: tPlottingBackend):
-        assert backend in cls.SUPPORTED_BACKENDS, f"Backend {backend} is not in supported backends: {cls.SUPPORTED_BACKENDS}"
+        assert backend in cls.SUPPORTED_BACKENDS, (
+            f"Backend {backend} is not in supported backends: {cls.SUPPORTED_BACKENDS}"
+        )
         original_backend = cls._backend
         cls._backend = PlottingBackend[backend.lower()]
         is_backend_changed = original_backend != cls._backend
@@ -129,10 +173,12 @@ class Plot(ABC):
             cls.set_style()
         if is_backend_changed or cls._control is None:
             cls.set_control()
-            
+
     def _set_backend(self, backend: tPlottingBackend):
-        '''Set the instance-level backend for the plot.'''
-        assert backend in self.SUPPORTED_BACKENDS, f"Backend {backend} is not in supported backends: {self.SUPPORTED_BACKENDS}"
+        """Set the instance-level backend for the plot."""
+        assert backend in self.SUPPORTED_BACKENDS, (
+            f"Backend {backend} is not in supported backends: {self.SUPPORTED_BACKENDS}"
+        )
         original_backend = self._backend
         self._backend = PlottingBackend[backend.lower()]
         is_backend_changed = original_backend != self._backend
@@ -141,15 +187,19 @@ class Plot(ABC):
             self._set_style()
         if is_backend_changed or self._control is None:
             self._set_control()
-    
+
     @classmethod
     def set_mode(cls, mode: tDisplayMode):
-        assert mode in DisplayMode, f"Mode {mode} is not in supported modes: {DisplayMode}"
+        assert mode in DisplayMode, (
+            f"Mode {mode} is not in supported modes: {DisplayMode}"
+        )
         cls._mode = DisplayMode[mode.lower()]
-    
+
     def _set_mode(self, mode: tDisplayMode):
-        '''Set the instance-level mode for the plot.'''
-        assert mode in DisplayMode, f"Mode {mode} is not in supported modes: {DisplayMode}"
+        """Set the instance-level mode for the plot."""
+        assert mode in DisplayMode, (
+            f"Mode {mode} is not in supported modes: {DisplayMode}"
+        )
         self._mode = DisplayMode[mode.lower()]
 
     @property
@@ -157,17 +207,20 @@ class Plot(ABC):
         return self.__class__.__name__.lower()
 
     @property
-    def _plot(self) -> Callable:
+    def _run(self) -> Callable:
+        """Runs the plot function for the current backend."""
         module_path = f"pfund_plot.plots.{self.name}._{self._backend}"
         module = importlib.import_module(module_path)
         return getattr(module, "plot")
-    
+
     @property
-    def figure(self):
-        """Return the raw figure object (e.g. bokeh.plotting.figure or plotly.graph_objects.Figure)."""
-        return self._plot(self._df, self._style, self._control)
-    
-    def _setup(self, df: GenericFrame | None, streaming_feed: MarketFeed | None) -> None:
+    def figure(self) -> WrappedFigure:
+        """Runs the plot function for the current backend and returns the figure."""
+        return self._run(self._df, self._style, self._control)
+
+    def _setup(
+        self, df: GenericFrame | None, streaming_feed: MarketFeed | None
+    ) -> None:
         assert df is not None or streaming_feed is not None, (
             "Either df or streaming_feed must be provided"
         )
@@ -181,8 +234,14 @@ class Plot(ABC):
             assert streaming_feed._use_ray is False, "Ray is not supported for plotting"
         if streaming_feed is not None:
             self._import_hvplot(streaming_feed)
-    
-    def _create_plot(self) -> AnyWidget | Pane:
+
+    def _is_displayed_in_marimo(self):
+        return (
+            self._mode == DisplayMode.notebook
+            and self._notebook_type == NotebookType.marimo
+        )
+
+    def _create_plot(self):
         if self._backend == PlottingBackend.bokeh:
             from holoviews import DynamicMap
 
@@ -190,23 +249,25 @@ class Plot(ABC):
                 data=self._df.tail(min(self._control["num_data"], self._df.shape[0]))
             )
             dmap = DynamicMap(
-                lambda data: self._plot(data, self._style), streams=[self._streaming_pipe]
+                lambda data: self._run(data, self._style, self._control),
+                streams=[self._streaming_pipe],
             )
-            component = pn.pane.HoloViews(dmap)
+            self._plot = pn.pane.HoloViews(dmap)
         elif self._backend == PlottingBackend.svelte:
-            self._anywidget: AnyWidget = self._plot(self._df.tail(self._control["num_data"]), self._style)
-            if self._notebook_type == NotebookType.marimo:
-                component = self._anywidget
+            self._anywidget: AnyWidget = self._run(
+                self._df.tail(self._control["num_data"]), self._style, self._control
+            )
+            if self._is_displayed_in_marimo():
+                self._plot = self._anywidget
             else:
-                component = pn.pane.IPyWidget(self._anywidget)
+                self._plot = pn.pane.IPyWidget(self._anywidget)
         else:
             raise ValueError(f"Unsupported backend: {self._backend}")
-        return component
 
     def _update_plot(self, df: Frame):
-        if self._backend == "bokeh":
+        if self._backend == PlottingBackend.bokeh:
             self._streaming_pipe.send(df)
-        elif self._backend == "svelte":
+        elif self._backend == PlottingBackend.svelte:
             assert self._anywidget is not None, "anywidget is not set"
             self._anywidget.update_data(df)
         else:

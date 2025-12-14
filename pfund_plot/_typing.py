@@ -1,14 +1,22 @@
-from typing import Literal
+from __future__ import annotations
+from typing import Literal, TYPE_CHECKING
 
-from anywidget import AnyWidget
-from panel.io.threads import StoppableThread
-from panel.layout import Panel
-from panel.widgets import Widget
-from panel.pane import Pane
-from holoviews.core.overlay import Overlay
+if TYPE_CHECKING:
+    from anywidget import AnyWidget
+    from panel.io.threads import StoppableThread
+    from panel.layout import Panel
+    from panel.widgets import Widget
+    from panel.pane import Pane
+    from bokeh.plotting._figure import figure as BokehFigure
+    from plotly.graph_objects import Figure as PlotlyFigure
+    from matplotlib.figure import Figure as MatplotlibFigure
+    from holoviews.core.overlay import Overlay
 
 
-Component = Panel | Pane | Widget | AnyWidget
+RawFigure = BokehFigure | PlotlyFigure | MatplotlibFigure
+WrappedFigure = Overlay | AnyWidget
+WrappedPlot = Pane | AnyWidget
+Component = Panel | Widget
 Output = Component | Overlay | StoppableThread
 
 

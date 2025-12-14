@@ -90,7 +90,7 @@ def _create_crosshair_tool():
     return CrosshairTool(dimensions="height", line_color="gray", line_alpha=0.3)
 
 
-def plot(df: Frame, style: dict) -> Overlay:
+def plot(df: Frame, style: dict, control: dict) -> Overlay:
     from pfund_plot.plots.candlestick import Candlestick
     from pfund_plot.utils.utils import is_daily_data
 

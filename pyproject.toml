@@ -35,7 +35,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-marimo = ["marimo[recommended]>=0.18.4"]
+marimo = [
+    "marimo[recommended,lsp]>=0.18.4",
+    "basedpyright>=1.36.1",
+]
 vega = [
     "vegafusion>=2.0.3",
     "altair>=6.0.0",
@@ -63,12 +66,12 @@ repository = "https://github.com/PFund-Software-Ltd/pfund-plot"
 documentation = "https://pfund-plot-docs.pfund.ai"
 
 [build-system]
-requires = ["uv_build>=0.9.16,<0.10.0"]
+requires = ["uv_build>=0.9.17,<0.10.0"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]
 module-name = "pfund_plot"
 module-root = ""
 
-# [tool.uv.sources]
-# pfeed = { path = "../pfeed", editable = true }
+[tool.uv.sources]
+pfeed = { path = "../pfeed", editable = true }

@@ -2,9 +2,18 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from pfund_plot._typing import Output, tPlottingBackend, tDisplayMode
+    from pfund_plot._typing import (
+        Output,
+        tPlottingBackend,
+        tDisplayMode,
+        Component,
+        WrappedPlot,
+        WrappedFigure,
+        RawFigure,
+    )
 
 from pfund_plot.plots.plot import Plot
+from pfund_plot.enums import PlottingBackend
 
 
 class LazyPlot:
@@ -17,8 +26,48 @@ class LazyPlot:
     """
 
     def __init__(self, plot_instance: Plot):
-        self._plot = plot_instance
+        self._plot_instance = plot_instance
+    
+    @property
+    def name(self) -> str:
+        return self._plot_instance.name
+    
+    @property
+    def raw_figure(self) -> RawFigure:
+        import hvplot
+        from holoviews.core.overlay import Overlay
+        from anywidget import AnyWidget
+        
+        fig = self.figure
+        backend = self._plot_instance._backend
+        if isinstance(fig, Overlay):
+            raw_fig = hvplot.render(fig, backend=backend)
+            if backend != PlottingBackend.plotly:
+                return raw_fig
+            else:
+                import plotly.graph_objects as go
+                return go.Figure(raw_fig)
+        elif isinstance(fig, AnyWidget):
+            return fig
+        else:
+            raise ValueError(f"Unsupported figure type: {type(fig)}")
 
+    @property
+    def figure(self) -> WrappedFigure:
+        return self._plot_instance.figure
+    
+    @property
+    def plot(self) -> WrappedPlot:
+        if self._plot_instance._plot is None:
+            self._plot_instance._create_plot()
+        return self._plot_instance._plot
+
+    @property
+    def component(self) -> Component:
+        if self._plot_instance._component is None:
+            self._plot_instance._create_component()
+        return self._plot_instance._component
+    
     def style(self, **kwargs) -> LazyPlot:
         """Configure style options.
 
@@ -31,7 +80,7 @@ class LazyPlot:
         Example:
             plt.ohlc(df).style(height=600, width=800)
         """
-        self._plot._set_style(kwargs)
+        self._plot_instance._set_style(kwargs)
         return self
 
     def control(self, **kwargs) -> LazyPlot:
@@ -46,7 +95,7 @@ class LazyPlot:
         Example:
             plt.ohlc(df).control(num_data=100)
         """
-        self._plot._set_control(kwargs)
+        self._plot_instance._set_control(kwargs)
         return self
 
     def backend(self, backend: tPlottingBackend) -> LazyPlot:
@@ -61,7 +110,7 @@ class LazyPlot:
         Example:
             plt.ohlc(df).backend('svelte').show()
         """
-        self._plot._set_backend(backend)
+        self._plot_instance._set_backend(backend)
         return self
 
     def mode(self, mode: tDisplayMode) -> LazyPlot:
@@ -76,16 +125,8 @@ class LazyPlot:
         Example:
             plt.ohlc(df).mode('browser').show()
         """
-        self._plot._set_mode(mode)
+        self._plot_instance._set_mode(mode)
         return self
-
-    def figure(self):
-        """Return the raw figure object (e.g. bokeh.plotting.figure or plotly.graph_objects.Figure).
-
-        Returns:
-            The raw figure object
-        """
-        return self._plot.figure()
 
     def show(self) -> Output:
         """Explicitly render and display the plot.
@@ -96,7 +137,7 @@ class LazyPlot:
         Returns:
             The rendered plot output
         """
-        return self._plot._render()
+        return self._plot_instance._render()
 
     def _repr_mimebundle_(self, include=None, exclude=None) -> dict[str, Any] | None:
         """Auto-render in Jupyter/IPython notebooks.

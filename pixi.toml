@@ -17,7 +17,7 @@ depends-on = [
 
 [dependencies]
 python = ">=3.11.14"
-uv = ">=0.9.16"
+uv = ">=0.9.17"
 
 [pypi-dependencies]
 pfund-plot = { path = ".", editable = true }
@@ -41,7 +41,8 @@ py312 = ["py312", "test", "optional"]
 py313 = ["py313", "test", "optional"]
 
 [feature.optional.pypi-dependencies]
-marimo = { version = ">=0.18.4", extras = ["recommended"] }
+marimo = { version = ">=0.18.4", extras = ["recommended", "lsp"] }
+basedpyright = ">=1.36.1"
 vegafusion = ">=2.0.3"
 altair = ">=6.0.0"
 jupyter-bokeh = ">=4.0.5"

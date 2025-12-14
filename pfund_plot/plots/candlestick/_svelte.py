@@ -14,6 +14,7 @@ import traitlets
 
 PYTHON_ENV = os.getenv("PYTHON_ENV", "production")
 VITE_PORT = os.getenv("VITE_PORT", "5173")
+# TODO: diff envs have different default heights
 DEFAULT_HEIGHT_FOR_NOTEBOOK = 300
 
 
@@ -76,5 +77,5 @@ def control(
     return locals()
 
 
-def plot(df: Frame, style: dict) -> CandlestickWidget:
+def plot(df: Frame, style: dict, control: dict) -> CandlestickWidget:
     return CandlestickWidget(df)

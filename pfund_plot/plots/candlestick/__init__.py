@@ -5,16 +5,13 @@ if TYPE_CHECKING:
     from narwhals.typing import Frame
     from panel.layout import Panel
     from pfeed._typing import GenericFrame
-    from anywidget import AnyWidget
-    from panel.pane import Pane
-    from pfund_plot._typing import Output
 
 import panel as pn
 from pfund_plot.plots.plot import Plot
 from pfund_plot.plots.candlestick.widgets import CandlestickWidgets
 from pfund_plot.plots.candlestick.style import CandlestickStyle
 from pfund_plot.plots.candlestick.control import CandlestickControl
-from pfund_plot.enums import NotebookType, PlottingBackend
+from pfund_plot.enums import PlottingBackend
 from pfund_plot.utils.utils import get_sizing_mode
 
 
@@ -53,20 +50,19 @@ class Candlestick(Plot):
 
     # TODO: add ticker selector: ticker = pn.widgets.Select(options=['AAPL', 'IBM', 'GOOG', 'MSFT'], name='Ticker')
     # TODO: use tick data to update the current candlestick
-    def _render(self) -> Output:
-        from pfund_plot.renderer import render
-
+    def _create_component(self):
+        widgets = CandlestickWidgets(self._df, self._control, self._update_plot)
         # TODO: add volume plot when show_volume is True
         # show_volume = style['show_volume']
-        component: AnyWidget | Pane = self._create_plot()
-        widgets = CandlestickWidgets(self._df, self._control, self._update_plot)
         # TODO: to be removed, max_data not in use?
         max_data = widgets.max_data
-        datetime_range_input, datetime_range_slider = (
+        toolbox = pn.FlexBox(
             widgets.datetime_range_input,
             widgets.datetime_range_slider,
+            align_items="center",
+            justify_content="center",
         )
-
+        
         if self._streaming_feed is not None:
             pass
             # TODO: add streaming data
@@ -114,22 +110,16 @@ class Candlestick(Plot):
             # )  # period in milliseconds
         else:
             periodic_callback = None
-
-        toolbox = pn.FlexBox(
-            datetime_range_input,
-            datetime_range_slider,
-            align_items="center",
-            justify_content="center",
-        )
-        if self._notebook_type == NotebookType.marimo:
+            
+        if self._is_displayed_in_marimo():
             import marimo as mo
 
-            fig = mo.vstack([component, toolbox])
+            self._component = mo.vstack([self._plot, toolbox])
         else:
             height = self._style.get("height", None)
             width = self._style.get("width", None)
-            fig: Panel = pn.Column(
-                component,
+            self._component: Panel = pn.Column(
+                self._plot,
                 toolbox,
                 name="Candlestick Chart",
                 sizing_mode=get_sizing_mode(height, width),
@@ -138,4 +128,3 @@ class Candlestick(Plot):
                 height=height,
                 width=width,
             )
-        return render(fig, mode=self._mode, periodic_callbacks=[periodic_callback])
