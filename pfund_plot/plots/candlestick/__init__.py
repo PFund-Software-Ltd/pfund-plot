@@ -110,8 +110,8 @@ class Candlestick(Plot):
         else:
             periodic_callback = None
             
-        # NOTE: somehow data update on anywidget (svelte) in marimo notebook doesn't work correctly using Panel
-        # so use mo.vstack() as a workaround
+        # NOTE: somehow data update on anywidget (svelte) in marimo notebook doesn't work using Panel
+        # (probably need a refresh of the marimo cell to reflect the changes), so use mo.vstack() as a workaround
         if self._is_using_marimo_svelte_combo():
             import marimo as mo
 

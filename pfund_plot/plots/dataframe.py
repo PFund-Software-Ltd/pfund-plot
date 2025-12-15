@@ -4,18 +4,16 @@ if TYPE_CHECKING:
     from pfeed._typing import GenericFrame
     from pfeed.feeds.base_feed import BaseFeed
     from pfund_plot._typing import tDisplayMode, tDataframeBackend
-    from pfund_plot._typing import Output
+    from pfund_plot._typing import RenderedResult
     from panel.widgets import Widget
     from panel.pane import Pane
 
 import panel as pn
 from bokeh.models.widgets.tables import DateFormatter
 
-from pfund import print_warning
 from pfeed._etl.base import convert_to_pandas_df
 from pfund_plot.enums import DisplayMode, DataFrameBackend, NotebookType
 from pfund_plot.utils.utils import get_notebook_type, get_sizing_mode
-from pfund_plot.renderer import render
 from pfund_plot.state import state
 
 
@@ -45,7 +43,7 @@ def dataframe_plot(
     height: int | None = None,
     width: int | None = None,
     **kwargs
-) -> Output:
+) -> RenderedResult:
     '''
     Args:
         data: the data to plot, either a dataframe or pfeed's feed object
@@ -69,6 +67,8 @@ def dataframe_plot(
     please refer to https://panel.holoviz.org/reference/widgets/Tabulator.html for Tabulator backend,
     and https://panel.holoviz.org/reference/panes/Perspective.html for Perspective backend.
     '''
+    from pfund_plot import print_warning
+
 
     mode, backend = DisplayMode[mode.lower()], DataFrameBackend[backend.lower()]
     if state.layout.in_layout:

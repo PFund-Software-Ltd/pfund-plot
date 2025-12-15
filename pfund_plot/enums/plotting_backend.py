@@ -7,3 +7,4 @@ class PlottingBackend(StrEnum):
     plotly = 'plotly'
     altair = 'altair'
     matplotlib = 'matplotlib'
+    perspective = 'perspective'

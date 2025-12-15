@@ -3333,7 +3333,7 @@ requires-dist = [
     { name = "cloudpathlib", extras = ["s3", "gs", "azure"], specifier = ">=0.23.0" },
     { name = "dask", extras = ["complete", "dataframe"], marker = "extra == 'dask'", specifier = ">=2025.10.0" },
     { name = "deltalake", specifier = ">=1.2.1" },
-    { name = "duckdb", marker = "extra == 'duckdb'", specifier = ">=1.4.1" },
+    { name = "duckdb", marker = "extra == 'duckdb'", specifier = ">=1.4.3" },
     { name = "fmp-api-client", editable = "../fmp-api-client" },
     { name = "lancedb", marker = "extra == 'lancedb'", specifier = ">=0.25.2" },
     { name = "minio", specifier = ">=7.2.18" },

@@ -7,8 +7,9 @@ if TYPE_CHECKING:
     from anywidget import AnyWidget
     from panel.io.callbacks import PeriodicCallback
     from panel.pane import Pane
+    from pfund_plot.renderers.base import BaseRenderer
     from pfund_plot._typing import (
-        Output,
+        RenderedResult,
         tPlottingBackend,
         tDisplayMode,
         Component,
@@ -90,6 +91,7 @@ class Plot(ABC):
         # Initialize instance variables
         self._backend: PlottingBackend
         self._mode: DisplayMode
+        self._renderer: BaseRenderer
         self._style: dict
         self._control: dict
         self._set_backend(cls._backend)
@@ -103,24 +105,27 @@ class Plot(ABC):
     def _create_component(self):
         pass
 
-    def _render(self, periodic_callback: PeriodicCallback | None = None) -> Output:
+    def _add_periodic_callback(self, periodic_callback: PeriodicCallback):
+        self._renderer.add_periodic_callback(periodic_callback)
+
+    def _render(self) -> RenderedResult:
         from pfund_plot import print_warning
-        from pfund_plot.renderer import render
         from pfund_plot.utils.utils import load_panel_extensions
-        
+
         # NOTE: data update in anywidget (backend=svelte) may have issues (especially in marimo) after loading panel extensions
         if self._backend != PlottingBackend.svelte:
+            # TODO: do not load unnecessary extensions
             load_panel_extensions()
         elif pn.extension._loaded_extensions:
-            print_warning("Svelte backend may not work correctly with existing panel extensions. Restart kernel to fix if issues arise.")
+            print_warning(
+                "Svelte backend may not work correctly with existing panel extensions. Restart kernel to fix if issues arise."
+            )
 
         if self._pane is None:
             self._create_plot()
         if self._component is None:
             self._create_component()
-        return render(
-            self._component, mode=self._mode, periodic_callbacks=[periodic_callback]
-        )
+        return self._renderer.render(self._component)
 
     @classmethod
     def set_style(cls, style: dict | None = None):
@@ -132,13 +137,13 @@ class Plot(ABC):
         style: dict | None, backend: PlottingBackend, style_wrapper
     ) -> dict:
         default_style = getattr(style_wrapper, backend.value)()
-        
+
         if style is None:
             return default_style
-        
+
         if not isinstance(style, dict):
             raise ValueError("style must be a dictionary")
-        
+
         return {**default_style, **style}
 
     def _set_style(self, style: dict | None = None):
@@ -155,10 +160,10 @@ class Plot(ABC):
         control: dict | None, backend: PlottingBackend, control_wrapper
     ) -> dict:
         default_control = getattr(control_wrapper, backend.value)()
-        
+
         if control is None:
             return default_control
-        
+
         if not isinstance(control, dict):
             raise ValueError("control must be a dictionary")
 
@@ -209,6 +214,21 @@ class Plot(ABC):
             f"Mode {mode} is not in supported modes: {DisplayMode}"
         )
         self._mode = DisplayMode[mode.lower()]
+        self._set_renderer()
+
+    def _set_renderer(self):
+        if self._mode == DisplayMode.notebook:
+            from pfund_plot.renderers.notebook import NotebookRenderer
+            
+            self._renderer = NotebookRenderer()
+        elif self._mode == DisplayMode.browser:
+            from pfund_plot.renderers.browser import BrowserRenderer
+
+            self._renderer = BrowserRenderer()
+        elif self._mode == DisplayMode.desktop:
+            from pfund_plot.renderers.desktop import DesktopRenderer
+
+            self._renderer = DesktopRenderer()
 
     @property
     def name(self) -> str:
@@ -279,6 +299,7 @@ class Plot(ABC):
         else:
             raise ValueError(f"Unsupported backend: {self._backend}")
 
+    # TODO: move to utils
     @staticmethod
     def _import_hvplot(data: GenericFrame | MarketFeed) -> None:
         if is_dataframe(data):

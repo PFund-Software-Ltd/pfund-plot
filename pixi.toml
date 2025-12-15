@@ -54,6 +54,7 @@ ta-lib = ">=0.6.4"
 afterpython = ">=0.1.1"
 selenium = ">=4.39.0"  # saving bokeh images requires selenium
 bokeh-sampledata = ">=2025.0"
+hvsampledata = ">=0.1.4"
 
 [feature.test.pypi-dependencies]
 pytest = ">=9.0.2"

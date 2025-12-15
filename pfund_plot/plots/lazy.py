@@ -3,8 +3,10 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from panel.pane import Pane
+    from panel.io.threads import StoppableThread
+    from panel.io.server import Server
     from pfund_plot._typing import (
-        Output,
+        RenderedResult,
         tPlottingBackend,
         tDisplayMode,
         Component,
@@ -82,7 +84,10 @@ class LazyPlot:
         """
         self._plot_instance._set_style(kwargs)
         return self
-
+    
+    def get_style(self) -> dict:
+        return self._plot_instance._style
+    
     def control(self, **kwargs) -> LazyPlot:
         """Configure control options.
 
@@ -97,6 +102,9 @@ class LazyPlot:
         """
         self._plot_instance._set_control(kwargs)
         return self
+    
+    def get_control(self) -> dict:
+        return self._plot_instance._control
 
     def backend(self, backend: tPlottingBackend) -> LazyPlot:
         """Override backend for this plot only.
@@ -113,6 +121,9 @@ class LazyPlot:
         self._plot_instance._set_backend(backend)
         return self
 
+    def get_backend(self) -> tPlottingBackend:
+        return self._plot_instance._backend
+
     def mode(self, mode: tDisplayMode) -> LazyPlot:
         """Override display mode for this plot only.
 
@@ -128,7 +139,10 @@ class LazyPlot:
         self._plot_instance._set_mode(mode)
         return self
 
-    def show(self) -> Output:
+    def get_mode(self) -> tDisplayMode:
+        return self._plot_instance._mode
+
+    def show(self) -> StoppableThread | Server | RenderedResult:
         """Explicitly render and display the plot.
 
         Use this in browser/desktop mode or when you want explicit control.
@@ -137,9 +151,16 @@ class LazyPlot:
         Returns:
             The rendered plot output
         """
+        renderer = self._plot_instance._renderer
+        server = renderer.server
+        # server is already running, return it
+        # happens when in notebook envs, somehow _repr_mimebundle_ and _repr_html_ are called multiple times automatically
+        # e.g. plt.ohlc(df).mode('browser')
+        if server is not None:
+            return server
         return self._plot_instance._render()
 
-    def _repr_mimebundle_(self, include=None, exclude=None) -> dict[str, Any] | None:
+    def _repr_mimebundle_(self, include=None, exclude=None) -> dict[str, Any]:
         """Auto-render in Jupyter/IPython notebooks.
 
         This magic method is called when the object is the last expression
@@ -148,7 +169,7 @@ class LazyPlot:
         result = self.show()
         if hasattr(result, "_repr_mimebundle_"):
             return result._repr_mimebundle_(include, exclude)
-        return None
+        return {}
 
     def _repr_html_(self) -> str | None:
         """Fallback HTML representation for notebooks."""

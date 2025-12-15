@@ -5,7 +5,7 @@ if TYPE_CHECKING:
     from pfeed._typing import GenericFrame
     from pfeed.feeds.base_feed import BaseFeed
     from pfund_plot._typing import tDisplayMode, tDataframeBackend
-    from pfund_plot._typing import Output
+    from pfund_plot._typing import RenderedResult
     from holoviews.core.overlay import Overlay
     from panel.layout import Panel
 
@@ -25,7 +25,7 @@ def orderbook_plot(
     streaming_freq: int = 1000,  # in milliseconds
     height: int = 600,
     **kwargs
-) -> Output:
+) -> RenderedResult:
     '''
     Args:
         height: height of the orderbook plot in pixels.
