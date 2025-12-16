@@ -51,17 +51,6 @@ def get_notebook_type() -> NotebookType | None:
     return None
 
 
-def get_sizing_mode(height: int | None, width: int | None) -> str | None:
-    if height is None and width is None:
-        return 'stretch_both'
-    elif height is None:
-        return 'stretch_height'
-    elif width is None:
-        return 'stretch_width'
-    else:
-        return None
-
-
 def load_panel_extensions():
     import panel as pn
 

@@ -13,7 +13,7 @@ if TYPE_CHECKING:
         tPlottingBackend,
         tDisplayMode,
         Component,
-        WrappedFigure,
+        Plot,
     )
 
 import importlib
@@ -28,7 +28,7 @@ from pfund_plot.utils.utils import get_notebook_type
 from pfund_plot.enums import PlottingBackend, DisplayMode, NotebookType
 
 
-class Plot(ABC):
+class BasePlot(ABC):
     REQUIRED_COLS: ClassVar[list[str] | None] = None
     STREAMING_FREQ: ClassVar[int] = 1000  # in milliseconds
     SUPPORTED_BACKENDS: ClassVar[list[PlottingBackend] | None] = None
@@ -46,7 +46,7 @@ class Plot(ABC):
     def __new__(cls, *args, **kwargs):
         from pfund_plot.plots.lazy import LazyPlot
 
-        instance: Plot = super().__new__(cls)
+        instance: BasePlot = super().__new__(cls)
         # manually call __init__ to initialize the instance
         instance.__init__(*args, **kwargs)
         return LazyPlot(instance)
@@ -242,8 +242,8 @@ class Plot(ABC):
         return getattr(module, "plot")
 
     @property
-    def figure(self) -> WrappedFigure:
-        """Runs the plot function for the current backend and returns the figure."""
+    def plot(self) -> Plot:
+        """Runs the plot function for the current backend"""
         return self._plot(self._df, self._style, self._control)
 
     def _setup(
@@ -269,6 +269,17 @@ class Plot(ABC):
             and self._mode == DisplayMode.notebook
             and self._notebook_type == NotebookType.marimo
         )
+    
+    @staticmethod
+    def _get_sizing_mode(height: int | None, width: int | None) -> str | None:
+        if height is None and width is None:
+            return 'stretch_both'
+        elif height is None:
+            return 'stretch_height'
+        elif width is None:
+            return 'stretch_width'
+        else:
+            return None
 
     def _create_plot(self):
         if self._backend == PlottingBackend.bokeh:

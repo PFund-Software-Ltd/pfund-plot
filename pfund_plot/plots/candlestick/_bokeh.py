@@ -1,7 +1,3 @@
-"""
-This module is using hvplot with bokeh backend to plot candlestick chart, instead of using bokeh directly.
-"""
-
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
@@ -19,8 +15,9 @@ PLOT_OPTIONS = [
     "ylabel",
     "height",
 ]  # specified options supported in .opts()
-# needs a default value for bokeh's "responsive=True" to work properly in notebook environment
 DEFAULT_HEIGHT = 280
+DEFAULT_NUM_DATA = 150
+DEFAULT_SLIDER_STEP = 3_600_000  # 1 hour in milliseconds
 
 
 def style(
@@ -30,7 +27,8 @@ def style(
     up_color: str = "green",
     down_color: str = "red",
     bg_color: str = "white",
-    height: int | None = None,
+    total_height: int | None = None,
+    height: int = DEFAULT_HEIGHT,
     width: int | None = None,
     grid: bool = True,
     show_volume: bool = True,
@@ -43,19 +41,17 @@ def style(
         up_color: the color of the up candle, hex code is supported
         down_color: the color of the down candle, hex code is supported
         bg_color: the background color of the plot, hex code is supported
-        height: the height of the plot
+        total_height: the height of the component (including the figure + widgets)
+            Default is None, when it is None, Panel will automatically adjust its height
+        height: the height of the figure
         width: the width of the plot
     """
-    style_dict = locals()
-    if height is None:
-        height = DEFAULT_HEIGHT
-        style_dict["height"] = height
-    return style_dict
+    return locals()
 
 
 def control(
-    num_data: int = 150,
-    slider_step: int = 3600000,
+    num_data: int = DEFAULT_NUM_DATA,
+    slider_step: int = DEFAULT_SLIDER_STEP,
 ):
     """
     Args:
@@ -66,30 +62,29 @@ def control(
     return locals()
 
 
-def _create_hover_tool(date_format: str) -> HoverTool:
-    return HoverTool(
-        tooltips=[
-            ("date", f"@date{{{date_format}}}"),
-            ("open", "@open"),
-            ("high", "@high"),
-            ("low", "@low"),
-            ("close", "@close"),
-            ("volume", "@volume"),
-        ],
-        formatters={"@date": "datetime"},
-        mode="vline",
-    )
-
-
-def _create_crosshair_tool():
-    return CrosshairTool(dimensions="height", line_color="gray", line_alpha=0.3)
-
-
 def plot(df: Frame, style: dict, control: dict) -> Overlay:
     import hvplot
     from pfund_plot.plots.candlestick import Candlestick
     from pfund_plot.utils.utils import is_daily_data
     from pfund_plot.enums import PlottingBackend
+
+    def _create_hover_tool(date_format: str) -> HoverTool:
+        return HoverTool(
+            tooltips=[
+                ("date", f"@date{{{date_format}}}"),
+                ("open", "@open"),
+                ("high", "@high"),
+                ("low", "@low"),
+                ("close", "@close"),
+                ("volume", "@volume"),
+            ],
+            formatters={"@date": "datetime"},
+            mode="vline",
+        )
+
+
+    def _create_crosshair_tool():
+        return CrosshairTool(dimensions="height", line_color="gray", line_alpha=0.3)
 
     hvplot.extension(PlottingBackend.bokeh)
 

@@ -18,8 +18,8 @@ else:
     Component = Panel | Widget
     
 
-RawFigure = BokehFigure | PlotlyFigure | MatplotlibFigure | AnyWidget
-WrappedFigure = Overlay | AnyWidget
+Figure = BokehFigure | PlotlyFigure | MatplotlibFigure | AnyWidget
+Plot = Overlay | AnyWidget
 RenderedResult = Component | StoppableThread
 
 

@@ -7,22 +7,21 @@ if TYPE_CHECKING:
     from pfeed._typing import GenericFrame
 
 import panel as pn
-from pfund_plot.plots.plot import Plot
+from pfund_plot.plots.plot import BasePlot
 from pfund_plot.plots.candlestick.style import CandlestickStyle
 from pfund_plot.plots.candlestick.control import CandlestickControl
 from pfund_plot.enums import PlottingBackend
-from pfund_plot.utils.utils import get_sizing_mode
 
 
 __all__ = ["Candlestick"]
 
 
-class Candlestick(Plot):
+class Candlestick(BasePlot):
     REQUIRED_COLS = ["date", "open", "high", "low", "close", "volume"]
     SUPPORTED_BACKENDS = [PlottingBackend.bokeh, PlottingBackend.svelte]
     style = CandlestickStyle()
     control = CandlestickControl()
-    
+
     def _standardize_df(self, df: GenericFrame) -> Frame:
         import datetime
         import narwhals as nw
@@ -61,7 +60,7 @@ class Candlestick(Plot):
             align_items="center",
             justify_content="center",
         )
-        
+
         if self._streaming_feed is not None:
             pass
             # TODO: add streaming data
@@ -109,7 +108,7 @@ class Candlestick(Plot):
             # )  # period in milliseconds
         else:
             periodic_callback = None
-            
+
         # NOTE: somehow data update on anywidget (svelte) in marimo notebook doesn't work using Panel
         # (probably need a refresh of the marimo cell to reflect the changes), so use mo.vstack() as a workaround
         if self._is_using_marimo_svelte_combo():
@@ -117,15 +116,15 @@ class Candlestick(Plot):
 
             self._component = mo.vstack([self._anywidget, toolbox])
         else:
-            height = self._style.get("height", None)
-            width = self._style.get("width", None)
+            # total_height is the height of the component (including the figure + widgets)
+            height = self._style["total_height"]
+            width = self._style["width"]
             self._component: Panel = pn.Column(
                 self._pane,
                 toolbox,
                 name="Candlestick Chart",
-                sizing_mode=get_sizing_mode(height, width),
-                # TODO: separate component height and overall figure height
-                # height=height + 150,
+                # normally these 3 parameters aren't required, but when inside a layout (GridStack), they are useful
+                sizing_mode=self._get_sizing_mode(height, width),
                 height=height,
                 width=width,
             )
