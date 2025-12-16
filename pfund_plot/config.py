@@ -2,13 +2,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pfund_plot._typing import tPlottingBackend, tPanelTheme
+    from pfund_plot._typing import tPlottingBackend, tPanelTheme, tPanelDesign
 
 import os
 from enum import StrEnum
 from pathlib import Path
 from dataclasses import dataclass, asdict, field, MISSING
 
+import panel as pn
 import yaml
 
 from pfund.utils.utils import load_yaml_file, dump_yaml_file
@@ -19,7 +20,7 @@ from pfund_plot.const.paths import (
     CACHE_PATH,
     CONFIG_FILE_PATH
 )
-from pfund_plot.enums import PlottingBackend, PanelTheme
+from pfund_plot.enums import PlottingBackend, PanelTheme, PanelDesign
 
 yaml.SafeDumper.add_multi_representer(
     StrEnum,
@@ -40,6 +41,7 @@ class Configuration:
     static_dirs: dict[str, str] = field(default_factory=dict)
     backend: PlottingBackend = PlottingBackend.bokeh
     theme: PanelTheme = PanelTheme.default
+    design: PanelDesign = PanelDesign.native
 
     _instance = None
     _verbose = False
@@ -129,14 +131,13 @@ class Configuration:
     
     def _initialize(self):
         self._enforce_types()
-        self._initialize_theme()
+        self._initialize_theme_and_design()
         self._initialize_static_dirs()
         self._initialize_file_paths()
         
-    def _initialize_theme(self):
-        import panel as pn
-        from pfund_plot.enums import PanelTheme
-        pn.config.theme = PanelTheme[self.theme.lower()].value
+    def _initialize_theme_and_design(self):
+        pn.config.theme = PanelTheme[self.theme.lower()]
+        pn.extension(design=PanelDesign[self.design.lower()])
         
     def _initialize_static_dirs(self):
         if 'assets' not in self.static_dirs:
@@ -157,6 +158,7 @@ def configure(
     # EXTEND: save backend choices for different plots
     backend: tPlottingBackend | None = None,
     theme: tPanelTheme | None = None,
+    design: tPanelDesign | None = None,
     verbose: bool = False,
     write: bool = False,
 ):

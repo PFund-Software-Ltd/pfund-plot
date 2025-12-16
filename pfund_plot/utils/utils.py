@@ -51,6 +51,8 @@ def get_notebook_type() -> NotebookType | None:
     return None
 
 
+# NOTE: loading panel extensions ALWAYS break sth (could be anywidget, displaying in marimo, etc.)
+# be VERY CAREFUL WHEN to load an extension
 def load_panel_extensions():
     import panel as pn
 

@@ -15,7 +15,6 @@ from pfund_plot.plots.candlestick import (
 from pfund_plot.layout import layout
 
 
-pn.extension(design="native")  # or "material", "fast", "bootstrap"
 config = get_config()
 # NOTE: this MUST be True, otherwise, some widgets won't work properly, e.g. candlestick widgets, slider and input will both trigger each other due to panel's async update, which leads to infinite loop.
 pn.config.throttled = True  # If panel sliders and inputs should be throttled until release of mouse.
