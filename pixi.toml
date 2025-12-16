@@ -52,6 +52,7 @@ ta-lib = ">=0.6.4"
 
 [feature.dev.pypi-dependencies]
 afterpython = ">=0.1.1"
+watchfiles = ">=1.1.1"  # "panel serve myfile.py --dev" requires watchfiles installed to autoreload
 selenium = ">=4.39.0"  # saving bokeh images requires selenium
 bokeh-sampledata = ">=2025.0"
 hvsampledata = ">=0.1.4"

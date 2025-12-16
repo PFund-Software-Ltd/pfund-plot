@@ -57,10 +57,11 @@ class CandlestickWidget(AnyWidget):
         self.data = self._format_data(df.to_pandas())
 
 
+# NOTE: style will NOT work in marimo notebook (buggy combo = marimo + svelte)
 def style(
+    total_height: int | None = None,
     height: int = DEFAULT_HEIGHT,
     width: int = DEFAULT_WIDTH,
-    show_volume: bool = True,
 ):
     return locals()
 
@@ -68,6 +69,7 @@ def style(
 def control(
     num_data: int = DEFAULT_NUM_DATA,
     slider_step: int = DEFAULT_SLIDER_STEP,
+    show_volume: bool = True,
 ):
     return locals()
 

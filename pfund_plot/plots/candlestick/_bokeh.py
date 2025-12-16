@@ -31,7 +31,6 @@ def style(
     height: int = DEFAULT_HEIGHT,
     width: int | None = None,
     grid: bool = True,
-    show_volume: bool = True,
 ):
     """
     Args:
@@ -52,12 +51,14 @@ def style(
 def control(
     num_data: int = DEFAULT_NUM_DATA,
     slider_step: int = DEFAULT_SLIDER_STEP,
+    show_volume: bool = True,
 ):
     """
     Args:
         num_data: the initial number of data points to display.
             This can be changed by a slider in the plot.
         slider_step: the step size of the datetime range slider. default is 60 min (3600000 ms).
+        show_volume: whether to show the volume plot. default is True.
     """
     return locals()
 

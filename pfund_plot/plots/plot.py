@@ -77,6 +77,7 @@ class BasePlot(ABC):
         self._streaming_pipe: Pipe | None = None
         self._anywidget: AnyWidget | None = None
         self._pane: Pane | None = None
+        self._widgets: Any | None = None  # a set of widgets, e.g. CandlestickWidgets
         self._component: Component | None = None
 
         self._notebook_type: NotebookType | None = get_notebook_type()
@@ -104,27 +105,23 @@ class BasePlot(ABC):
     @abstractmethod
     def _create_component(self):
         pass
+    
+    def _create_widgets(self):
+        pass
+    
+    def _create(self):
+        if self._pane is None:
+            self._create_pane()
+        if self._widgets is None:
+            self._create_widgets()
+        if self._component is None:
+            self._create_component()
 
     def _add_periodic_callback(self, periodic_callback: PeriodicCallback):
         self._renderer.add_periodic_callback(periodic_callback)
 
     def _render(self) -> RenderedResult:
-        from pfund_plot import print_warning
-        from pfund_plot.utils.utils import load_panel_extensions
-
-        # NOTE: data update in anywidget (backend=svelte) may have issues (especially in marimo) after loading panel extensions
-        if self._backend != PlottingBackend.svelte:
-            # TODO: do not load unnecessary extensions
-            load_panel_extensions()
-        elif pn.extension._loaded_extensions:
-            print_warning(
-                "Svelte backend may not work correctly with existing panel extensions. Restart kernel to fix if issues arise."
-            )
-
-        if self._pane is None:
-            self._create_plot()
-        if self._component is None:
-            self._create_component()
+        self._create()
         return self._renderer.render(self._component)
 
     @classmethod
@@ -281,7 +278,19 @@ class BasePlot(ABC):
         else:
             return None
 
-    def _create_plot(self):
+    def _create_pane(self):
+        from pfund_plot import print_warning
+        from pfund_plot.utils.utils import load_panel_extensions
+
+        # NOTE: data update in anywidget (backend=svelte) may have issues (especially in marimo) after loading panel extensions
+        if self._backend != PlottingBackend.svelte:
+            # TODO: do not load unnecessary extensions
+            load_panel_extensions()
+        elif pn.extension._loaded_extensions:
+            print_warning(
+                "Svelte backend may not work correctly with existing panel extensions. Restart kernel to fix if issues arise."
+            )
+
         if self._backend == PlottingBackend.bokeh:
             from holoviews import DynamicMap
 
@@ -301,7 +310,7 @@ class BasePlot(ABC):
         else:
             raise ValueError(f"Unsupported backend: {self._backend}")
 
-    def _update_plot(self, df: Frame):
+    def _update_pane(self, df: Frame):
         if self._backend == PlottingBackend.bokeh:
             self._streaming_pipe.send(df)
         elif self._backend == PlottingBackend.svelte:

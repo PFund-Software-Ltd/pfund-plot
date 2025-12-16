@@ -60,13 +60,18 @@ class LazyPlot:
     @property
     def pane(self) -> Pane:
         if self._plot._pane is None:
-            self._plot._create_plot()
+            self._plot._create_pane()
         return self._plot._pane
+    
+    @property
+    def widgets(self) -> Any:
+        if self._plot._widgets is None:
+            self._plot._create_widgets()
+        return self._plot._widgets
 
     @property
     def component(self) -> Component:
-        if self._plot._component is None:
-            self._plot._create_component()
+        self._plot._create()
         return self._plot._component
     
     def style(self, **kwargs) -> LazyPlot:
@@ -158,6 +163,23 @@ class LazyPlot:
         if server is not None:
             return server
         return self._plot._render()
+
+    def servable(self, title: str | None = None) -> Component:
+        """Mark the plot as servable for use with `panel serve` CLI.
+
+        Use this when running with: panel serve myfile.py --show --autoreload
+
+        Args:
+            title: Optional title for the browser tab
+
+        Returns:
+            The servable component
+
+        Example:
+            fig = plt.ohlc(df).backend('bokeh')
+            fig.servable()
+        """
+        return self.component.servable(title=title)
 
     def _repr_mimebundle_(self, include=None, exclude=None) -> dict[str, Any]:
         """Auto-render in Jupyter/IPython notebooks.

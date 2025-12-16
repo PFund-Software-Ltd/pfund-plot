@@ -45,18 +45,19 @@ class Candlestick(BasePlot):
                 nw.col("date").str.to_datetime(format=None),
             )
         return df
-
+    
+    def _create_widgets(self):
+        from pfund_plot.plots.candlestick.widgets import CandlestickWidgets
+        self._widgets = CandlestickWidgets(self._df, self._control, self._update_pane)
+        
     # TODO: add ticker selector: ticker = pn.widgets.Select(options=['AAPL', 'IBM', 'GOOG', 'MSFT'], name='Ticker')
     # TODO: use tick data to update the current candlestick
     def _create_component(self):
-        from pfund_plot.plots.candlestick.widgets import CandlestickWidgets
-
-        widgets = CandlestickWidgets(self._df, self._control, self._update_plot)
         # TODO: add volume plot when show_volume is True
         # show_volume = style['show_volume']
         toolbox = pn.FlexBox(
-            widgets.datetime_range_input,
-            widgets.datetime_range_slider,
+            self._widgets.datetime_range_input,
+            self._widgets.datetime_range_slider,
             align_items="center",
             justify_content="center",
         )
@@ -114,6 +115,7 @@ class Candlestick(BasePlot):
         if self._is_using_marimo_svelte_combo():
             import marimo as mo
 
+            # NOTE: self._style is NOT applied in this case
             self._component = mo.vstack([self._anywidget, toolbox])
         else:
             # total_height is the height of the component (including the figure + widgets)
@@ -127,4 +129,6 @@ class Candlestick(BasePlot):
                 sizing_mode=self._get_sizing_mode(height, width),
                 height=height,
                 width=width,
+                # for debugging only
+                # styles=dict(background='WhiteSmoke')
             )

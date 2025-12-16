@@ -12,10 +12,10 @@ import panel as pn
 
 
 class CandlestickWidgets:
-    def __init__(self, df: Frame, control: dict, update_plot: Callable):
+    def __init__(self, df: Frame, control: dict, update_callback: Callable):
         self._df: Frame = df
-        self._control = control
-        self._update_plot = update_plot
+        self._control: dict = control
+        self._update_callback = update_callback
         num_data_shown = control['num_data']
         date_col = self._df.select('date')
         start_date, end_date = date_col.row(0)[0].to_pydatetime(), date_col.row(-1)[0].to_pydatetime()
@@ -68,7 +68,7 @@ class CandlestickWidgets:
         self._datetime_range_slider.param.watch(self._update_datetime_range_slider, 'value')
         
         df_filtered = self._filter_df(start_date, end_date)
-        self._update_plot(df_filtered)
+        self._update_callback(df_filtered)
 
     def _update_datetime_range_slider(self, event: Event):
         start_date, end_date = self._datetime_range_slider.value
@@ -79,7 +79,7 @@ class CandlestickWidgets:
         self._datetime_range_input.param.watch(self._update_datetime_range_input, 'value')
         
         df_filtered = self._filter_df(start_date, end_date)
-        self._update_plot(df_filtered)
+        self._update_callback(df_filtered)
         
     # @property
     # def data_slider(self) -> pn.widgets.IntSlider:
@@ -90,7 +90,7 @@ class CandlestickWidgets:
     #     return self._show_all_button
     
     # def _update_data_slider(self, event: Event):
-    #     self._update_plot(self._df.tail(self._data_slider.value))
+    #     self._update_callback(self._df.tail(self._data_slider.value))
         
     # def _max_out_data_slider(self, event: Event):
     #     self._data_slider.value = self._max_data.rx.value
