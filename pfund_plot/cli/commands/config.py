@@ -1,12 +1,18 @@
 import click
 
-from pfund_plot.const.paths import PROJ_NAME
+from pfund_plot.const.paths import PROJ_NAME, CONFIG_PATH, CONFIG_FILE_PATH
 
 
 @click.group()
 def config():
     """Manage configuration settings."""
     pass
+
+
+@config.command()
+def where():
+    """Print the config path."""
+    click.echo(CONFIG_PATH)
 
 
 @config.command()
@@ -17,7 +23,7 @@ def list(ctx):
     from dataclasses import asdict
     config_dict = asdict(ctx.obj['config'])
     content = click.style(pformat(config_dict), fg='green')
-    click.echo(f"{PROJ_NAME} config:\n{content}")
+    click.echo(f"File: {CONFIG_FILE_PATH}\n{content}")
 
 
 @config.command()

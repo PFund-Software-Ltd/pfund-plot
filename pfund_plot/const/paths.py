@@ -12,4 +12,5 @@ PROJ_PATH = MAIN_PATH / PROJ_NAME
 DATA_PATH = Path(user_data_dir()) / PROJ_NAME
 CACHE_PATH = Path(user_cache_dir()) / PROJ_NAME
 CONFIG_PATH = Path(user_config_dir()) / PROJ_NAME / 'config'
-CONFIG_FILE_PATH = CONFIG_PATH / f'{PROJ_NAME}_config.yml'
+CONFIG_FILENAME = f'{PROJ_NAME}_config.yml'
+CONFIG_FILE_PATH = CONFIG_PATH / CONFIG_FILENAME

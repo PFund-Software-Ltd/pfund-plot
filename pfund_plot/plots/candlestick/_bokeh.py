@@ -26,7 +26,7 @@ def style(
     ylabel: str = "Price",
     up_color: str = "green",
     down_color: str = "red",
-    bg_color: str = "white",
+    bg_color: str = '',  # empty string by default because Panel will automatically use the theme color
     total_height: int | None = None,
     height: int = DEFAULT_HEIGHT,
     width: int | None = None,
@@ -37,8 +37,8 @@ def style(
         title: the title of the plot
         xlabel: the label of the x-axis
         ylabel: the label of the y-axis
-        up_color: the color of the up candle, hex code is supported
-        down_color: the color of the down candle, hex code is supported
+        up_color: the color of the upward candle, hex code is supported
+        down_color: the color of the downward candle, hex code is supported
         bg_color: the background color of the plot, hex code is supported
         total_height: the height of the component (including the figure + widgets)
             Default is None, when it is None, Panel will automatically adjust its height
@@ -88,7 +88,7 @@ def plot(df: Frame, style: dict, control: dict) -> Overlay:
         return CrosshairTool(dimensions="height", line_color="gray", line_alpha=0.3)
 
     hvplot.extension(PlottingBackend.bokeh)
-
+    
     date_format = "%Y-%m-%d" if is_daily_data(df) else "%Y-%m-%d %H:%M:%S"
     REQUIRED_COLS = Candlestick.REQUIRED_COLS[:]
     plot_options = {k: v for k, v in style.items() if k in PLOT_OPTIONS}
@@ -102,10 +102,10 @@ def plot(df: Frame, style: dict, control: dict) -> Overlay:
                 _create_hover_tool(date_format),
                 _create_crosshair_tool(),
             ],
+            responsive=True,
             grid=style["grid"],
             pos_color=style["up_color"],
             neg_color=style["down_color"],
-            responsive=True,
             bgcolor=style["bg_color"],
         )
         .opts(**plot_options)

@@ -13,7 +13,7 @@ from pfund_plot.cli.commands.config import config
 def pfund_plot_group(ctx):
     """PFundPlot's CLI"""
     ctx.ensure_object(dict)
-    ctx.obj['config'] = get_config(verbose=False)
+    ctx.obj['config'] = get_config()
 
 
 pfund_plot_group.add_command(plot)

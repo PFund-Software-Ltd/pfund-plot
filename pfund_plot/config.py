@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pfund_plot._typing import tPlottingBackend
+    from pfund_plot._typing import tPlottingBackend, tPanelTheme
 
 import os
 from enum import StrEnum
@@ -19,7 +19,7 @@ from pfund_plot.const.paths import (
     CACHE_PATH,
     CONFIG_FILE_PATH
 )
-from pfund_plot.enums import PlottingBackend
+from pfund_plot.enums import PlottingBackend, PanelTheme
 
 yaml.SafeDumper.add_multi_representer(
     StrEnum,
@@ -39,6 +39,7 @@ class Configuration:
     cache_path: str = str(CACHE_PATH)
     static_dirs: dict[str, str] = field(default_factory=dict)
     backend: PlottingBackend = PlottingBackend.bokeh
+    theme: PanelTheme = PanelTheme.default
 
     _instance = None
     _verbose = False
@@ -128,8 +129,14 @@ class Configuration:
     
     def _initialize(self):
         self._enforce_types()
+        self._initialize_theme()
         self._initialize_static_dirs()
         self._initialize_file_paths()
+        
+    def _initialize_theme(self):
+        import panel as pn
+        from pfund_plot.enums import PanelTheme
+        pn.config.theme = PanelTheme[self.theme.lower()].value
         
     def _initialize_static_dirs(self):
         if 'assets' not in self.static_dirs:
@@ -149,12 +156,14 @@ def configure(
     static_dirs: dict[str, str] | None = None,
     # EXTEND: save backend choices for different plots
     backend: tPlottingBackend | None = None,
+    theme: tPanelTheme | None = None,
     verbose: bool = False,
     write: bool = False,
 ):
     '''Configures the global config object.
     It will override the existing config values from the existing config file or the default values.
     Args:
+        theme: the theme to use for the panel, equivalent to pn.config.theme. default is 'default'.
         static_dirs: a dict of static directories to be used in pn.serve(static_dirs=...)
         write: If True, the config will be saved to the config file.
     '''
