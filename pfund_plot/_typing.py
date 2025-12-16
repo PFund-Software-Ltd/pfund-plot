@@ -26,4 +26,4 @@ RenderedResult = Component | StoppableThread
 tDisplayMode = Literal['notebook', 'browser', 'desktop']
 tPlottingBackend = Literal['bokeh', 'svelte', 'plotly', 'altair', 'matplotlib', 'perspective']
 tDataframeBackend = Literal['tabulator', 'perspective']
-tPanelTheme = Literal['default', 'dark']
+tPanelTheme = Literal['default', 'light', 'dark']

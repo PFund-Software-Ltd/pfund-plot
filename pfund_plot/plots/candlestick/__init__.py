@@ -129,6 +129,6 @@ class Candlestick(BasePlot):
                 sizing_mode=self._get_sizing_mode(height, width),
                 height=height,
                 width=width,
-                # for debugging only
+                # for debugging only, by setting the background color to WhiteSmoke
                 # styles=dict(background='WhiteSmoke')
             )

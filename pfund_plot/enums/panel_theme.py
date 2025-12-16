@@ -1,5 +1,5 @@
 from enum import StrEnum
 
 class PanelTheme(StrEnum):
-    default = "default"
+    default = light = "default"
     dark = "dark"
