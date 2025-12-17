@@ -4,23 +4,37 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from narwhals.typing import Frame
     from panel.layout import Panel
-    from pfeed._typing import GenericFrame
+    from pfeed.typing import GenericFrame
 
 import panel as pn
 from pfund_plot.plots.plot import BasePlot
-from pfund_plot.plots.candlestick.style import CandlestickStyle
-from pfund_plot.plots.candlestick.control import CandlestickControl
 from pfund_plot.enums import PlottingBackend
 
 
 __all__ = ["Candlestick"]
 
 
+class CandlestickStyle:
+    from pfund_plot.plots.candlestick.bokeh import style as bokeh_style
+    from pfund_plot.plots.candlestick.svelte import style as svelte_style
+
+    bokeh = bokeh_style
+    svelte = svelte_style
+
+    
+class CandlestickControl:
+    from pfund_plot.plots.candlestick.bokeh import control as bokeh_control
+    from pfund_plot.plots.candlestick.svelte import control as svelte_control
+    
+    bokeh = bokeh_control
+    svelte = svelte_control
+
+
 class Candlestick(BasePlot):
     REQUIRED_COLS = ["date", "open", "high", "low", "close", "volume"]
     SUPPORTED_BACKENDS = [PlottingBackend.bokeh, PlottingBackend.svelte]
-    style = CandlestickStyle()
-    control = CandlestickControl()
+    style = CandlestickStyle
+    control = CandlestickControl
 
     def _standardize_df(self, df: GenericFrame) -> Frame:
         import datetime
@@ -130,5 +144,5 @@ class Candlestick(BasePlot):
                 height=height,
                 width=width,
                 # for debugging only, by setting the background color to WhiteSmoke
-                # styles=dict(background='WhiteSmoke')
+                # styles=dict(background='red')
             )

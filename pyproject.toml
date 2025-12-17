@@ -45,17 +45,11 @@ jupyter = [
     "voila>=0.5.11",
     # "jupytext>=1.17.2",
 ]
+plotly = ["plotly>=6.5.0"]
 # vega = [
 #     "vegafusion>=2.0.3",
 #     "altair>=6.0.0",
 # ]
-# streamlit = ["streamlit>=1.44.1"]
-# dash = ["dash>=3.0.2"]
-# gradio = ["gradio>=5.23.3"]
-# taipy = ["taipy>=4.0.0"]
-# shiny = ["shiny>=1.5.1"]
-# solara = ["solara>=1.44.1"]
-# rio = ["rio-ui>=0.11.1"]
 
 [project.scripts]
 plt = "pfund_plot.main:run_cli"

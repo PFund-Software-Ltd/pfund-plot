@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from panel.io.threads import StoppableThread
-    from pfund_plot._typing import Component
+    from pfund_plot.typing import Component
 
 try:
     import marimo as mo
@@ -10,7 +10,7 @@ except ImportError:
     mo = None
 
 from pfund_plot.renderers.base import BaseRenderer
-from pfund_plot.utils.utils import get_notebook_type
+from pfund_plot.utils import get_notebook_type
 
 
 class BrowserRenderer(BaseRenderer):

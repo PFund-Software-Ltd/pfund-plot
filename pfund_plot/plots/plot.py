@@ -3,12 +3,12 @@ from typing import Callable, TYPE_CHECKING, ClassVar, Any
 
 if TYPE_CHECKING:
     from narwhals.typing import Frame
-    from pfeed._typing import GenericFrame
+    from pfeed.typing import GenericFrame
     from anywidget import AnyWidget
     from panel.io.callbacks import PeriodicCallback
     from panel.pane import Pane
     from pfund_plot.renderers.base import BaseRenderer
-    from pfund_plot._typing import (
+    from pfund_plot.typing import (
         RenderedResult,
         tPlottingBackend,
         tDisplayMode,
@@ -24,7 +24,7 @@ from holoviews.streams import Pipe
 
 from pfeed.feeds.market_feed import MarketFeed
 from pfeed.utils.dataframe import is_dataframe
-from pfund_plot.utils.utils import get_notebook_type
+from pfund_plot.utils import get_notebook_type
 from pfund_plot.enums import PlottingBackend, DisplayMode, NotebookType
 
 
@@ -32,16 +32,15 @@ class BasePlot(ABC):
     REQUIRED_COLS: ClassVar[list[str] | None] = None
     STREAMING_FREQ: ClassVar[int] = 1000  # in milliseconds
     SUPPORTED_BACKENDS: ClassVar[list[PlottingBackend] | None] = None
-    style: ClassVar[
-        Any
-    ]  # Wrapper class like CandlestickStyle, used to access the style() function based on backend
-    control: ClassVar[
-        Any
-    ]  # Wrapper class like CandlestickControl, used to access the control() function based on backend
+    backends = SUPPORTED_BACKENDS  # alias for SUPPORTED_BACKENDS
+    # Wrapper class like CandlestickStyle, used to access the style() function based on backend
+    style: ClassVar[Any | None] = None
+    # Wrapper class like CandlestickControl, used to access the control() function based on backend
+    control: ClassVar[Any | None] = None
     _style: ClassVar[dict | None] = None  # actual style dictionary
     _control: ClassVar[dict | None] = None  # actual control dictionary
-    _backend: ClassVar[PlottingBackend] = PlottingBackend.bokeh
-    _mode: ClassVar[DisplayMode] = DisplayMode.notebook
+    _backend: ClassVar[PlottingBackend | None] = None
+    _mode: ClassVar[DisplayMode | None] = None
 
     def __new__(cls, *args, **kwargs):
         from pfund_plot.plots.lazy import LazyPlot
@@ -53,11 +52,26 @@ class BasePlot(ABC):
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
-        assert hasattr(cls, "style"), "class variable 'style' is not defined"
-        assert hasattr(cls, "control"), "class variable 'control' is not defined"
-        assert cls.REQUIRED_COLS is not None, "REQUIRED_COLS is not defined"
-        assert cls.SUPPORTED_BACKENDS is not None, "SUPPORTED_BACKENDS is not defined"
-        assert cls.STREAMING_FREQ > 0, "STREAMING_FREQ must be greater than 0"
+        class_name = cls.__name__
+        assert cls.SUPPORTED_BACKENDS is not None, (
+            f"SUPPORTED_BACKENDS is not defined for class {class_name}"
+        )
+        assert cls.STREAMING_FREQ > 0, (
+            f"STREAMING_FREQ must be greater than 0 for class {class_name}"
+        )
+        assert cls.style is not None, (
+            f"class variable 'style' is not defined for class {class_name}"
+        )
+        assert cls.control is not None, (
+            f"class variable 'control' is not defined for class {class_name}"
+        )
+        for backend in cls.SUPPORTED_BACKENDS:
+            assert hasattr(cls.style, backend.value), (
+                f"style for {backend} is not defined for class {class_name}"
+            )
+            assert hasattr(cls.control, backend.value), (
+                f"control for {backend} is not defined for class {class_name}"
+            )
 
     def __init__(
         self,
@@ -65,9 +79,6 @@ class BasePlot(ABC):
         streaming_feed: MarketFeed | None = None,
         streaming_freq: int = STREAMING_FREQ,
     ):
-        import pfund_plot as plt
-        from pfund_plot.state import state
-
         self._setup(df, streaming_feed)
 
         self._df: Frame | None = self._standardize_df(df) if df is not None else None
@@ -81,10 +92,9 @@ class BasePlot(ABC):
         self._component: Component | None = None
 
         self._notebook_type: NotebookType | None = get_notebook_type()
-        self._state = state
 
         cls = self.__class__
-        cls.set_backend(plt.config.backend)
+        cls.set_backend(cls.SUPPORTED_BACKENDS[0])
         cls.set_mode(
             DisplayMode.notebook if self._notebook_type else DisplayMode.browser
         )
@@ -103,12 +113,13 @@ class BasePlot(ABC):
         pass
 
     @abstractmethod
-    def _create_component(self):
+    def _create_widgets(self) -> None:
         pass
-    
-    def _create_widgets(self):
+
+    @abstractmethod
+    def _create_component(self) -> None:
         pass
-    
+
     def _create(self):
         if self._pane is None:
             self._create_pane()
@@ -216,7 +227,7 @@ class BasePlot(ABC):
     def _set_renderer(self):
         if self._mode == DisplayMode.notebook:
             from pfund_plot.renderers.notebook import NotebookRenderer
-            
+
             self._renderer = NotebookRenderer()
         elif self._mode == DisplayMode.browser:
             from pfund_plot.renderers.browser import BrowserRenderer
@@ -230,11 +241,11 @@ class BasePlot(ABC):
     @property
     def name(self) -> str:
         return self.__class__.__name__.lower()
-
+    
     @property
     def _plot(self) -> Callable:
         """Runs the plot function for the current backend."""
-        module_path = f"pfund_plot.plots.{self.name}._{self._backend}"
+        module_path = f"pfund_plot.plots.{self.name}.{self._backend}"
         module = importlib.import_module(module_path)
         return getattr(module, "plot")
 
@@ -246,9 +257,6 @@ class BasePlot(ABC):
     def _setup(
         self, df: GenericFrame | None, streaming_feed: MarketFeed | None
     ) -> None:
-        assert df is not None or streaming_feed is not None, (
-            "Either df or streaming_feed must be provided"
-        )
         # TODO: only for bokeh backend?
         if df is not None:
             self._import_hvplot(df)
@@ -266,21 +274,21 @@ class BasePlot(ABC):
             and self._mode == DisplayMode.notebook
             and self._notebook_type == NotebookType.marimo
         )
-    
+
     @staticmethod
     def _get_sizing_mode(height: int | None, width: int | None) -> str | None:
         if height is None and width is None:
-            return 'stretch_both'
+            return "stretch_both"
         elif height is None:
-            return 'stretch_height'
+            return "stretch_height"
         elif width is None:
-            return 'stretch_width'
+            return "stretch_width"
         else:
             return None
 
     def _create_pane(self):
         from pfund_plot import print_warning
-        from pfund_plot.utils.utils import load_panel_extensions
+        from pfund_plot.utils import load_panel_extensions
 
         # NOTE: data update in anywidget (backend=svelte) may have issues (especially in marimo) after loading panel extensions
         if self._backend != PlottingBackend.svelte:
@@ -291,7 +299,10 @@ class BasePlot(ABC):
                 "Svelte backend may not work correctly with existing panel extensions. Restart kernel to fix if issues arise."
             )
 
-        if self._backend == PlottingBackend.bokeh:
+        if self._backend == PlottingBackend.panel:
+            # no pane needed for panel backend (e.g. GridStack, use it directly as a component)
+            pass
+        elif self._backend == PlottingBackend.bokeh:
             from holoviews import DynamicMap
 
             self._streaming_pipe = Pipe(
@@ -325,7 +336,7 @@ class BasePlot(ABC):
         if is_dataframe(data):
             import pandas as pd
             import polars as pl
-            from pfeed._typing import dd
+            from pfeed.typing import dd
 
             if isinstance(data, pd.DataFrame):
                 import hvplot.pandas

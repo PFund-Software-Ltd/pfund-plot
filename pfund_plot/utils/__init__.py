@@ -56,7 +56,7 @@ def get_notebook_type() -> NotebookType | None:
 def load_panel_extensions():
     import panel as pn
 
-    extensions = ['ipywidgets', 'gridstack', 'tabulator', 'perspective']
+    extensions = ['ipywidgets', 'tabulator', 'perspective']
     for extension in extensions:
         if extension not in pn.extension._loaded_extensions:
             pn.extension(extension)

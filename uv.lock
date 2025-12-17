@@ -3470,6 +3470,9 @@ marimo = [
     { name = "basedpyright" },
     { name = "marimo", extra = ["lsp", "recommended"] },
 ]
+plotly = [
+    { name = "plotly" },
+]
 
 [package.metadata]
 requires-dist = [
@@ -3485,10 +3488,11 @@ requires-dist = [
     { name = "papermill", marker = "extra == 'jupyter'", specifier = ">=2.6.0" },
     { name = "pfeed", editable = "../pfeed" },
     { name = "plotly", specifier = ">=6.5.0" },
+    { name = "plotly", marker = "extra == 'plotly'", specifier = ">=6.5.0" },
     { name = "pywebview", specifier = ">=6.1" },
     { name = "voila", marker = "extra == 'jupyter'", specifier = ">=0.5.11" },
 ]
-provides-extras = ["marimo", "jupyter"]
+provides-extras = ["marimo", "jupyter", "plotly"]
 
 [[package]]
 name = "pillow"

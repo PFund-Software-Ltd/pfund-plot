@@ -24,7 +24,6 @@ pfund-plot = { path = ".", editable = true }
 pfeed = { path = "../pfeed", editable = true }
 panel = ">=1.8.4"
 hvplot = ">=0.12.1"
-plotly = ">=6.5.0"
 anywidget = ">=0.9.21"
 ipywidgets-bokeh = ">=1.6.0"
 pywebview = ">=6.1"
@@ -46,6 +45,7 @@ jupyter-bokeh = ">=4.0.5"
 notebook = ">=7.5.0"
 papermill = ">=2.6.0"
 voila = ">=0.5.11"
+plotly = ">=6.5.0"
 
 [feature.dev.dependencies]
 ta-lib = ">=0.6.4"

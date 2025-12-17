@@ -9,6 +9,8 @@ from bokeh.models import HoverTool, CrosshairTool
 
 
 __all__ = ["plot", "style", "control"]
+
+
 PLOT_OPTIONS = [
     "title",
     "xlabel",
@@ -66,7 +68,7 @@ def control(
 def plot(df: Frame, style: dict, control: dict) -> Overlay:
     import hvplot
     from pfund_plot.plots.candlestick import Candlestick
-    from pfund_plot.utils.utils import is_daily_data
+    from pfund_plot.utils import is_daily_data
     from pfund_plot.enums import PlottingBackend
 
     def _create_hover_tool(date_format: str) -> HoverTool:

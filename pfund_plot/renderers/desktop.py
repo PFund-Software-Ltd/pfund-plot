@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from pfund_plot._typing import Component, RenderedResult
+    from pfund_plot.typing import Component, RenderedResult
     from panel.io.threads import StoppableThread
 
 from threading import Thread
@@ -45,7 +45,17 @@ class DesktopRenderer(BrowserRenderer):
             return server
         else:
             process = Process(target=_run_webview, name=title, args=(title, port, window_ready,), daemon=True)
-            process.start()
+            try:
+                process.start()
+            except RuntimeError as e:
+                if "freeze_support" in str(e) or "current process has finished its bootstrapping phase" in str(e):
+                    raise RuntimeError(
+                        "Failed to start desktop renderer process.\n"
+                        "Please wrap your code with:\n\n"
+                        "    if __name__ == '__main__':\n"
+                        "        # your code here\n"
+                    ) from None
+                raise
             def app():
                 self.run_periodic_callbacks()
                 return component

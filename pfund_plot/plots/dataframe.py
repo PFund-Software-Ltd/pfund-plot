@@ -1,10 +1,10 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from pfeed._typing import GenericFrame
+    from pfeed.typing import GenericFrame
     from pfeed.feeds.base_feed import BaseFeed
-    from pfund_plot._typing import tDisplayMode, tDataframeBackend
-    from pfund_plot._typing import RenderedResult
+    from pfund_plot.typing import tDisplayMode, tDataframeBackend
+    from pfund_plot.typing import RenderedResult
     from panel.widgets import Widget
     from panel.pane import Pane
 
@@ -13,8 +13,7 @@ from bokeh.models.widgets.tables import DateFormatter
 
 from pfeed._etl.base import convert_to_pandas_df
 from pfund_plot.enums import DisplayMode, DataFrameBackend, NotebookType
-from pfund_plot.utils.utils import get_notebook_type
-from pfund_plot.state import state
+from pfund_plot.utils import get_notebook_type
 
 
 __all__ = ['dataframe_plot']

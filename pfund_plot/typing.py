@@ -11,20 +11,22 @@ if TYPE_CHECKING:
     from plotly.graph_objects import Figure as PlotlyFigure
     from matplotlib.figure import Figure as MatplotlibFigure
     from holoviews.core.overlay import Overlay
-    
+
     Component = Panel | MarimoHtml | Widget
 else:
     MarimoHtml = None
     Component = Panel | Widget
-    
+
 
 Figure = BokehFigure | PlotlyFigure | MatplotlibFigure | AnyWidget
 Plot = Overlay | AnyWidget
 RenderedResult = Component | StoppableThread
 
 
-tDisplayMode = Literal['notebook', 'browser', 'desktop']
-tPlottingBackend = Literal['bokeh', 'svelte', 'plotly', 'altair', 'matplotlib', 'perspective']
-tDataframeBackend = Literal['tabulator', 'perspective']
-tPanelTheme = Literal['default', 'light', 'dark']
-tPanelDesign = Literal['native', 'material', 'fast', 'bootstrap']
+tDisplayMode = Literal["notebook", "browser", "desktop"]
+tPlottingBackend = Literal[
+    "panel", "bokeh", "svelte", "plotly", "altair", "matplotlib", "perspective",
+]
+tDataframeBackend = Literal["tabulator", "perspective"]
+tPanelTheme = Literal["default", "light", "dark"]
+tPanelDesign = Literal["native", "material", "fast", "bootstrap"]

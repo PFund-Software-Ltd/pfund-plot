@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from panel.pane import Pane
     from panel.io.server import Server
-    from pfund_plot._typing import (
+    from pfund_plot.typing import (
         RenderedResult,
         tPlottingBackend,
         tDisplayMode,
@@ -28,7 +28,30 @@ class LazyPlot:
 
     def __init__(self, plot_instance: BasePlot):
         self._plot = plot_instance
+        self._grid_spec: tuple[slice, slice] | None = None
     
+    def __getitem__(self, key: tuple[slice, slice]) -> LazyPlot:
+        """Set grid position for use with plt.layout (GridStack).
+
+        Args:
+            key: A tuple of two slices (row_slice, col_slice) specifying
+                 the grid position, e.g., [1:2, 3:4]
+
+        Returns:
+            Self for method chaining
+
+        Example:
+            plt.ohlc(df)[0:2, 0:6]  # spans rows 0-1, cols 0-5
+            plt.layout(plot1[0:1, 0:2], plot2[0:1, 2:4])
+        """
+        if not isinstance(key, tuple) or len(key) != 2:
+            raise TypeError("Grid spec must be a tuple of two slices, e.g., [1:2, 3:4]")
+        row_slice, col_slice = key
+        if not isinstance(row_slice, slice) or not isinstance(col_slice, slice):
+            raise TypeError("Grid spec must use slices, e.g., [1:2, 3:4]")
+        self._grid_spec = (row_slice, col_slice)
+        return self
+
     @property
     def name(self) -> str:
         return self._plot.name
@@ -71,7 +94,7 @@ class LazyPlot:
 
     @property
     def component(self) -> Component:
-        self._plot._create()
+        self._plot._create()  # create pane+widgets+component
         return self._plot._component
     
     def style(self, **kwargs) -> LazyPlot:

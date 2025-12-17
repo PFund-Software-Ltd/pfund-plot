@@ -1,14 +1,14 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Literal
 if TYPE_CHECKING:
-    from pfund_plot._typing import Component
+    from pfund_plot.typing import Component
 
 from contextlib import contextmanager
 
 from panel.layout.gridstack import GridStack
    
-from pfund_plot.state import state
-from pfund_plot.renderer import render
+from pfund_plot.DEPRECATED_state import state
+from pfund_plot.DEPRECATED_renderer import render
 
 
 __all__ = ['layout']

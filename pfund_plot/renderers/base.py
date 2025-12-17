@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
-    from pfund_plot._typing import Component, RenderedResult
+    from pfund_plot.typing import Component, RenderedResult
     from panel.io.callbacks import PeriodicCallback
     from panel.io.threads import StoppableThread
     from panel.io.server import Server
@@ -11,8 +11,7 @@ from abc import ABC, abstractmethod
 
 import panel as pn
 
-import pfund_plot as plt
-from pfund_plot.state import state
+from pfund_plot.config import get_config
 
 
 class BaseRenderer(ABC):
@@ -31,13 +30,8 @@ class BaseRenderer(ABC):
                 "periodic_callback must be a panel.io.callbacks.PeriodicCallback instance"
             )
         self._periodic_callbacks.append(periodic_callback)
-        if state.layout.in_layout:
-            state.layout.add_periodic_callback(periodic_callback)
 
     def run_periodic_callbacks(self):
-        # layout has its own renderer to handle periodic callbacks, so don't start the callbacks here
-        if state.layout.in_layout:
-            return
         for periodic_callback in self._periodic_callbacks:
             periodic_callback.start()
 
@@ -67,12 +61,13 @@ class BaseRenderer(ABC):
             port = self._get_free_port()
         if self._server is not None:
             raise ValueError("Server is already running")
+        config = get_config()
         self.set_port_in_use(port)
         self._server: StoppableThread | Server = pn.serve(
             renderable,
             show=show,
             threaded=threaded,
             port=port,
-            static_dirs=plt.config.static_dirs,
+            static_dirs=config.static_dirs,
         )
         return self._server

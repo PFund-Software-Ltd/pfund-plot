@@ -56,6 +56,10 @@ class CandlestickWidget(AnyWidget):
         """Update the widget's data from a DataFrame"""
         self.data = self._format_data(df.to_pandas())
 
+    def append_data(self, new_df: Frame):
+        """Append new data points for streaming"""
+        self.data += self._format_data(new_df.to_pandas())
+
 
 # NOTE: style will NOT work in marimo notebook (buggy combo = marimo + svelte)
 def style(

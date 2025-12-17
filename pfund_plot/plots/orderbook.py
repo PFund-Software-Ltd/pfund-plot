@@ -2,10 +2,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from narwhals.typing import IntoFrame, Frame
-    from pfeed._typing import GenericFrame
+    from pfeed.typing import GenericFrame
     from pfeed.feeds.base_feed import BaseFeed
-    from pfund_plot._typing import tDisplayMode, tDataframeBackend
-    from pfund_plot._typing import RenderedResult
+    from pfund_plot.typing import tDisplayMode, tDataframeBackend
+    from pfund_plot.typing import RenderedResult
     from holoviews.core.overlay import Overlay
     from panel.layout import Panel
 

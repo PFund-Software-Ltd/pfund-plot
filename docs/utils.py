@@ -3,7 +3,7 @@ from io import StringIO
 from bokeh.resources import INLINE
 from IPython.display import HTML, display
 
-from pfund_plot._typing import Component
+from pfund_plot.typing import Component
 
 
 def display_html(component: Component):

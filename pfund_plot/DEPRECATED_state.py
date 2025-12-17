@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from pfund_plot._typing import Component
+    from pfund_plot.typing import Component
     from panel.io.callbacks import PeriodicCallback
     
 from threading import Lock
@@ -32,8 +32,11 @@ class RuntimeState:
 
     @classmethod
     def get_instance(cls) -> RuntimeState:
+        # Double-checked locking pattern for thread-safe singleton
+        # Check 1: Performance optimization - skip lock if instance already exists
         if cls._instance is None:
             with cls._lock:
+                # Check 2: Correctness - another thread may have created instance while we waited for lock
                 if cls._instance is None:
                     cls._instance = cls()
         return cls._instance
@@ -41,5 +44,6 @@ class RuntimeState:
     def reset_layout(self):
         self.layout = LayoutState()
 
-# Global instance
-state = RuntimeState.get_instance()
+
+def get_state() -> RuntimeState:
+    return RuntimeState.get_instance()

@@ -4,7 +4,7 @@ if TYPE_CHECKING:
     from panel.pane import Pane
     from panel.io.threads import StoppableThread
     from panel.io.callbacks import PeriodicCallback
-    from pfund_plot._typing import Component, RenderedResult
+    from pfund_plot.typing import Component, RenderedResult
     
 import time
 
@@ -17,8 +17,7 @@ import panel as pn
 
 from pfund_plot.enums import NotebookType
 from pfund_plot.renderers.base import BaseRenderer
-from pfund_plot.utils.utils import get_notebook_type
-from pfund_plot.state import state
+from pfund_plot.utils import get_notebook_type
 
 
 class NotebookRenderer(BaseRenderer):
@@ -29,9 +28,6 @@ class NotebookRenderer(BaseRenderer):
             raise ValueError("Not in a notebook environment")
     
     def run_periodic_callbacks(self):
-        # layout has its own renderer to handle periodic callbacks, so don't start the callbacks here
-        if state.layout.in_layout:
-            return
         # REVIEW: browser renderer may also need this?
         # the main idea is don't use the thread created by periodic_callback.start(), instead create a marimo thread to stream updates
         if self._notebook_type == NotebookType.marimo:
@@ -87,3 +83,8 @@ class NotebookRenderer(BaseRenderer):
             thread: StoppableThread = self.serve(component, show=False, threaded=True, port=port)
             self.run_periodic_callbacks()
             return thread
+            # FIXME: should return html_pane instead of thread?
+            # if self._notebook_type == NotebookType.marimo:
+            #     return mo.as_html(html_pane)
+            # else:
+            #     return html_pane
