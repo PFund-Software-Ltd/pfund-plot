@@ -4,7 +4,7 @@ channels = ["conda-forge"]
 name = "pfund-plot"
 platforms = ["osx-arm64", "linux-64"]  # TODO: add "osx-64", "win-64"
 # updating this needs to also update the version in the ci.yml and templates/ci-workflow-template.yml files
-requires-pixi = ">=0.60"  # command: pixi workspace requires-pixi set ">=0.60
+requires-pixi = ">=0.62.1"  # command: pixi workspace requires-pixi set ">=0.60
 
 [tasks]
 
@@ -21,7 +21,10 @@ uv = ">=0.9.17"
 
 [pypi-dependencies]
 pfund-plot = { path = ".", editable = true }
+# pfeed = ">=0.0.5"
+# TEMP
 pfeed = { path = "../pfeed", editable = true }
+pfund = { path = "../pfund", editable = true }
 panel = ">=1.8.4"
 hvplot = ">=0.12.1"
 anywidget = ">=0.9.21"
@@ -31,6 +34,10 @@ datashader = ">=0.18.2"
 
 [pypi-options.dependency-overrides]
 platformdirs = ">=4.5.0"
+pfund-plot = { path = ".", editable = true }
+# TEMP
+pfeed = { path = "../pfeed", editable = true }
+pfund = { path = "../pfund", editable = true }
 
 [environments]
 default = ["py311", "dev", "optional"]
@@ -45,13 +52,15 @@ jupyter-bokeh = ">=4.0.5"
 notebook = ">=7.5.0"
 papermill = ">=2.6.0"
 voila = ">=0.5.11"
-plotly = ">=6.5.0"
 
 [feature.dev.dependencies]
 ta-lib = ">=0.6.4"
 
 [feature.dev.pypi-dependencies]
 afterpython = ">=0.1.1"
+plotly = ">=6.5.0"
+vegafusion = ">=2.0.3"
+altair = ">=6.0.0"
 watchfiles = ">=1.1.1"  # "panel serve myfile.py --dev" requires watchfiles installed to autoreload
 selenium = ">=4.39.0"  # saving bokeh images requires selenium
 bokeh-sampledata = ">=2025.0"
