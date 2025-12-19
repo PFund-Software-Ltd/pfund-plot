@@ -54,6 +54,7 @@ def control(
     num_data: int = DEFAULT_NUM_DATA,
     slider_step: int = DEFAULT_SLIDER_STEP,
     show_volume: bool = True,
+    linked_axes: bool = True,
 ):
     """
     Args:
@@ -61,6 +62,8 @@ def control(
             This can be changed by a slider in the plot.
         slider_step: the step size of the datetime range slider. default is 60 min (3600000 ms).
         show_volume: whether to show the volume plot. default is True.
+        linked_axes: whether to link the axes of bokeh plots inside this pane
+            across a panel layout.
     """
     return locals()
 

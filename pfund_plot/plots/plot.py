@@ -127,17 +127,19 @@ class BasePlot(ABC):
         self._notebook_type: NotebookType | None = get_notebook_type()
 
         cls = self.__class__
-        cls.set_backend(cls.SUPPORTED_BACKENDS[0])
-        cls.set_mode(
-            DisplayMode.notebook if self._notebook_type else DisplayMode.browser
-        )
+        if cls._backend is None:
+            cls.set_backend(cls.SUPPORTED_BACKENDS[0])
+        if cls._mode is None:
+            cls.set_mode(
+                DisplayMode.notebook if self._notebook_type else DisplayMode.browser
+            )
 
         # Initialize instance variables
-        self._backend: PlottingBackend
-        self._mode: DisplayMode
-        self._renderer: BaseRenderer
-        self._style: dict
-        self._control: dict
+        self._backend: PlottingBackend | None = None
+        self._mode: DisplayMode | None = None
+        self._renderer: BaseRenderer | None = None
+        self._style: dict | None = None
+        self._control: dict | None = None
         self._set_backend(cls._backend)
         self._set_mode(cls._mode)
 
@@ -274,7 +276,7 @@ class BasePlot(ABC):
     @property
     def name(self) -> str:
         return self.__class__.__name__.lower()
-    
+
     @property
     def _plot(self) -> Callable:
         """Runs the plot function for the current backend."""
@@ -345,7 +347,7 @@ class BasePlot(ABC):
                 lambda data: self._plot(data, self._style, self._control),
                 streams=[self._streaming_pipe],
             )
-            self._pane = pn.pane.HoloViews(dmap)
+            self._pane = pn.pane.HoloViews(dmap, linked_axes=self._control.get("linked_axes", True))
         elif self._backend == PlottingBackend.svelte:
             self._anywidget: AnyWidget = self._plot(
                 self._df.tail(self._control["num_data"]), self._style, self._control

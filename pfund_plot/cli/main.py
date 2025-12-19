@@ -4,6 +4,7 @@ from trogon import tui
 from pfund_plot.config import get_config
 from pfund_plot.cli.commands.plot import plot
 from pfund_plot.cli.commands.config import config
+from pfund_plot.cli.commands.serve import serve
 
 
 @tui(command='tui', help="Open terminal UI")
@@ -18,3 +19,4 @@ def pfund_plot_group(ctx):
 
 pfund_plot_group.add_command(plot)
 pfund_plot_group.add_command(config)
+pfund_plot_group.add_command(serve)
