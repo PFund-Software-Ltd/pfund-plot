@@ -76,36 +76,7 @@ class BasePlot(ABC):
         df: GenericFrame | None = None,
         streaming_feed: MarketFeed | None = None,
         streaming_freq: int = STREAMING_FREQ,
-        css_style: dict | None = None,
-        css_sheets: str | list[str] | None = None,
     ):
-        '''
-        Args:
-            css_style: A dictionary of CSS styles to apply to the plot.
-                Equivalent to Panel's "styles" parameter.
-                Only available for Panel plots.
-                Example:
-                {
-                    'background': '#f9f9f9',
-                    'border-radius': '5px',
-                    'border': '2px solid black',
-                    'padding': '20px',
-                    'box-shadow': '5px 5px 5px #bcbcbc',
-                    'margin': "10px",
-                }
-            css_sheets: A string or list of strings of CSS code to apply to the plot.
-                Equivalent to Panel's "stylesheets" parameter.
-                Only available for Panel plots.
-                Example:
-                """
-                div:nth-child(2) {
-                    background-color: pink;
-                    border-radius: 5px;
-                    padding: 10px;
-                    margin: 10px;
-                }
-                """
-        '''
         from pfund_plot.utils import get_notebook_type
         
         self._setup(df, streaming_feed)
@@ -113,10 +84,6 @@ class BasePlot(ABC):
         self._df: Frame | None = self._standardize_df(df) if df is not None else None
         self._streaming_feed: MarketFeed | None = streaming_feed
         self._streaming_freq = streaming_freq
-        self._css_style = css_style or {}
-        self._css_sheets = css_sheets or []
-        if isinstance(self._css_sheets, str):
-            self._css_sheets = [self._css_sheets]
 
         self._streaming_pipe: Pipe | None = None
         self._anywidget: AnyWidget | None = None

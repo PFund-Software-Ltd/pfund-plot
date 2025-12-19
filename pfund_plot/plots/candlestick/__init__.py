@@ -143,6 +143,4 @@ class Candlestick(BasePlot):
                 sizing_mode=self._get_sizing_mode(height, width),
                 height=height,
                 width=width,
-                styles=self._css_style,
-                stylesheets=self._css_sheets,
             )
