@@ -3,10 +3,12 @@ from typing import Callable, TYPE_CHECKING, ClassVar, Any
 
 if TYPE_CHECKING:
     from narwhals.typing import Frame
+    from holoviews.streams import Pipe
     from pfeed.typing import GenericFrame
     from anywidget import AnyWidget
     from panel.io.callbacks import PeriodicCallback
     from panel.pane import Pane
+    from pfeed.feeds.market_feed import MarketFeed
     from pfund_plot.renderers.base import BaseRenderer
     from pfund_plot.typing import (
         RenderedResult,
@@ -20,11 +22,7 @@ import importlib
 from abc import ABC, abstractmethod
 
 import panel as pn
-from holoviews.streams import Pipe
 
-from pfeed.feeds.market_feed import MarketFeed
-from pfeed.utils.dataframe import is_dataframe
-from pfund_plot.utils import get_notebook_type
 from pfund_plot.enums import PlottingBackend, DisplayMode, NotebookType
 
 
@@ -108,6 +106,8 @@ class BasePlot(ABC):
                 }
                 """
         '''
+        from pfund_plot.utils import get_notebook_type
+        
         self._setup(df, streaming_feed)
 
         self._df: Frame | None = self._standardize_df(df) if df is not None else None
@@ -292,6 +292,8 @@ class BasePlot(ABC):
     def _setup(
         self, df: GenericFrame | None, streaming_feed: MarketFeed | None
     ) -> None:
+        from pfeed.feeds.market_feed import MarketFeed
+
         # TODO: only for bokeh backend?
         if df is not None:
             self._import_hvplot(df)
@@ -338,6 +340,7 @@ class BasePlot(ABC):
             # no pane needed for panel backend (e.g. GridStack, use it directly as a component)
             pass
         elif self._backend == PlottingBackend.bokeh:
+            from holoviews.streams import Pipe
             from holoviews import DynamicMap
 
             self._streaming_pipe = Pipe(
@@ -368,6 +371,8 @@ class BasePlot(ABC):
     # TODO: move to utils
     @staticmethod
     def _import_hvplot(data: GenericFrame | MarketFeed) -> None:
+        from pfeed.utils.dataframe import is_dataframe
+        
         if is_dataframe(data):
             import pandas as pd
             import polars as pl

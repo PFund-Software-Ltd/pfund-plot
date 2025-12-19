@@ -5,7 +5,6 @@ if TYPE_CHECKING:
 
 import os
 import datetime
-import importlib.util
 from pathlib import Path
 
 from pfund_plot.enums.notebook_type import NotebookType
@@ -35,6 +34,8 @@ def is_daily_data(df: Frame) -> bool:
 
 
 def get_notebook_type() -> NotebookType | None:
+    import importlib.util
+    
     marimo_spec = importlib.util.find_spec("marimo")
     if marimo_spec is not None:
         import marimo as mo
