@@ -13,6 +13,9 @@ if TYPE_CHECKING:
     from pfund_plot.plots.layout import (
         Layout as layout,
     )
+    from pfund_plot.plots.plotly import (
+        Plotly as plotly,
+    )
 
 from importlib.metadata import version
 
@@ -30,17 +33,14 @@ pn.config.js_files = {
 }
 
 
-Matplotlib = pn.pane.Matplotlib
-Bokeh = pn.pane.Bokeh
-Plotly = pn.pane.Plotly
-Altair = Vega = pn.pane.Vega
-
-
 print_warning = lambda msg: print(f'\033[95m{msg}\033[0m')
 
 
 def __getattr__(name: str):
-    if name in ('candlestick', 'ohlc', 'kline'):
+    if name == 'plotly':
+        from pfund_plot.plots.plotly import Plotly
+        return Plotly
+    elif name in ('candlestick', 'ohlc', 'kline'):
         from pfund_plot.plots.candlestick import Candlestick
         return Candlestick
     elif name == 'layout':
@@ -58,7 +58,7 @@ __version__ = version("pfund_plot")
 __all__ = (
     "__version__",
     "get_config", "configure",
-    "Matplotlib", "Bokeh", "Plotly", "Vega", "Altair",
+    "plotly",
     "candlestick", "ohlc", "kline",
     "dataframe", "df",
     "layout",

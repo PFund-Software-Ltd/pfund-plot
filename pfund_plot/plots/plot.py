@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from pfund_plot.renderers.base import BaseRenderer
     from pfund_plot.typing import (
         RenderedResult,
+        Figure,
         tPlottingBackend,
         tDisplayMode,
         Component,
@@ -57,19 +58,15 @@ class BasePlot(ABC):
         assert cls.STREAMING_FREQ > 0, (
             f"STREAMING_FREQ must be greater than 0 for class {class_name}"
         )
-        assert cls.style is not None, (
-            f"class variable 'style' is not defined for class {class_name}"
-        )
-        assert cls.control is not None, (
-            f"class variable 'control' is not defined for class {class_name}"
-        )
         for backend in cls.SUPPORTED_BACKENDS:
-            assert hasattr(cls.style, backend.value), (
-                f"style for {backend} is not defined for class {class_name}"
-            )
-            assert hasattr(cls.control, backend.value), (
-                f"control for {backend} is not defined for class {class_name}"
-            )
+            if cls.style is not None:
+                assert hasattr(cls.style, backend.value), (
+                    f"style for {backend} is not defined for class {class_name}"
+                )
+            if cls.control is not None:
+                assert hasattr(cls.control, backend.value), (
+                    f"control for {backend} is not defined for class {class_name}"
+                )
 
     def __init__(
         self,
@@ -146,6 +143,9 @@ class BasePlot(ABC):
     def _create_style(
         style: dict | None, backend: PlottingBackend, style_wrapper
     ) -> dict:
+        if style_wrapper is None:
+            return None
+        
         default_style = getattr(style_wrapper, backend.value)()
 
         if style is None:
@@ -169,6 +169,9 @@ class BasePlot(ABC):
     def _create_control(
         control: dict | None, backend: PlottingBackend, control_wrapper
     ) -> dict:
+        if control_wrapper is None:
+            return None
+        
         default_control = getattr(control_wrapper, backend.value)()
 
         if control is None:
@@ -250,6 +253,23 @@ class BasePlot(ABC):
         module_path = f"pfund_plot.plots.{self.name}.{self._backend}"
         module = importlib.import_module(module_path)
         return getattr(module, "plot")
+    
+    @property
+    def figure(self) -> Figure | Plot:
+        import hvplot
+        from holoviews.core.overlay import Overlay
+        
+        plot = self.plot
+        backend = self._backend
+        if isinstance(plot, Overlay):
+            fig = hvplot.render(plot, backend=backend)
+            if backend != PlottingBackend.plotly:
+                return fig
+            else:
+                import plotly.graph_objects as go
+                return go.Figure(fig)
+        else:
+            return plot
 
     @property
     def plot(self) -> Plot:
@@ -323,6 +343,13 @@ class BasePlot(ABC):
                 self._df.tail(self._control["num_data"]), self._style, self._control
             )
             self._pane = pn.pane.IPyWidget(self._anywidget)
+        elif self._backend == PlottingBackend.plotly:
+            self._pane = pn.pane.Plotly(self.plot)
+        # TODO
+        # elif self._backend == PlottingBackend.altair:
+        #     self._pane = pn.pane.Vega(self.plot)
+        # elif self._backend == PlottingBackend.matplotlib:
+        #     self._pane = pn.pane.Matplotlib(self.plot)
         else:
             raise ValueError(f"Unsupported backend: {self._backend}")
 

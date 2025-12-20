@@ -5,6 +5,8 @@ if TYPE_CHECKING:
     from pfeed.typing import GenericFrame
     from pfund_plot.plots.lazy import LazyPlot
 
+import panel as pn
+
 import pfund_plot as plt
 from pfund_plot.plots.plot import BasePlot
 from pfund_plot.enums import PlottingBackend
@@ -29,6 +31,8 @@ class Layout(BasePlot):
     control = LayoutControl
 
     def __init__(self, *plots: LazyPlot):
+        pn.extension("gridstack")
+
         self._plots: tuple[LazyPlot, ...] = plots
         super().__init__(df=None, streaming_feed=None)
         if self._notebook_type:

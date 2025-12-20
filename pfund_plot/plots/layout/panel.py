@@ -25,8 +25,6 @@ def control(
 
 
 def plot(*plots: LazyPlot, style: dict, control: dict) -> GridStack:
-    pn.extension("gridstack")
-
     gstack = GridStack(
         sizing_mode="stretch_both",
         allow_drag=control["allow_drag"],

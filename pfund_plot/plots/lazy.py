@@ -14,7 +14,6 @@ if TYPE_CHECKING:
     )
 
 from pfund_plot.plots.plot import BasePlot
-from pfund_plot.enums import PlottingBackend
 
 
 class LazyPlot:
@@ -30,25 +29,33 @@ class LazyPlot:
         self._plot = plot_instance
         self._grid_spec: tuple[slice, slice] | None = None
     
-    def __getitem__(self, key: tuple[slice, slice]) -> LazyPlot:
+    def __getitem__(self, key: tuple[int | slice, int | slice]) -> LazyPlot:
         """Set grid position for use with plt.layout (GridStack).
 
         Args:
-            key: A tuple of two slices (row_slice, col_slice) specifying
-                 the grid position, e.g., [1:2, 3:4]
+            key: A tuple of two elements (row, col) specifying the grid position.
+                 Each element can be an int (single position) or slice (range).
+                 Examples: [1, 3], [1:2, 3:4], [1, 3:5]
 
         Returns:
             Self for method chaining
 
         Example:
-            plt.ohlc(df)[0:2, 0:6]  # spans rows 0-1, cols 0-5
+            plt.ohlc(df)[0, 0]         # single cell at row 0, col 0
+            plt.ohlc(df)[0:2, 0:6]     # spans rows 0-1, cols 0-5
+            plt.ohlc(df)[1, 0:3]       # row 1, cols 0-2
             plt.layout(plot1[0:1, 0:2], plot2[0:1, 2:4])
         """
         if not isinstance(key, tuple) or len(key) != 2:
-            raise TypeError("Grid spec must be a tuple of two slices, e.g., [1:2, 3:4]")
-        row_slice, col_slice = key
-        if not isinstance(row_slice, slice) or not isinstance(col_slice, slice):
-            raise TypeError("Grid spec must use slices, e.g., [1:2, 3:4]")
+            raise TypeError("Grid spec must be a tuple of two elements, e.g., [1, 3] or [1:2, 3:4]")
+        row_spec, col_spec = key
+        if not isinstance(row_spec, (int, slice)) or not isinstance(col_spec, (int, slice)):
+            raise TypeError("Grid spec elements must be int or slice, e.g., [1, 3] or [1:2, 3:4]")
+
+        # Convert ints to slices for consistency
+        row_slice = slice(row_spec, row_spec + 1) if isinstance(row_spec, int) else row_spec
+        col_slice = slice(col_spec, col_spec + 1) if isinstance(col_spec, int) else col_spec
+
         self._grid_spec = (row_slice, col_slice)
         return self
 
@@ -58,23 +65,7 @@ class LazyPlot:
     
     @property
     def figure(self) -> Figure:
-        import hvplot
-        from holoviews.core.overlay import Overlay
-        from anywidget import AnyWidget
-        
-        plot = self.plot
-        backend = self._plot._backend
-        if isinstance(plot, Overlay):
-            fig = hvplot.render(plot, backend=backend)
-            if backend != PlottingBackend.plotly:
-                return fig
-            else:
-                import plotly.graph_objects as go
-                return go.Figure(fig)
-        elif isinstance(plot, AnyWidget):
-            return plot
-        else:
-            raise ValueError(f"Unsupported plot type: {type(plot)}")
+        return self._plot.figure
 
     @property
     def plot(self) -> Plot:
