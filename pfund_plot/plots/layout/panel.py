@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pfund_plot.plots.lazy import LazyPlot
 
-import panel as pn
 from panel.layout.gridstack import GridStack
 
 

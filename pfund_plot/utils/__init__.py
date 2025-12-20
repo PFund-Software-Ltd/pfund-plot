@@ -52,12 +52,10 @@ def get_notebook_type() -> NotebookType | None:
     return None
 
 
-# NOTE: loading panel extensions ALWAYS break sth (could be anywidget, displaying in marimo, etc.)
-# be VERY CAREFUL WHEN to load an extension
-def load_panel_extensions():
+def load_panel_extensions(extensions: list[str] = None):
     import panel as pn
 
-    extensions = ['ipywidgets', 'tabulator', 'perspective']
+    extensions = extensions or []
     for extension in extensions:
         if extension not in pn.extension._loaded_extensions:
             pn.extension(extension)

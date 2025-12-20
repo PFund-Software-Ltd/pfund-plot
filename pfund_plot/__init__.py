@@ -13,6 +13,9 @@ if TYPE_CHECKING:
     from pfund_plot.plots.layout import (
         Layout as layout,
     )
+    from pfund_plot.plots.layout.tabs import (
+        Tabs as tabs,
+    )
     from pfund_plot.plots.plotly import (
         Plotly as plotly,
     )
@@ -24,6 +27,9 @@ import panel as pn
 from pfund_plot.config import get_config, configure
 
 
+# NOTE: data update in anywidget (backend=svelte) may have issues (especially in marimo) after loading panel extensions
+# if anywidget+svelte backend is not working, try to comment this out
+pn.extension()
 # NOTE: this MUST be True, otherwise, some widgets won't work properly, e.g. candlestick widgets, slider and input will both trigger each other due to panel's async update, which leads to infinite loop.
 pn.config.throttled = True  # If panel sliders and inputs should be throttled until release of mouse.
 # NOTE: /assets can only be recognized when setting pn.serve(static_dirs=pfund_plot.config.static_dirs)
@@ -46,6 +52,9 @@ def __getattr__(name: str):
     elif name == 'layout':
         from pfund_plot.plots.layout import Layout
         return Layout
+    elif name == 'tabs':
+        from pfund_plot.plots.layout.tabs import Tabs
+        return Tabs
     else:
         raise AttributeError(f"'{__name__}' has no attribute '{name}'")
     # TODO
@@ -61,7 +70,7 @@ __all__ = (
     "plotly",
     "candlestick", "ohlc", "kline",
     "dataframe", "df",
-    "layout",
+    "layout", "tabs",
 )
 def __dir__():
     return sorted(__all__)

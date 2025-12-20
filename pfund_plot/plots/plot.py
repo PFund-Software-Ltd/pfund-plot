@@ -19,6 +19,7 @@ if TYPE_CHECKING:
         Plot,
     )
 
+import warnings
 import importlib
 from abc import ABC, abstractmethod
 
@@ -75,7 +76,7 @@ class BasePlot(ABC):
         streaming_freq: int = STREAMING_FREQ,
     ):
         from pfund_plot.utils import get_notebook_type
-        
+
         self._setup(df, streaming_feed)
 
         self._df: Frame | None = self._standardize_df(df) if df is not None else None
@@ -145,7 +146,7 @@ class BasePlot(ABC):
     ) -> dict:
         if style_wrapper is None:
             return None
-        
+
         default_style = getattr(style_wrapper, backend.value)()
 
         if style is None:
@@ -171,7 +172,7 @@ class BasePlot(ABC):
     ) -> dict:
         if control_wrapper is None:
             return None
-        
+
         default_control = getattr(control_wrapper, backend.value)()
 
         if control is None:
@@ -253,12 +254,12 @@ class BasePlot(ABC):
         module_path = f"pfund_plot.plots.{self.name}.{self._backend}"
         module = importlib.import_module(module_path)
         return getattr(module, "plot")
-    
+
     @property
     def figure(self) -> Figure | Plot:
         import hvplot
         from holoviews.core.overlay import Overlay
-        
+
         plot = self.plot
         backend = self._backend
         if isinstance(plot, Overlay):
@@ -267,6 +268,7 @@ class BasePlot(ABC):
                 return fig
             else:
                 import plotly.graph_objects as go
+
                 return go.Figure(fig)
         else:
             return plot
@@ -311,18 +313,6 @@ class BasePlot(ABC):
             return None
 
     def _create_pane(self):
-        from pfund_plot import print_warning
-        from pfund_plot.utils import load_panel_extensions
-
-        # NOTE: data update in anywidget (backend=svelte) may have issues (especially in marimo) after loading panel extensions
-        if self._backend != PlottingBackend.svelte:
-            # TODO: do not load unnecessary extensions
-            load_panel_extensions()
-        elif pn.extension._loaded_extensions:
-            print_warning(
-                "Svelte backend may not work correctly with existing panel extensions. Restart kernel to fix if issues arise."
-            )
-
         if self._backend == PlottingBackend.panel:
             # no pane needed for panel backend (e.g. GridStack, use it directly as a component)
             pass
@@ -337,8 +327,15 @@ class BasePlot(ABC):
                 lambda data: self._plot(data, self._style, self._control),
                 streams=[self._streaming_pipe],
             )
-            self._pane = pn.pane.HoloViews(dmap, linked_axes=self._control.get("linked_axes", True))
+            self._pane = pn.pane.HoloViews(
+                dmap, linked_axes=self._control.get("linked_axes", True)
+            )
         elif self._backend == PlottingBackend.svelte:
+            if pn.extension._loaded_extensions:
+                warnings.warn(
+                    "Svelte backend may not work correctly with existing panel extensions. Restart kernel to fix if issues arise.",
+                    stacklevel=1,
+                )
             self._anywidget: AnyWidget = self._plot(
                 self._df.tail(self._control["num_data"]), self._style, self._control
             )
@@ -366,7 +363,7 @@ class BasePlot(ABC):
     @staticmethod
     def _import_hvplot(data: GenericFrame | MarketFeed) -> None:
         from pfeed.utils.dataframe import is_dataframe
-        
+
         if is_dataframe(data):
             import pandas as pd
             import polars as pl
