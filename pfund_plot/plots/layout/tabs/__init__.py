@@ -34,7 +34,7 @@ class Tabs(BasePlot):
     
     # tabs is not at the top level of plots, it's inside layout/tabs, so we need to override the _plot property
     @property
-    def _plot(self) -> Callable:
+    def _plot_func(self) -> Callable:
         """Runs the plot function for the current backend."""
         module_path = f"pfund_plot.plots.layout.{self.name}.{self._backend}"
         module = importlib.import_module(module_path)

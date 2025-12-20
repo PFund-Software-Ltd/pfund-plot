@@ -69,7 +69,9 @@ class LazyPlot:
 
     @property
     def plot(self) -> Plot:
-        return self._plot.plot
+        if self._plot._plot is None:
+            self._plot._create_plot()
+        return self._plot._plot
     
     @property
     def pane(self) -> Pane:

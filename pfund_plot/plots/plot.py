@@ -85,6 +85,7 @@ class BasePlot(ABC):
 
         self._streaming_pipe: Pipe | None = None
         self._anywidget: AnyWidget | None = None
+        self._plot: Plot | None = None
         self._pane: Pane | None = None
         self._widgets: Any | None = None  # a set of widgets, e.g. CandlestickWidgets
         self._component: Component | None = None
@@ -249,7 +250,7 @@ class BasePlot(ABC):
         return self.__class__.__name__.lower()
 
     @property
-    def _plot(self) -> Callable:
+    def _plot_func(self) -> Callable:
         """Runs the plot function for the current backend."""
         module_path = f"pfund_plot.plots.{self.name}.{self._backend}"
         module = importlib.import_module(module_path)
@@ -260,39 +261,48 @@ class BasePlot(ABC):
         import hvplot
         from holoviews.core.overlay import Overlay
 
-        plot = self.plot
+        if self._plot is None:
+            self._create_plot()
+
+        plot = self._plot
         backend = self._backend
-        if isinstance(plot, Overlay):
+
+        if backend == PlottingBackend.panel:
+            raise ValueError("Panel backend does not support figure property")
+        elif backend == PlottingBackend.bokeh:
+            assert isinstance(plot, Overlay), "Plot is not a HoloViews Overlay"
             fig = hvplot.render(plot, backend=backend)
-            if backend != PlottingBackend.plotly:
-                return fig
-            else:
+        elif backend in [PlottingBackend.plotly, PlottingBackend.matplotlib]:
+            if self._is_plotted_by_hvplot():
+                # use hvplot to convert holoviews Overlay to the underlying plotting library's figure
                 import plotly.graph_objects as go
-
-                return go.Figure(fig)
+                fig_dict = hvplot.render(plot, backend=backend)
+                fig = go.Figure(fig_dict)
+            else:  # plot is from plt.plotly() or plt.matplotlib()
+                fig = plot
+        # TODO
+        # elif self._backend == PlottingBackend.altair:
+        #     pass
         else:
-            return plot
-
-    @property
-    def plot(self) -> Plot:
-        """Runs the plot function for the current backend"""
-        return self._plot(self._df, self._style, self._control)
+            raise ValueError(f"Unsupported backend: {backend}")
+        return fig
 
     def _setup(
         self, df: GenericFrame | None, streaming_feed: MarketFeed | None
     ) -> None:
+        from pfund_plot.utils import import_hvplot_df_module
         from pfeed.feeds.market_feed import MarketFeed
 
         # TODO: only for bokeh backend?
         if df is not None:
-            self._import_hvplot(df)
+            import_hvplot_df_module(df)
         if streaming_feed is not None:
             assert isinstance(streaming_feed, MarketFeed), (
                 "streaming_feed must be a MarketFeed instance"
             )
             assert streaming_feed._use_ray is False, "Ray is not supported for plotting"
         if streaming_feed is not None:
-            self._import_hvplot(streaming_feed)
+            import_hvplot_df_module(streaming_feed)
 
     def _is_using_marimo_svelte_combo(self):
         return (
@@ -311,44 +321,62 @@ class BasePlot(ABC):
             return "stretch_width"
         else:
             return None
+    
+    def _is_plotted_by_hvplot(self) -> bool:
+        from holoviews.core.overlay import Overlay
+        return isinstance(self._plot, Overlay)
+    
+    def _create_plot(self):
+        """Runs the plot function for the current backend"""
+        self._plot = self._plot_func(self._df, self._style, self._control)
 
     def _create_pane(self):
-        if self._backend == PlottingBackend.panel:
+        if "num_data" in self._control:
+            df = self._df.tail(self._control["num_data"])
+        else:
+            df = self._df
+        
+        if self._plot is None:
+            self._create_plot()
+        
+        backend = self._backend
+        
+        if backend == PlottingBackend.panel:
             # no pane needed for panel backend (e.g. GridStack, use it directly as a component)
             pass
-        elif self._backend == PlottingBackend.bokeh:
+        elif backend == PlottingBackend.bokeh:
             from holoviews.streams import Pipe
             from holoviews import DynamicMap
 
-            self._streaming_pipe = Pipe(
-                data=self._df.tail(min(self._control["num_data"], self._df.shape[0]))
-            )
+            self._streaming_pipe = Pipe(data=df)
             dmap = DynamicMap(
-                lambda data: self._plot(data, self._style, self._control),
+                lambda data: self._plot_func(data, self._style, self._control),
                 streams=[self._streaming_pipe],
             )
             self._pane = pn.pane.HoloViews(
                 dmap, linked_axes=self._control.get("linked_axes", True)
             )
-        elif self._backend == PlottingBackend.svelte:
+        elif backend == PlottingBackend.svelte:
             if pn.extension._loaded_extensions:
                 warnings.warn(
                     "Svelte backend may not work correctly with existing panel extensions. Restart kernel to fix if issues arise.",
                     stacklevel=1,
                 )
-            self._anywidget: AnyWidget = self._plot(
-                self._df.tail(self._control["num_data"]), self._style, self._control
-            )
+            self._anywidget: AnyWidget = self._plot_func(df, self._style, self._control)
             self._pane = pn.pane.IPyWidget(self._anywidget)
-        elif self._backend == PlottingBackend.plotly:
-            self._pane = pn.pane.Plotly(self.plot)
+        elif backend in [PlottingBackend.plotly, PlottingBackend.matplotlib]:
+            if self._is_plotted_by_hvplot():  # from hvplot using plotly backend
+                self._pane = pn.pane.HoloViews(self._plot)
+            else:  # from plt.plotly() or plt.matplotlib()
+                if backend == PlottingBackend.plotly:
+                    self._pane = pn.pane.Plotly(self._plot)
+                elif backend == PlottingBackend.matplotlib:
+                    self._pane = pn.pane.Matplotlib(self._plot)
         # TODO
-        # elif self._backend == PlottingBackend.altair:
-        #     self._pane = pn.pane.Vega(self.plot)
-        # elif self._backend == PlottingBackend.matplotlib:
-        #     self._pane = pn.pane.Matplotlib(self.plot)
+        # elif backend == PlottingBackend.altair:
+        #     self._pane = pn.pane.Vega(self._plot)
         else:
-            raise ValueError(f"Unsupported backend: {self._backend}")
+            raise ValueError(f"Unsupported backend: {backend}")
 
     def _update_pane(self, df: Frame):
         if self._backend == PlottingBackend.bokeh:
@@ -358,34 +386,3 @@ class BasePlot(ABC):
             self._anywidget.update_data(df)
         else:
             raise ValueError(f"Unsupported backend: {self._backend}")
-
-    # TODO: move to utils
-    @staticmethod
-    def _import_hvplot(data: GenericFrame | MarketFeed) -> None:
-        from pfeed.utils.dataframe import is_dataframe
-
-        if is_dataframe(data):
-            import pandas as pd
-            import polars as pl
-            from pfeed.typing import dd
-
-            if isinstance(data, pd.DataFrame):
-                import hvplot.pandas
-            elif pl and isinstance(data, (pl.DataFrame, pl.LazyFrame)):
-                import hvplot.polars
-            elif dd and isinstance(data, dd.DataFrame):
-                import hvplot.dask
-            else:
-                raise ValueError(
-                    f"Unsupported dataframe type: {type(data)}, make sure you have installed the required libraries"
-                )
-        elif isinstance(data, MarketFeed):
-            data_tool = data._data_tool
-            if data_tool not in ["pandas", "polars", "dask"]:
-                raise ValueError(
-                    f"Unsupported data tool: {data_tool}, must be one of ['pandas', 'polars', 'dask']"
-                )
-            # dynamically import the corresponding hvplot module
-            importlib.import_module(f"hvplot.{data._data_tool}")
-        else:
-            raise ValueError("Input data must be a dataframe or pfeed's feed object")

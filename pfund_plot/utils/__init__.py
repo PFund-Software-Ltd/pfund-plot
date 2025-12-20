@@ -2,6 +2,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from narwhals.typing import Frame
+    from pfeed.typing import GenericFrame
+    from pfeed.feeds.market_feed import MarketFeed
 
 import os
 import datetime
@@ -60,3 +62,34 @@ def load_panel_extensions(extensions: list[str] = None):
         if extension not in pn.extension._loaded_extensions:
             pn.extension(extension)
             print(f'loaded Panel extension: {extension}')
+
+
+def import_hvplot_df_module(data: GenericFrame | MarketFeed) -> None:
+    import importlib
+    from pfeed.utils.dataframe import is_dataframe
+
+    if is_dataframe(data):
+        import pandas as pd
+        import polars as pl
+        from pfeed.typing import dd
+
+        if isinstance(data, pd.DataFrame):
+            import hvplot.pandas
+        elif pl and isinstance(data, (pl.DataFrame, pl.LazyFrame)):
+            import hvplot.polars
+        elif dd and isinstance(data, dd.DataFrame):
+            import hvplot.dask
+        else:
+            raise ValueError(
+                f"Unsupported dataframe type: {type(data)}, make sure you have installed the required libraries"
+            )
+    elif isinstance(data, MarketFeed):
+        data_tool = data._data_tool
+        if data_tool not in ["pandas", "polars", "dask"]:
+            raise ValueError(
+                f"Unsupported data tool: {data_tool}, must be one of ['pandas', 'polars', 'dask']"
+            )
+        # dynamically import the corresponding hvplot module
+        importlib.import_module(f"hvplot.{data._data_tool}")
+    else:
+        raise ValueError("Input data must be a dataframe or pfeed's feed object")

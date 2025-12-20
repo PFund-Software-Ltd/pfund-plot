@@ -5,7 +5,7 @@ if TYPE_CHECKING:
     from pfeed.typing import GenericFrame
     from narwhals.typing import Frame
     from pfeed.feeds.market_feed import MarketFeed
-    PlotFunction: TypeAlias = Callable[[Frame], PlotlyFigure]
+    PlotlyFunction: TypeAlias = Callable[[Frame], PlotlyFigure]
 
 import panel as pn
 
@@ -18,27 +18,27 @@ class Plotly(BasePlot):
     
     def __init__(
         self, 
-        figure_or_plot_func: PlotlyFigure | PlotFunction,
+        fig_or_func: PlotlyFigure | PlotlyFunction,
         df: GenericFrame | None = None,
         streaming_feed: MarketFeed | None = None,
         streaming_freq: int = BasePlot.STREAMING_FREQ,
     ):
         pn.extension("plotly")
         super().__init__(df=df, streaming_feed=streaming_feed, streaming_freq=streaming_freq)
-        self._fig = None
-        self._plot_func = None
-        if callable(figure_or_plot_func):
-            self._plot_func = figure_or_plot_func
+        self._plotly_fig: PlotlyFigure | None = None
+        self._plot: PlotlyFigure | None
+        self._plotly_func: PlotlyFunction | None = None
+        if callable(fig_or_func):
+            self._plotly_func = fig_or_func
         else:
-            self._fig = figure_or_plot_func
+            self._plotly_fig = fig_or_func
 
     @property
-    def _plot(self) -> PlotFunction | None:
-        return self._plot_func
-    
-    @property
-    def plot(self) -> PlotlyFigure:
-        return self._plot(self._df) if self._plot is not None else self._fig
+    def _plot_func(self) -> PlotlyFunction | None:
+        return self._plotly_func
+
+    def _create_plot(self):
+        self._plot = self._plot_func(self._df) if self._plot_func is not None else self._plotly_fig
     
     def _standardize_df(self, df: GenericFrame) -> Frame:
         import narwhals as nw
