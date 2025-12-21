@@ -332,7 +332,7 @@ class BasePlot(ABC):
         self._plot = self._plot_func(self._df, self._style, self._control)
 
     def _create_pane(self):
-        if "num_data" in self._control:
+        if self._control and "num_data" in self._control:
             df = self._df.tail(self._control["num_data"])
         else:
             df = self._df

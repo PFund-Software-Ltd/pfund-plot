@@ -13,7 +13,33 @@ if TYPE_CHECKING:
         Figure,
     )
 
+import panel as pn
+
 from pfund_plot.plots.plot import BasePlot
+
+
+class LazyRow(pn.Row):
+    """A pn.Row subclass that supports + and | operators for chaining."""
+
+    def __add__(self, other: Any) -> LazyRow:
+        right = other.component if isinstance(other, LazyPlot) else other
+        return LazyRow(*self.objects, right)
+
+    def __or__(self, other: Any) -> LazyColumn:
+        right = other.component if isinstance(other, LazyPlot) else other
+        return LazyColumn(self, right)
+
+
+class LazyColumn(pn.Column):
+    """A pn.Column subclass that supports + and | operators for chaining."""
+
+    def __add__(self, other: Any) -> LazyRow:
+        right = other.component if isinstance(other, LazyPlot) else other
+        return LazyRow(self, right)
+
+    def __or__(self, other: Any) -> LazyColumn:
+        right = other.component if isinstance(other, LazyPlot) else other
+        return LazyColumn(*self.objects, right)
 
 
 class LazyPlot:
@@ -214,3 +240,62 @@ class LazyPlot:
         if hasattr(result, "_repr_html_"):
             return result._repr_html_()
         return None
+
+    def __add__(self, other: Any) -> LazyRow:
+        """Combine plots horizontally using + operator.
+
+        Args:
+            other: Another LazyPlot, Panel component, or any Panel-compatible object
+
+        Returns:
+            LazyRow containing the combined components
+
+        Example:
+            plot1 + plot2  # Side by side
+            plot1 + plot2 + plot3  # Three plots in a row
+            plot1 + some_widget  # LazyPlot with a widget
+        """
+        left = self.component
+        right = other.component if isinstance(other, LazyPlot) else other
+        return LazyRow(left, right)
+
+    def __radd__(self, other: Any) -> LazyRow:
+        """Support reverse addition (when left operand doesn't support +)."""
+        return LazyRow(other, self.component)
+
+    def __mul__(self, other: LazyPlot) -> Any:
+        """Composite plot using * operator.
+
+        Args:
+            other: Another LazyPlot to composite with
+
+        Returns:
+            Composite plot
+
+        Example:
+            plot1 * plot2  # Overlay plots
+        """
+        # TODO: Implement composite plot functionality
+        raise NotImplementedError("Composite plots (*) are not yet supported")
+
+    def __or__(self, other: Any) -> LazyColumn:
+        """Stack plots vertically using | operator.
+
+        Args:
+            other: Another LazyPlot, Panel component, or any Panel-compatible object
+
+        Returns:
+            LazyColumn containing the stacked components
+
+        Example:
+            plot1 | plot2  # Vertically stacked
+            plot1 | plot2 | plot3  # Three plots stacked
+            plot1 | "Some text label"  # LazyPlot with text below
+        """
+        top = self.component
+        bottom = other.component if isinstance(other, LazyPlot) else other
+        return LazyColumn(top, bottom)
+
+    def __ror__(self, other: Any) -> LazyColumn:
+        """Support reverse or (when left operand doesn't support |)."""
+        return LazyColumn(other, self.component)
