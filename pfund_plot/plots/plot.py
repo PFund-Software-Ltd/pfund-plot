@@ -272,13 +272,14 @@ class BasePlot(ABC):
         elif backend == PlottingBackend.bokeh:
             assert isinstance(plot, Overlay), "Plot is not a HoloViews Overlay"
             fig = hvplot.render(plot, backend=backend)
-        elif backend in [PlottingBackend.plotly, PlottingBackend.matplotlib]:
+        elif backend in [PlottingBackend.bokeh, PlottingBackend.plotly, PlottingBackend.matplotlib]:
             if self._is_plotted_by_hvplot():
                 # use hvplot to convert holoviews Overlay to the underlying plotting library's figure
                 import plotly.graph_objects as go
                 fig_dict = hvplot.render(plot, backend=backend)
                 fig = go.Figure(fig_dict)
-            else:  # plot is from plt.plotly() or plt.matplotlib()
+            else:  # plot is from plt.bokeh(), plt.plotly() or plt.matplotlib()
+                plot: Figure
                 fig = plot
         # TODO
         # elif self._backend == PlottingBackend.altair:
@@ -344,18 +345,26 @@ class BasePlot(ABC):
         if backend == PlottingBackend.panel:
             # no pane needed for panel backend (e.g. GridStack, use it directly as a component)
             pass
-        elif backend == PlottingBackend.bokeh:
-            from holoviews.streams import Pipe
-            from holoviews import DynamicMap
+        elif backend in [PlottingBackend.bokeh, PlottingBackend.plotly, PlottingBackend.matplotlib]:
+            if self._is_plotted_by_hvplot():
+                from holoviews.streams import Pipe
+                from holoviews import DynamicMap
 
-            self._streaming_pipe = Pipe(data=df)
-            dmap = DynamicMap(
-                lambda data: self._plot_func(data, self._style, self._control),
-                streams=[self._streaming_pipe],
-            )
-            self._pane = pn.pane.HoloViews(
-                dmap, linked_axes=self._control.get("linked_axes", True)
-            )
+                self._streaming_pipe = Pipe(data=df)
+                dmap = DynamicMap(
+                    lambda data: self._plot_func(data, self._style, self._control),
+                    streams=[self._streaming_pipe],
+                )
+                self._pane = pn.pane.HoloViews(
+                    dmap, linked_axes=self._control.get("linked_axes", True)
+                )
+            else:  # from plt.bokeh(), plt.plotly() or plt.matplotlib()
+                if backend == PlottingBackend.bokeh:
+                    self._pane = pn.pane.Bokeh(self._plot)
+                elif backend == PlottingBackend.plotly:
+                    self._pane = pn.pane.Plotly(self._plot)
+                elif backend == PlottingBackend.matplotlib:
+                    self._pane = pn.pane.Matplotlib(self._plot)
         elif backend == PlottingBackend.svelte:
             if pn.extension._loaded_extensions:
                 warnings.warn(
@@ -364,14 +373,6 @@ class BasePlot(ABC):
                 )
             self._anywidget: AnyWidget = self._plot_func(df, self._style, self._control)
             self._pane = pn.pane.IPyWidget(self._anywidget)
-        elif backend in [PlottingBackend.plotly, PlottingBackend.matplotlib]:
-            if self._is_plotted_by_hvplot():  # from hvplot using plotly backend
-                self._pane = pn.pane.HoloViews(self._plot)
-            else:  # from plt.plotly() or plt.matplotlib()
-                if backend == PlottingBackend.plotly:
-                    self._pane = pn.pane.Plotly(self._plot)
-                elif backend == PlottingBackend.matplotlib:
-                    self._pane = pn.pane.Matplotlib(self._plot)
         # TODO
         # elif backend == PlottingBackend.altair:
         #     self._pane = pn.pane.Vega(self._plot)

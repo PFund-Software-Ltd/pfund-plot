@@ -4,6 +4,7 @@ if TYPE_CHECKING:
     from narwhals.typing import Frame
     from pfeed.typing import GenericFrame
     from pfund_plot.plots.lazy import LazyPlot
+    from panel.layout import GridStack
 
 import panel as pn
 
@@ -34,6 +35,7 @@ class Layout(BasePlot):
         pn.extension("gridstack")
 
         self._plots: tuple[LazyPlot, ...] = plots
+        self._plot: GridStack
         super().__init__(df=None, streaming_feed=None)
         if self._notebook_type:
             raise ValueError("Layout cannot be used in notebook environment.")
@@ -59,11 +61,10 @@ class Layout(BasePlot):
                 if any(grid_spec[1].stop is not None and grid_spec[1].stop > self._MAX_COLS for grid_spec in grid_specs):
                     raise ValueError(f"Column index exceeds maximum of {self._MAX_COLS}. Grid uses a {self._MAX_COLS}-column system.")
         assert self._control['num_cols'] <= self._MAX_COLS, f"'num_cols' must be less than or equal to {self._MAX_COLS}"
+    
+    def _create_plot(self):
+        self._plot: GridStack = self._plot_func(*self._plots, style=self._style, control=self._control)
 
     def _create_component(self):
         self._validate_grid_specs()
-        self._component = self._plot(*self._plots, style=self._style, control=self._control)
-
-
-# TODO: where to put this?
-plt.dashboard = lambda *plots: Layout(*plots).mode('browser').show()
+        self._component: GridStack = self._plot

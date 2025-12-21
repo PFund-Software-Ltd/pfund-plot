@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Callable
 if TYPE_CHECKING:
+    from panel import Tabs as PanelTabs
     from pfeed.typing import GenericFrame
     from narwhals.typing import Frame
     from pfund_plot.plots.lazy import LazyPlot
@@ -46,5 +47,8 @@ class Tabs(BasePlot):
     def _create_widgets(self):
         pass
 
+    def _create_plot(self):
+        self._plot: PanelTabs = self._plot_func(*self._plots, style=self._style, control=self._control)
+        
     def _create_component(self):
-        self._component = self._plot(*self._plots, style=self._style, control=self._control)
+        self._component: PanelTabs = self._plot
