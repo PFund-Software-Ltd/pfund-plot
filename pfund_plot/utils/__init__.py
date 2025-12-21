@@ -4,6 +4,11 @@ if TYPE_CHECKING:
     from narwhals.typing import Frame
     from pfeed.typing import GenericFrame
     from pfeed.feeds.market_feed import MarketFeed
+    from bokeh.plotting._figure import figure as BokehFigure
+    from plotly.graph_objects import Figure as PlotlyFigure
+    from altair import Chart as AltairChart
+    from matplotlib.figure import Figure as MatplotlibFigure
+    from pfund_plot.plots.lazy import LazyPlot
 
 import os
 import datetime
@@ -93,3 +98,43 @@ def import_hvplot_df_module(data: GenericFrame | MarketFeed) -> None:
         importlib.import_module(f"hvplot.{data._data_tool}")
     else:
         raise ValueError("Input data must be a dataframe or pfeed's feed object")
+
+
+def convert_to_lazy_plot(obj: PlotlyFigure | AltairChart | MatplotlibFigure | BokehFigure) -> LazyPlot:
+    """Convert plotting library figures to LazyPlot instances."""
+    import pfund_plot as plt
+
+    # Plotly
+    try:
+        import plotly.graph_objects as go
+        if isinstance(obj, go.Figure):
+            return plt.plotly(obj)
+    except ImportError:
+        pass
+
+    # TODO: plt.altair(), plt.matplotlib(), plt.bokeh() are not implemented yet
+    # # Altair
+    # try:
+    #     import altair as alt
+    #     if isinstance(obj, (alt.Chart, alt.LayerChart, alt.HConcatChart, alt.VConcatChart)):
+    #         return plt.altair(obj)
+    # except ImportError:
+    #     pass
+
+    # # Matplotlib
+    # try:
+    #     from matplotlib.figure import Figure as MplFigure
+    #     if isinstance(obj, MplFigure):
+    #         return plt.matplotlib(obj)
+    # except ImportError:
+    #     pass
+
+    # # Bokeh
+    # try:
+    #     from bokeh.model import Model as BokehModel
+    #     if isinstance(obj, BokehModel):
+    #         return plt.bokeh(obj)
+    # except ImportError:
+    #     pass
+
+    return obj

@@ -38,7 +38,7 @@ class Plotly(BasePlot):
         return self._plotly_func
 
     def _create_plot(self):
-        self._plot = self._plot_func(self._df) if self._plot_func is not None else self._plotly_fig
+        self._plot: PlotlyFigure = self._plot_func(self._df) if self._plot_func is not None else self._plotly_fig
     
     def _standardize_df(self, df: GenericFrame) -> Frame:
         import narwhals as nw

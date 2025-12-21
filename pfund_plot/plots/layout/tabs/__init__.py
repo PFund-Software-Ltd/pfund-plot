@@ -1,38 +1,52 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Callable
+
 if TYPE_CHECKING:
     from panel import Tabs as PanelTabs
     from pfeed.typing import GenericFrame
     from narwhals.typing import Frame
-    from pfund_plot.plots.lazy import LazyPlot
+    from pfund_plot.typing import RawFigure
 
 import importlib
 
 from pfund_plot.plots.plot import BasePlot
 from pfund_plot.enums import PlottingBackend
+from pfund_plot.plots.lazy import LazyPlot
 
 
 class TabsStyle:
     from pfund_plot.plots.layout.tabs.panel import style as panel_style
-    
+
     panel = panel_style
+
 
 class TabsControl:
     from pfund_plot.plots.layout.tabs.panel import control as panel_control
-    
+
     panel = panel_control
-    
-    
+
+
 class Tabs(BasePlot):
     SUPPORTED_BACKENDS = [PlottingBackend.panel]
 
     style = TabsStyle
     control = TabsControl
-    
+
+    def __new__(cls, *plots: LazyPlot | RawFigure):
+        from pfund_plot.utils import convert_to_lazy_plot
+
+        # Convert any plotting library figures to LazyPlot instances
+        lazy_plots = tuple(
+            convert_to_lazy_plot(plot) if not isinstance(plot, LazyPlot) else plot
+            for plot in plots
+        )
+        # super().__new__ will call __init__ with converted_plots
+        return super().__new__(cls, *lazy_plots)
+
     def __init__(self, *plots: LazyPlot):
         self._plots: tuple[LazyPlot, ...] = plots
         super().__init__(df=None, streaming_feed=None)
-    
+
     # tabs is not at the top level of plots, it's inside layout/tabs, so we need to override the _plot property
     @property
     def _plot_func(self) -> Callable:
@@ -43,12 +57,14 @@ class Tabs(BasePlot):
 
     def _standardize_df(self, df: GenericFrame) -> Frame:
         return df
-        
+
     def _create_widgets(self):
         pass
 
     def _create_plot(self):
-        self._plot: PanelTabs = self._plot_func(*self._plots, style=self._style, control=self._control)
-        
+        self._plot: PanelTabs = self._plot_func(
+            *self._plots, style=self._style, control=self._control
+        )
+
     def _create_component(self):
         self._component: PanelTabs = self._plot

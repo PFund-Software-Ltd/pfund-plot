@@ -7,15 +7,16 @@ if TYPE_CHECKING:
     from panel.io.threads import StoppableThread
     from panel.layout import Panel
     from panel.widgets import Widget
-    from bokeh.plotting._figure import figure as BokehFigure
     from holoviews.core.overlay import Overlay
+    from bokeh.plotting._figure import figure as BokehFigure
     from plotly.graph_objects import Figure as PlotlyFigure
     from altair import Chart as AltairChart
     from matplotlib.figure import Figure as MatplotlibFigure
     
-    Figure = AnyWidget | BokehFigure | PlotlyFigure | AltairChart | MatplotlibFigure
+    RawFigure = BokehFigure | PlotlyFigure | AltairChart | MatplotlibFigure
+    Figure = RawFigure | AnyWidget
     Plot = Overlay | AnyWidget
-    Component = Panel | MarimoHtml | Widget
+    Component = Panel | Widget | MarimoHtml
     RenderedResult = Component | StoppableThread
 
 tDisplayMode = Literal["notebook", "browser", "desktop"]

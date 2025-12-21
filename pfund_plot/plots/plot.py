@@ -17,6 +17,7 @@ if TYPE_CHECKING:
         tDisplayMode,
         Component,
         Plot,
+        RawFigure,
     )
 
 import warnings
@@ -257,29 +258,28 @@ class BasePlot(ABC):
         return getattr(module, "plot")
 
     @property
-    def figure(self) -> Figure | Plot:
+    def figure(self) -> Figure:
         import hvplot
-        from holoviews.core.overlay import Overlay
 
         if self._plot is None:
             self._create_plot()
 
-        plot = self._plot
+        plot: Plot = self._plot
         backend = self._backend
 
         if backend == PlottingBackend.panel:
             raise ValueError("Panel backend does not support figure property")
-        elif backend == PlottingBackend.bokeh:
-            assert isinstance(plot, Overlay), "Plot is not a HoloViews Overlay"
-            fig = hvplot.render(plot, backend=backend)
         elif backend in [PlottingBackend.bokeh, PlottingBackend.plotly, PlottingBackend.matplotlib]:
             if self._is_plotted_by_hvplot():
                 # use hvplot to convert holoviews Overlay to the underlying plotting library's figure
-                import plotly.graph_objects as go
-                fig_dict = hvplot.render(plot, backend=backend)
-                fig = go.Figure(fig_dict)
+                fig = hvplot.render(plot, backend=backend)
+                if backend == PlottingBackend.plotly:
+                    import plotly.graph_objects as go
+                    # hvplot.render() returns a dict, convert it to a plotly Figure
+                    fig: dict
+                    fig = go.Figure(fig)
             else:  # plot is from plt.bokeh(), plt.plotly() or plt.matplotlib()
-                plot: Figure
+                plot: RawFigure
                 fig = plot
         # TODO
         # elif self._backend == PlottingBackend.altair:
