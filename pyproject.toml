@@ -17,6 +17,7 @@ classifiers = [
     "Topic :: Office/Business :: Financial :: Investment",
     "Topic :: Scientific/Engineering :: Visualization",
     "Topic :: Software Development :: Libraries",
+    "Typing :: Typed",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -24,8 +25,8 @@ classifiers = [
 requires-python = ">=3.11"
 dependencies = [
     "pfeed>=0.0.5",
-    "panel>=1.8.4",
-    "hvplot>=0.12.1",
+    "panel>=1.8.9",
+    "hvplot>=0.12.2",
     "anywidget>=0.9.21",
     "ipywidgets-bokeh>=1.6.0",
     "pywebview>=6.1",
@@ -34,19 +35,32 @@ dependencies = [
 
 [project.optional-dependencies]
 marimo = [
-    "marimo[recommended,lsp]>=0.18.4",
-    "basedpyright>=1.36.1",
+    "marimo[recommended,lsp]>=0.20.4",
 ]
 jupyter = [
     "jupyter-bokeh>=4.0.5",
-    "notebook>=7.5.0",
-    "papermill>=2.6.0",
+    "notebook>=7.5.4",
+    "papermill>=2.7.0",
     "voila>=0.5.11",
     # "jupytext>=1.17.2",
 ]
+matplotlib = ["matplotlib>=3.10.8"]
+plotly = ["plotly>=6.6.0"]
+altair = [
+    "altair>=6.0.0",
+    "vegafusion>=2.0.3",
+]
+
+[dependency-groups]
+dev = [
+    "afterpython>=0.2.1",
+]
 
 [project.scripts]
-plt = "pfund_plot.main:run_cli"
+plt = "pfund_plot.__main__:run_cli"
+
+[project.entry-points."pfund_shell.commands"]
+plt = "pfund_plot.cli:pfund_plot_group"
 
 [project.urls]
 homepage = "https://pfund.ai"
@@ -54,8 +68,21 @@ repository = "https://github.com/PFund-Software-Ltd/pfund-plot"
 documentation = "https://pfund-plot-docs.pfund.ai"
 
 [build-system]
-requires = ["uv_build>=0.9.17,<0.10.0"]
+requires = ["uv_build>=0.10.2,<0.11.0"]
 build-backend = "uv_build"
+
+[tool.pyright]
+# typeCheckingMode = "basic"
+reportAny = false
+reportExplicitAny = false
+reportUnnecessaryIsInstance = false
+reportRedeclaration = false
+reportUnreachable = false
+reportImportCycles = false
+reportPrivateUsage = false
+reportMissingTypeStubs = false
+reportUnannotatedClassAttribute = false
+reportImplicitOverride = false
 
 [tool.uv.build-backend]
 module-name = "pfund_plot"
@@ -63,3 +90,4 @@ module-root = ""
 
 [tool.uv.sources]
 pfeed = { path = "../pfeed", editable = true }
+pfund-kit = { path = "../pfund-kit", editable = true }

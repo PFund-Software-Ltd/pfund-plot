@@ -76,7 +76,7 @@ class BasePlot(ABC):
         streaming_feed: MarketFeed | None = None,
         streaming_freq: int = STREAMING_FREQ,
     ):
-        from pfund_plot.utils import get_notebook_type
+        from pfund_kit.utils import get_notebook_type
 
         self._setup(df, streaming_feed)
 

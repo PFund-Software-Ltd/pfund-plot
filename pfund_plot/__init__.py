@@ -24,7 +24,11 @@ from importlib.metadata import version
 
 import panel as pn
 
+from pfund_kit.paths import ProjectPaths
 from pfund_plot.config import get_config, configure
+
+
+_paths = ProjectPaths(project_name="pfund_plot", source_file=__file__)
 
 
 # NOTE: data update in anywidget (backend=svelte) may have issues (especially in marimo) after loading panel extensions

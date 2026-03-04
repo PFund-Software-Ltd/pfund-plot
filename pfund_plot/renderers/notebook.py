@@ -17,7 +17,7 @@ import panel as pn
 
 from pfund_plot.enums import NotebookType
 from pfund_plot.renderers.base import BaseRenderer
-from pfund_plot.utils import get_notebook_type
+from pfund_kit.utils import get_notebook_type
 
 
 class NotebookRenderer(BaseRenderer):

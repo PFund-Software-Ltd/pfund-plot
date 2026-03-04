@@ -1,22 +1,16 @@
-import click
-from trogon import tui
-
-from pfund_plot.config import get_config
-from pfund_plot.cli.commands.plot import plot
-from pfund_plot.cli.commands.config import config
+from pfund_kit.cli import create_cli_group
+from pfund_kit.cli.commands import config, docker_compose, remove
 from pfund_plot.cli.commands.serve import serve
 
 
-@tui(command='tui', help="Open terminal UI")
-@click.group(context_settings={"help_option_names": ["-h", "--help"]})
-@click.pass_context
-@click.version_option()
-def pfund_plot_group(ctx):
-    """PFundPlot's CLI"""
-    ctx.ensure_object(dict)
+def init_context(ctx):
+    """Initialize pfund_plot-specific context"""
+    from pfund_plot.config import get_config
     ctx.obj['config'] = get_config()
 
 
-pfund_plot_group.add_command(plot)
+pfund_plot_group = create_cli_group('pfund_plot', init_context=init_context)
 pfund_plot_group.add_command(config)
+pfund_plot_group.add_command(docker_compose)
+pfund_plot_group.add_command(remove)
 pfund_plot_group.add_command(serve)

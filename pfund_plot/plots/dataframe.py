@@ -13,7 +13,7 @@ from bokeh.models.widgets.tables import DateFormatter
 
 from pfeed._etl.base import convert_to_pandas_df
 from pfund_plot.enums import DisplayMode, DataFrameBackend, NotebookType
-from pfund_plot.utils import get_notebook_type
+from pfund_kit.utils import get_notebook_type
 
 
 __all__ = ['dataframe_plot']

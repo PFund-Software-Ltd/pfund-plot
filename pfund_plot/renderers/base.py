@@ -40,10 +40,8 @@ class BaseRenderer(ABC):
     
     @staticmethod
     def _get_free_port() -> int:
-        import socket
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind(('', 0))
-            return s.getsockname()[1]
+        from pfund_kit.utils import get_free_port
+        return get_free_port()
 
     @abstractmethod
     def render(self, component: Component, *args, **kwargs) -> RenderedResult:

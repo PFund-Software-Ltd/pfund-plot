@@ -10,11 +10,8 @@ if TYPE_CHECKING:
     from matplotlib.figure import Figure as MatplotlibFigure
     from pfund_plot.plots.lazy import LazyPlot
 
-import os
 import datetime
 from pathlib import Path
-
-from pfund_plot.enums.notebook_type import NotebookType
 
 
 def load_js(path: str) -> str:
@@ -38,25 +35,6 @@ def is_daily_data(df: Frame) -> bool:
     else:
         # if only has one data point, check if the time is '00:00:00'
         return str(date1.time()) == '00:00:00'
-
-
-def get_notebook_type() -> NotebookType | None:
-    import importlib.util
-    
-    marimo_spec = importlib.util.find_spec("marimo")
-    if marimo_spec is not None:
-        import marimo as mo
-        if mo.running_in_notebook():
-            return NotebookType.marimo
-        
-    if any(key.startswith(('JUPYTER_', 'JPY_')) for key in os.environ):
-        return NotebookType.jupyter
-    
-    # if 'VSCODE_PID' in os.environ:
-    #     return NotebookType.vscode
-    
-    # None means not in a notebook environment
-    return None
 
 
 def load_panel_extensions(extensions: list[str] = None):

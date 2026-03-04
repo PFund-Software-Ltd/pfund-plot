@@ -1,31 +1,12 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import Any
 
-if TYPE_CHECKING:
-    from pfund_plot.typing import tPanelTheme, tPanelDesign
-
-import os
-from enum import StrEnum
 from pathlib import Path
-from dataclasses import dataclass, asdict, field, MISSING
 
 import panel as pn
-import yaml
 
-from pfund.utils import load_yaml_file, dump_yaml_file
-from pfund_plot.const.paths import (
-    PROJ_NAME, 
-    MAIN_PATH,
-    DATA_PATH,
-    CACHE_PATH,
-    CONFIG_FILE_PATH
-)
+from pfund_kit.config import Configuration
 from pfund_plot.enums import PanelTheme, PanelDesign
-
-yaml.SafeDumper.add_multi_representer(
-    StrEnum,
-    yaml.representer.SafeRepresenter.represent_str,
-)
 
 
 __all__ = [
@@ -34,130 +15,27 @@ __all__ = [
 ]
 
 
-@dataclass
-class Configuration:
-    data_path: str = str(DATA_PATH)
-    cache_path: str = str(CACHE_PATH)
-    static_dirs: dict[str, str] = field(default_factory=dict)
-    theme: PanelTheme = PanelTheme.default
-    design: PanelDesign = PanelDesign.native
+project_name = 'pfund'
+_config: PFundPlotConfig | None = None
 
-    _instance = None
-    _verbose = False
-    
-    # REVIEW: this won't be needed if we use pydantic.BaseModel instead of dataclass
-    def _enforce_types(self):
-        config_dict = asdict(self)
-        for k, v in config_dict.items():
-            _field = self.__dataclass_fields__[k]
-            if _field.type == 'Path' and isinstance(v, str):
-                setattr(self, k, Path(v))
 
-    @classmethod
-    def get_instance(cls):
-        if cls._instance is None:
-            cls._load_env_file()
-            cls._instance = cls.load()
-        return cls._instance
+def get_config() -> PFundPlotConfig:
+    """Lazy singleton - only creates config when first called.
+    Also loads the .env file.
+    """
+    global _config
+    if _config is None:
+        _config = PFundPlotConfig()
+    return _config
 
-    @classmethod
-    def set_verbose(cls, verbose: bool):
-        cls._verbose = verbose
-    
-    @classmethod   
-    def _load_env_file(cls):
-        from dotenv import find_dotenv, load_dotenv
-        env_file_path = find_dotenv(usecwd=True, raise_error_if_not_found=False)
-        if env_file_path:
-            load_dotenv(env_file_path, override=True)
-            if cls._verbose:
-                print(f'{PROJ_NAME} .env file loaded from {env_file_path}')
-        else:
-            if cls._verbose:
-                print(f'{PROJ_NAME} .env file is not found')
-    
-    @classmethod
-    def load(cls) -> Configuration:
-        '''Loads user's config file and returns a Configuration object'''
-        CONFIG_FILE_PATH.parent.mkdir(parents=True, exist_ok=True)
-        # Create default config from dataclass fields
-        default_config = {}
-        for _field in cls.__dataclass_fields__.values():
-            if _field.name.startswith('_'):  # Skip private fields
-                continue
-            if _field.default_factory is not MISSING:
-                default_config[_field.name] = _field.default_factory()
-            else:
-                default_config[_field.name] = _field.default
-        needs_update = False
-        if CONFIG_FILE_PATH.is_file():
-            current_config = load_yaml_file(CONFIG_FILE_PATH) or {}
-            if cls._verbose:
-                print(f"Loaded {CONFIG_FILE_PATH}")
-            # Check for new or removed fields
-            new_fields = set(default_config.keys()) - set(current_config.keys())
-            removed_fields = set(current_config.keys()) - set(default_config.keys())
-            needs_update = bool(new_fields or removed_fields)
-            
-            if cls._verbose and needs_update:
-                if new_fields:
-                    print(f"New config fields detected: {new_fields}")
-                if removed_fields:
-                    print(f"Removed config fields detected: {removed_fields}")
-                    
-            # Filter out removed fields and merge with defaults
-            current_config = {k: v for k, v in current_config.items() if k in default_config}
-            config = {**default_config, **current_config}
-        else:
-            config = default_config
-            needs_update = True
-        config = cls(**config)
-        if needs_update:
-            config.dump()
-        return config
-    
-    def dump(self):
-        dump_yaml_file(CONFIG_FILE_PATH, asdict(self))
-        if self._verbose:
-            print(f"Created {CONFIG_FILE_PATH}")
-    
-    @property
-    def file_path(self):
-        return CONFIG_FILE_PATH
-    
-    def __post_init__(self):
-        self._initialize()
-    
-    def _initialize(self):
-        self._enforce_types()
-        self._initialize_theme_and_design()
-        self._initialize_static_dirs()
-        self._initialize_file_paths()
-        
-    def _initialize_theme_and_design(self):
-        pn.extension(theme=PanelTheme[self.theme.lower()])
-        pn.extension(design=PanelDesign[self.design.lower()])
-        
-    def _initialize_static_dirs(self):
-        if 'assets' not in self.static_dirs:
-            self.static_dirs['assets'] = str((Path(MAIN_PATH) / "ui" / "static"))
-        
-    def _initialize_file_paths(self):
-        for path in [self.data_path, self.cache_path]:
-            if not os.path.exists(path):
-                os.makedirs(path)
-                if self._verbose:
-                    print(f'{PROJ_NAME} created {path}')
-                
 
 def configure(
     data_path: str | None = None,
     cache_path: str | None = None,
     static_dirs: dict[str, str] | None = None,
-    theme: tPanelTheme | None = None,
-    design: tPanelDesign | None = None,
-    verbose: bool = False,
-    write: bool = False,
+    theme: PanelTheme | str | None = None,
+    design: PanelDesign | str | None = None,
+    persist: bool = False,
 ):
     '''Configures the global config object.
     It will override the existing config values from the existing config file or the default values.
@@ -166,29 +44,61 @@ def configure(
         static_dirs: a dict of static directories to be used in pn.serve(static_dirs=...)
         write: If True, the config will be saved to the config file.
     '''
-    NON_CONFIG_KEYS = ['verbose', 'write']
-    config_updates = locals()
-    for k in NON_CONFIG_KEYS:
-        config_updates.pop(k)
-    config_updates.pop('NON_CONFIG_KEYS')
-
+    config = get_config()
+    config_dict = config.to_dict()
+    config_dict.pop('__version__')
+    
     static_dirs = static_dirs or {}
+    assert isinstance(static_dirs, dict), "static_dirs must be a dict"
     assert 'assets' not in static_dirs, "'assets' is a reserved key in static_dirs"
 
-    Configuration.set_verbose(verbose)
-    config = get_config()
-
     # Apply updates for non-None values
-    for k, v in config_updates.items():
+    for k in config_dict:
+        v = locals().get(k)
         if v is not None:
+            if '_path' in k:
+                v = Path(v)
+            elif k == 'theme':
+                v = PanelTheme[v.lower()]
+            elif k == 'design':
+                v = PanelDesign[v.lower()]
             setattr(config, k, v)
-            
-    if write:
-        config.dump()
+    
+    config.ensure_dirs()
+    
+    if persist:
+        config.save()
         
-    config._initialize()
     return config
 
 
-def get_config() -> Configuration:
-    return Configuration.get_instance()
+class PFundPlotConfig(Configuration):
+    def __init__(self):
+        from pfund_kit.utils import load_env_file
+        _ = load_env_file(verbose=False)
+        super().__init__(project_name=project_name, source_file=__file__)
+    
+    def _initialize_from_data(self):
+        assert isinstance(self._data, dict), "self._data is not a dict"
+        
+        self.theme = self._data.get('theme', PanelTheme.default)
+        self.design = self._data.get('design', PanelDesign.native)
+        pn.extension(theme=self.theme)
+        pn.extension(design=self.design)
+
+        self.static_dirs = self._data.get('static_dirs', {})
+        project_root = self._paths.project_root
+        assert project_root is not None, "project_root is not set"
+        self.static_dirs['assets'] = str((project_root / "ui" / "static"))
+    
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            **super().to_dict(),
+            'theme': self.theme,
+            'design': self.design,
+            'static_dirs': self.static_dirs,
+        }
+        
+    def prepare_docker_context(self):
+        '''Prepare docker context (e.g. env variables) before running compose.yml'''
+        pass
