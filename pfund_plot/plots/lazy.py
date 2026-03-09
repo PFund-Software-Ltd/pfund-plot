@@ -1,17 +1,16 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 if TYPE_CHECKING:
     from panel.pane import Pane
     from panel.io.server import Server
     from pfund_plot.typing import (
         RenderedResult,
-        tPlottingBackend,
-        tDisplayMode,
         Component,
         Plot,
         Figure,
     )
+    from pfund_plot.enums import PlottingBackend, DisplayMode
 
 import panel as pn
 
@@ -152,7 +151,7 @@ class LazyPlot:
     def get_control(self) -> dict:
         return self._plot._control
 
-    def backend(self, backend: tPlottingBackend) -> LazyPlot:
+    def backend(self, backend: PlottingBackend | str) -> LazyPlot:
         """Override backend for this plot only.
 
         Args:
@@ -167,10 +166,10 @@ class LazyPlot:
         self._plot._set_backend(backend)
         return self
 
-    def get_backend(self) -> tPlottingBackend:
+    def get_backend(self) -> PlottingBackend:
         return self._plot._backend
 
-    def mode(self, mode: tDisplayMode) -> LazyPlot:
+    def mode(self, mode: DisplayMode | Literal['notebook', 'browser', 'desktop']) -> LazyPlot:
         """Override display mode for this plot only.
 
         Args:
@@ -185,18 +184,10 @@ class LazyPlot:
         self._plot._set_mode(mode)
         return self
 
-    def get_mode(self) -> tDisplayMode:
+    def get_mode(self) -> DisplayMode:
         return self._plot._mode
-
-    def show(self) -> Server | RenderedResult:
-        """Explicitly render and display the plot.
-
-        Use this in browser/desktop mode or when you want explicit control.
-        In notebooks, auto-rendering happens via _repr_mimebundle_.
-
-        Returns:
-            The rendered plot output
-        """
+    
+    def _get_existing_server(self) -> Server | None:
         renderer = self._plot._renderer
         server = renderer.server
         # server is already running, return it
@@ -204,7 +195,24 @@ class LazyPlot:
         # e.g. plt.ohlc(df).mode('browser')
         if server is not None:
             return server
-        return self._plot._render()
+        return None
+
+    def show(self) -> Server | RenderedResult:
+        """Explicitly render and display the plot.
+
+        Returns:
+            The rendered plot output
+        """
+        if self._plot._streaming_feed is not None and self._plot._notebook_type is not None:
+            raise RuntimeError("Cannot render streaming plot in synchronous mode, use show_async() instead.")
+        if server := self._get_existing_server():
+            return server
+        return self._plot._render_sync()
+
+    async def show_async(self) -> Server | RenderedResult:
+        if server := self._get_existing_server():
+            return server
+        return await self._plot._render_async()
 
     def servable(self, title: str | None = None) -> Component:
         """Mark the plot as servable for use with `panel serve` CLI.

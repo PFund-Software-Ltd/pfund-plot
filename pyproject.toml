@@ -44,7 +44,10 @@ jupyter = [
     "voila>=0.5.11",
     # "jupytext>=1.17.2",
 ]
-matplotlib = ["matplotlib>=3.10.8"]
+matplotlib = [
+    "matplotlib>=3.10.8", 
+    # "mplcursors>=0.7.0",
+]
 plotly = ["plotly>=6.6.0"]
 altair = [
     "altair>=6.0.0",
@@ -76,6 +79,8 @@ build-backend = "uv_build"
 reportAny = false
 reportExplicitAny = false
 reportUnnecessaryIsInstance = false
+reportIncompatibleVariableOverride = false
+reportIncompatibleMethodOverride = false
 reportRedeclaration = false
 reportUnreachable = false
 reportImportCycles = false

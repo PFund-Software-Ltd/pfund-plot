@@ -1,11 +1,12 @@
+# pyright: reportUnusedParameter=false
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from narwhals.typing import Frame
     from holoviews.core.overlay import Overlay
 
-from bokeh.models import HoverTool, CrosshairTool
+import narwhals as nw
+from bokeh.models import HoverTool, CrosshairTool, CustomJSHover
 
 
 __all__ = ["plot", "style", "control"]
@@ -19,7 +20,6 @@ PLOT_OPTIONS = [
 ]  # specified options supported in .opts()
 DEFAULT_HEIGHT = 280
 DEFAULT_NUM_DATA = 150
-DEFAULT_SLIDER_STEP = 3_600_000  # 1 hour in milliseconds
 
 
 def style(
@@ -52,39 +52,62 @@ def style(
 
 def control(
     num_data: int = DEFAULT_NUM_DATA,
-    slider_step: int = DEFAULT_SLIDER_STEP,
+    max_data: int | None = None,
+    slider_step: int | None = None,
     show_volume: bool = True,
     linked_axes: bool = True,
+    incremental_update: bool = True,
+    update_interval: int = 5000,  # ms
 ):
     """
     Args:
         num_data: the initial number of data points to display.
             This can be changed by a slider in the plot.
-        slider_step: the step size of the datetime range slider. default is 60 min (3600000 ms).
+        max_data: the maximum number of data points kept in memory.
+            If None, data will continue to grow unbounded.
+        slider_step: the step size of the datetime range slider. if None, it will be derived from the data.
         show_volume: whether to show the volume plot. default is True.
         linked_axes: whether to link the axes of bokeh plots inside this pane
             across a panel layout.
+        incremental_update: whether to update the plot even when the bar is incomplete during streaming. default is True.
+        update_interval: the interval in milliseconds to update the plot during streaming. default is 5000 ms.
     """
     return locals()
 
 
-def plot(df: Frame, style: dict, control: dict) -> Overlay:
+def plot(df: nw.DataFrame[Any], style: dict[str, Any], control: dict[str, Any]) -> Overlay:
     import hvplot
     from pfund_plot.plots.candlestick import Candlestick
     from pfund_plot.utils import is_daily_data
     from pfund_plot.enums import PlottingBackend
 
     def _create_hover_tool(date_format: str) -> HoverTool:
+        # Format numbers with appropriate precision:
+        # - Large numbers (>= 1): up to 4 decimal places, trailing zeros removed
+        # - Small numbers (< 1): up to 8 significant digits to preserve meaningful precision
+        num_formatter = CustomJSHover(code="""
+            if (Math.abs(value) >= 1) {
+                return value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4});
+            }
+            return value.toPrecision(8).replace(/0+$/, '').replace(/\\.$/, '');
+        """)
         return HoverTool(
             tooltips=[
                 ("date", f"@date{{{date_format}}}"),
-                ("open", "@open"),
-                ("high", "@high"),
-                ("low", "@low"),
-                ("close", "@close"),
-                ("volume", "@volume"),
+                ("open", "@open{custom}"),
+                ("high", "@high{custom}"),
+                ("low", "@low{custom}"),
+                ("close", "@close{custom}"),
+                ("volume", "@volume{custom}"),
             ],
-            formatters={"@date": "datetime"},
+            formatters={
+                "@date": "datetime",
+                "@open": num_formatter,
+                "@high": num_formatter,
+                "@low": num_formatter,
+                "@close": num_formatter,
+                "@volume": num_formatter,
+            },
             mode="vline",
         )
 
@@ -92,8 +115,8 @@ def plot(df: Frame, style: dict, control: dict) -> Overlay:
     def _create_crosshair_tool():
         return CrosshairTool(dimensions="height", line_color="gray", line_alpha=0.3)
 
-    hvplot.extension(PlottingBackend.bokeh)
-    
+    _ = hvplot.extension(PlottingBackend.bokeh)  # pyright: ignore[reportCallIssue]
+
     date_format = "%Y-%m-%d" if is_daily_data(df) else "%Y-%m-%d %H:%M:%S"
     REQUIRED_COLS = Candlestick.REQUIRED_COLS[:]
     plot_options = {k: v for k, v in style.items() if k in PLOT_OPTIONS}

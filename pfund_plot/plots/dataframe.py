@@ -66,7 +66,7 @@ def dataframe_plot(
     please refer to https://panel.holoviz.org/reference/widgets/Tabulator.html for Tabulator backend,
     and https://panel.holoviz.org/reference/panes/Perspective.html for Perspective backend.
     '''
-    from pfund_plot import print_warning
+    from pfund_kit.style import cprint, RichColor, TextStyle
 
 
     mode, backend = DisplayMode[mode.lower()], DataFrameBackend[backend.lower()]
@@ -92,9 +92,10 @@ def dataframe_plot(
     if backend == DataFrameBackend.tabulator:
         if max_streaming_data is not None and max_streaming_data < SUGGESTED_MIN_STREAMING_DATA_FOR_TABULATOR:
             # FIXME: this is a workaround for a bug in panel Tabulator, see if panel will fix it, or create a github issue
-            print_warning(
-                f"max_streaming_data < {SUGGESTED_MIN_STREAMING_DATA_FOR_TABULATOR} will lead to buggy behaviors (possibly a bug in panel Tabulator's rollover). "
-                f"Setting max_streaming_data to {SUGGESTED_MIN_STREAMING_DATA_FOR_TABULATOR}."
+            cprint(
+                f"max_streaming_data < {SUGGESTED_MIN_STREAMING_DATA_FOR_TABULATOR} will lead to buggy behaviors (possibly a bug in panel Tabulator's rollover). " +
+                f"Setting max_streaming_data to {SUGGESTED_MIN_STREAMING_DATA_FOR_TABULATOR}.",
+                style=TextStyle.BOLD + RichColor.YELLOW
             )
             max_streaming_data = SUGGESTED_MIN_STREAMING_DATA_FOR_TABULATOR
         notebook_type: NotebookType = get_notebook_type()
@@ -121,7 +122,10 @@ def dataframe_plot(
     elif backend == DataFrameBackend.perspective:
         data_size = df.shape[0]
         if data_size > SUGGESTED_MAX_DATA_SIZE_FOR_PERSPECTIVE:
-            print_warning(f"Data size is large (data_size={data_size}), consider using Tabulator backend, which supports for better performance.")
+            cprint(
+                f"Data size is large (data_size={data_size}), consider using Tabulator backend, which supports for better performance.",
+                style=TextStyle.BOLD + RichColor.YELLOW
+            )
         if use_iframe_in_notebook:
             iframe_height = height + 10  # add 10px to avoid scrollbar from appearing
             iframe_style = DEFAULT_IFRAME_STYLE['perspective'].format(height=f'{iframe_height}px', width='100%' if width is None else f'{width}px')

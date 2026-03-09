@@ -4,11 +4,6 @@ if TYPE_CHECKING:
     from panel.io.threads import StoppableThread
     from pfund_plot.typing import Component
 
-try:
-    import marimo as mo
-except ImportError:
-    mo = None
-
 from pfund_plot.renderers.base import BaseRenderer
 from pfund_kit.utils import get_notebook_type
 
@@ -24,6 +19,9 @@ class BrowserRenderer(BaseRenderer):
             self.run_periodic_callbacks()
             return thread
         else:  # run in a python script
-            self.run_periodic_callbacks()
+            # wrap component in a factory so periodic callbacks start inside the server's event loop
+            def _servable():
+                self.run_periodic_callbacks()
+                return component
             # this will block the main thread
-            self.serve(component, show=True, threaded=False)
+            self.serve(_servable, show=True, threaded=False)

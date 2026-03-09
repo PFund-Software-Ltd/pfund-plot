@@ -24,11 +24,7 @@ from importlib.metadata import version
 
 import panel as pn
 
-from pfund_kit.paths import ProjectPaths
 from pfund_plot.config import get_config, configure
-
-
-_paths = ProjectPaths(project_name="pfund_plot", source_file=__file__)
 
 
 # NOTE: data update in anywidget (backend=svelte) may have issues (especially in marimo) after loading panel extensions
@@ -41,9 +37,6 @@ pn.config.throttled = True  # If panel sliders and inputs should be throttled un
 pn.config.js_files = {
     "widgets_amd_config": "/assets/widgets-amd-config.js",
 }
-
-
-print_warning = lambda msg: print(f'\033[95m{msg}\033[0m')
 
 
 def __getattr__(name: str):

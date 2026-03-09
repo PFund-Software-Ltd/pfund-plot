@@ -1,7 +1,7 @@
+# pyright: reportUnknownMemberType=false, reportGeneralTypeIssues=false, reportUnusedParameter=false, reportUnknownVariableType=false, reportArgumentType=false, reportUnknownArgumentType=false, reportAttributeAccessIssue=false
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable, Any
 if TYPE_CHECKING:
-    from typing import Callable
     from narwhals.typing import Frame
     from param.parameterized import Event
 
@@ -10,16 +10,18 @@ import datetime
 import narwhals as nw
 import panel as pn
 
+from pfund_plot.utils import convert_to_datetime
+
 
 class CandlestickWidgets:
-    def __init__(self, df: Frame, control: dict, update_callback: Callable):
-        self._df: Frame = df
-        self._control: dict = control
+    def __init__(self, df: nw.DataFrame[Any], control: dict[str, Any], update_callback: Callable[[nw.DataFrame[Any]], None]):
+        self._df = df
+        self._control: dict[str, Any] = control
         self._update_callback = update_callback
-        num_data_shown = control['num_data']
-        date_col = self._df.select('date')
-        start_date, end_date = date_col.row(0)[0].to_pydatetime(), date_col.row(-1)[0].to_pydatetime()
-        data_shown_start_date = date_col.row(-num_data_shown)[0].to_pydatetime()
+        date_col = self._df['date']
+        num_data_shown = min(control['num_data'], date_col.len())
+        start_date, end_date = convert_to_datetime(date_col[0]), convert_to_datetime(date_col[-1])
+        data_shown_start_date = convert_to_datetime(date_col[-num_data_shown])
         self._datetime_range_input = pn.widgets.DatetimeRangeInput(
             name='Datetime Range Input',
             start=start_date, end=end_date,
@@ -31,7 +33,7 @@ class CandlestickWidgets:
             name='Period',
             start=start_date, end=end_date,
             value=(data_shown_start_date, end_date),
-            step=control['slider_step']
+            step=control['slider_step'] or self._derive_slider_step()
         )
         self._slider_watcher = self._datetime_range_slider.param.watch(self._update_datetime_range_slider, 'value')
         # self._max_data = pn.rx(df.shape[0])
@@ -59,28 +61,66 @@ class CandlestickWidgets:
             (nw.col("date") >= start_date) & (nw.col("date") <= end_date)
         )
     
+    def _derive_slider_step(self) -> int:
+        date_col = self._df['date']
+        # infer resolution from data
+        resolution_ms = (date_col[1] - date_col[0]).total_seconds() * 1000
+        # use 5x resolution as step, so user can move meaningfully but not too coarsely
+        slider_step = int(resolution_ms * 5)
+        return slider_step
+    
     def _update_datetime_range_input(self, event: Event):
         start_date, end_date = self._datetime_range_input.value
-        
         # silently update the _datetime_range_slider as well, temporarily remove the watcher
         self._datetime_range_slider.param.unwatch(self._slider_watcher)
-        self._datetime_range_slider.param.update(value=(start_date, end_date))
-        self._datetime_range_slider.param.watch(self._update_datetime_range_slider, 'value')
-        
+        try:
+            _ = self._datetime_range_slider.param.update(value=(start_date, end_date))
+        finally:
+            self._slider_watcher = self._datetime_range_slider.param.watch(self._update_datetime_range_slider, 'value')
         df_filtered = self._filter_df(start_date, end_date)
         self._update_callback(df_filtered)
-
+    
     def _update_datetime_range_slider(self, event: Event):
         start_date, end_date = self._datetime_range_slider.value
-        
         # silently update the _datetime_range_input as well, temporarily remove the watcher
         self._datetime_range_input.param.unwatch(self._input_watcher)
-        self._datetime_range_input.param.update(value=(start_date, end_date))
-        self._datetime_range_input.param.watch(self._update_datetime_range_input, 'value')
-        
+        try:
+            _ = self._datetime_range_input.param.update(value=(start_date, end_date))
+        finally:
+            self._input_watcher = self._datetime_range_input.param.watch(self._update_datetime_range_input, 'value')
         df_filtered = self._filter_df(start_date, end_date)
         self._update_callback(df_filtered)
+    
+    def update_df(self, df: nw.DataFrame[Any]):
+        """Update widget bounds and df reference for new df (currently only used when receiving streaming data)."""
+        self._df = df
+        if self._df.shape[0] < 2:
+            raise ValueError("df must have at least 2 rows")
+        date_col = df['date']
+        new_end = convert_to_datetime(date_col[-1])
         
+        self._datetime_range_input.param.unwatch(self._input_watcher)
+        self._datetime_range_slider.param.unwatch(self._slider_watcher)
+        try:
+            # check if slider was at the end before updating
+            # NOTE: strip tzinfo before comparing because Panel/Bokeh may return
+            # tz-aware datetimes from .value after user interaction
+            slider_start, slider_end = self._datetime_range_slider.value
+            
+            was_at_end = convert_to_datetime(slider_end) >= convert_to_datetime(self._datetime_range_slider.end)
+
+            # expand bounds
+            self._datetime_range_slider.end = new_end
+            self._datetime_range_input.end = new_end
+            
+            # auto-extend value to include new data if slider was at the end
+            if was_at_end:
+                _ = self._datetime_range_slider.param.update(value=(slider_start, new_end))
+                _ = self._datetime_range_input.param.update(value=(slider_start, new_end))
+        finally:
+            self._input_watcher = self._datetime_range_input.param.watch(self._update_datetime_range_input, 'value')
+            self._slider_watcher = self._datetime_range_slider.param.watch(self._update_datetime_range_slider, 'value')
+
     # @property
     # def data_slider(self) -> pn.widgets.IntSlider:
     #     return self._data_slider

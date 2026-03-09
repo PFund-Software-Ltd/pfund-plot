@@ -28,7 +28,6 @@ class NotebookRenderer(BaseRenderer):
             raise ValueError("Not in a notebook environment")
     
     def run_periodic_callbacks(self):
-        # REVIEW: browser renderer may also need this?
         # the main idea is don't use the thread created by periodic_callback.start(), instead create a marimo thread to stream updates
         if self._notebook_type == NotebookType.marimo:
             get_streaming_active, set_streaming_active = mo.state(True)
@@ -52,7 +51,7 @@ class NotebookRenderer(BaseRenderer):
                 It is a workaround when the plot can't be displayed in a notebook.
             iframe_style: the style of the iframe when use_iframe is True.
         """
-        from pfund_plot import print_warning
+        from pfund_kit.style import cprint, RichColor, TextStyle
 
         if not use_iframe:
             self.run_periodic_callbacks()
@@ -62,10 +61,16 @@ class NotebookRenderer(BaseRenderer):
                 return component
         else:
             if iframe_style is None:
-                print_warning("No iframe_style is provided for iframe in notebook")
+                cprint(
+                    "No iframe_style is provided for iframe in notebook", 
+                    style=TextStyle.BOLD + RichColor.YELLOW
+                )
             port = self._get_free_port()
             if self._notebook_type == NotebookType.jupyter:
-                print_warning(f"If the plot can't be displayed, try to use 'from IPython.display import IFrame' and 'IFrame(src='http://localhost:{port}', width=..., height=...)'")
+                cprint(
+                    f"If the plot can't be displayed, try to use 'from IPython.display import IFrame' and 'IFrame(src='http://localhost:{port}', width=..., height=...)'", 
+                    style=TextStyle.BOLD + RichColor.YELLOW
+                )
             html_pane: Pane = pn.pane.HTML(
                 f'''
                 <iframe 

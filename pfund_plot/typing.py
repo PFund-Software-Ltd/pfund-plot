@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Literal, TYPE_CHECKING
+from typing import Literal, TYPE_CHECKING, TypeAlias, Any
 
 if TYPE_CHECKING:
     from marimo import Html as MarimoHtml
@@ -18,6 +18,10 @@ if TYPE_CHECKING:
     Plot = Overlay | AnyWidget
     Component = Panel | Widget | MarimoHtml
     RenderedResult = Component | StoppableThread
+
+    Style: TypeAlias = dict[str, Any]
+    Control: TypeAlias = dict[str, Any]
+
 
 tDisplayMode = Literal["notebook", "browser", "desktop"]
 tPlottingBackend = Literal[

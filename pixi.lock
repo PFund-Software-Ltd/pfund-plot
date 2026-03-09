@@ -7662,7 +7662,7 @@ packages:
 - pypi: ../pfeed
   name: pfeed
   version: 0.0.5
-  sha256: 83d031a484b003b63e9214a7c08215edc46f0d228b303085c8dd562852f5c1c5
+  sha256: f7ff47f9487ce9768f31f2ff6ed93ce56669ec1ab66787a7760ab731f10c2bd1
   requires_dist:
   - pfund @ file:///Users/stephenyau/pfund.ai/pfund
   - pandas>=2.3.3,<3.0.0
@@ -7678,9 +7678,9 @@ packages:
   - ray[default]>=2.54.0
   - pyzmq>=27.1.0
   - deltalake>=1.4.2
-  - prefect>=3.6.19 ; extra == 'prefect'
+  - prefect>=3.6.21 ; extra == 'prefect'
   - yfinance>=1.2.0 ; extra == 'yfinance'
-  - huggingface-hub>=1.4.1 ; extra == 'hf'
+  - huggingface-hub>=1.5.0 ; extra == 'hf'
   - dask[complete,dataframe]>=2026.1.2 ; extra == 'dask'
   - pyspark[connect,pandas-on-spark,sql]>=4.1.1 ; extra == 'spark'
   - duckdb>=1.4.4 ; extra == 'duckdb'
@@ -7728,7 +7728,7 @@ packages:
 - pypi: ./
   name: pfund-plot
   version: 0.0.1.dev3
-  sha256: df99c3fb08e6819864d5b46ff53e8aa91e6181afeaabc01aab8dbd559fecdd98
+  sha256: 6d62b344ef9741e02ea4df89261cc58084344dec2c7c47d436e37dc123e0289e
   requires_dist:
   - pfeed @ file:///Users/stephenyau/pfund.ai/pfeed
   - panel>=1.8.9

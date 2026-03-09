@@ -25,6 +25,7 @@ class BaseRenderer(ABC):
         return self._server
 
     def add_periodic_callback(self, periodic_callback: PeriodicCallback):
+        from panel.io.callbacks import PeriodicCallback
         if not isinstance(periodic_callback, PeriodicCallback):
             raise ValueError(
                 "periodic_callback must be a panel.io.callbacks.PeriodicCallback instance"

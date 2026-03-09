@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any
+from typing import Any, ClassVar
 
 from pathlib import Path
 
@@ -15,7 +15,7 @@ __all__ = [
 ]
 
 
-project_name = 'pfund'
+project_name = 'pfund_plot'
 _config: PFundPlotConfig | None = None
 
 
@@ -73,6 +73,8 @@ def configure(
 
 
 class PFundPlotConfig(Configuration):
+    DEFAULT_FILES: ClassVar[list[str]] = []
+    
     def __init__(self):
         from pfund_kit.utils import load_env_file
         _ = load_env_file(verbose=False)

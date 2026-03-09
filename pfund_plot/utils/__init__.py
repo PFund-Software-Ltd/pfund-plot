@@ -1,9 +1,8 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
-    from narwhals.typing import Frame
-    from pfeed.typing import GenericFrame
-    from pfeed.feeds.market_feed import MarketFeed
+    import pandas as pd
+    from narwhals.typing import IntoFrame
     from bokeh.plotting._figure import figure as BokehFigure
     from plotly.graph_objects import Figure as PlotlyFigure
     from altair import Chart as AltairChart
@@ -13,13 +12,38 @@ if TYPE_CHECKING:
 import datetime
 from pathlib import Path
 
+import narwhals as nw
+from pfeed.enums import DataTool
+
 
 def load_js(path: str) -> str:
     js_code = Path(path).read_text()
     return f"<script>{js_code}</script>"
 
 
-def is_daily_data(df: Frame) -> bool:
+def convert_to_datetime(date: str | datetime.datetime | pd.Timestamp) -> datetime.datetime:
+    """Convert various date types to a naive UTC datetime.
+
+    Always returns tz-naive datetime (in UTC) because Panel/Bokeh widgets
+    don't handle tz-aware datetimes consistently in their internal validation.
+    """
+    if isinstance(date, str):
+        dt = datetime.datetime.fromisoformat(date)
+    elif isinstance(date, datetime.datetime):
+        dt = date
+    elif isinstance(date, datetime.date):
+        dt = datetime.datetime(date.year, date.month, date.day)
+    elif isinstance(date, pd.Timestamp):
+        dt = date.to_pydatetime()
+    else:
+        raise ValueError(f"Invalid date type: {type(date)}")
+    # convert to UTC then strip tzinfo — Panel widgets don't handle tz-aware datetimes consistently
+    if dt.tzinfo is not None:
+        dt = dt.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+    return dt
+
+    
+def is_daily_data(df: nw.DataFrame[Any]) -> bool:
     '''Checks if the 'resolution' column is '1d' and the "ts" column by comparing the first two rows to see if the data is daily data.'''
     if df.is_empty():
         return False
@@ -47,35 +71,32 @@ def load_panel_extensions(extensions: list[str] = None):
             print(f'loaded Panel extension: {extension}')
 
 
-def import_hvplot_df_module(data: GenericFrame | MarketFeed) -> None:
-    import importlib
-    from pfeed.utils.dataframe import is_dataframe
-
-    if is_dataframe(data):
-        import pandas as pd
-        import polars as pl
-        from pfeed.typing import dd
-
-        if isinstance(data, pd.DataFrame):
-            import hvplot.pandas
-        elif pl and isinstance(data, (pl.DataFrame, pl.LazyFrame)):
-            import hvplot.polars
-        elif dd and isinstance(data, dd.DataFrame):
-            import hvplot.dask
-        else:
-            raise ValueError(
-                f"Unsupported dataframe type: {type(data)}, make sure you have installed the required libraries"
-            )
-    elif isinstance(data, MarketFeed):
-        data_tool = data._data_tool
-        if data_tool not in ["pandas", "polars", "dask"]:
-            raise ValueError(
-                f"Unsupported data tool: {data_tool}, must be one of ['pandas', 'polars', 'dask']"
-            )
-        # dynamically import the corresponding hvplot module
-        importlib.import_module(f"hvplot.{data._data_tool}")
+def match_df_with_data_tool(df: IntoFrame) -> DataTool:
+    import pandas as pd
+    import polars as pl
+    from pfeed.utils.dataframe import dd
+    
+    if isinstance(df, pd.DataFrame):
+        return DataTool.pandas
+    elif pl and isinstance(df, (pl.DataFrame, pl.LazyFrame)):
+        return DataTool.polars
+    elif dd and isinstance(df, dd.DataFrame):
+        return DataTool.dask
     else:
-        raise ValueError("Input data must be a dataframe or pfeed's feed object")
+        raise ValueError(f"Unsupported dataframe type: {type(df)}, make sure you have installed the required libraries")
+
+
+def import_hvplot_df_module(data_tool: DataTool | str) -> None:
+
+    data_tool = DataTool[data_tool.lower()]
+    if data_tool == DataTool.pandas:
+        import hvplot.pandas
+    elif data_tool == DataTool.polars:
+        import hvplot.polars
+    elif data_tool == DataTool.dask:
+        import hvplot.dask
+    else:
+        raise ValueError(f"Unsupported data tool: {data_tool}, must be one of ['pandas', 'polars', 'dask']")
 
 
 def convert_to_lazy_plot(obj: PlotlyFigure | AltairChart | MatplotlibFigure | BokehFigure) -> LazyPlot:
