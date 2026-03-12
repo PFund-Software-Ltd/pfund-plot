@@ -49,7 +49,7 @@ class Layout(BasePlot):
 
         self._plots: tuple[LazyPlot, ...] = plots
         self._plot: GridStack
-        super().__init__(df=None, streaming_feed=None)
+        super().__init__(df=None, feed=None)
         if self._notebook_type:
             raise ValueError("Layout cannot be used in notebook environment.")
 

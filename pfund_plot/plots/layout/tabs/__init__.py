@@ -45,7 +45,7 @@ class Tabs(BasePlot):
 
     def __init__(self, *plots: LazyPlot):
         self._plots: tuple[LazyPlot, ...] = plots
-        super().__init__(df=None, streaming_feed=None)
+        super().__init__(df=None, feed=None)
 
     # tabs is not at the top level of plots, it's inside layout/tabs, so we need to override the _plot property
     @property

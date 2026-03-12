@@ -20,10 +20,10 @@ class Plotly(BasePlot):
         self, 
         fig_or_func: PlotlyFigure | PlotlyFunction,
         df: GenericFrame | None = None,
-        streaming_feed: MarketFeed | None = None,
+        feed: MarketFeed | None = None,
     ):
         pn.extension("plotly")
-        super().__init__(df=df, streaming_feed=streaming_feed)
+        super().__init__(df=df, feed=feed)
         self._plotly_fig: PlotlyFigure | None = None
         self._plot: PlotlyFigure | None
         self._plotly_func: PlotlyFunction | None = None
@@ -37,7 +37,7 @@ class Plotly(BasePlot):
         return self._plotly_func
 
     def _create_plot(self):
-        self._plot: PlotlyFigure = self._plot_func(self._data) if self._plot_func is not None else self._plotly_fig
+        self._plot: PlotlyFigure = self._plot_func(self._df) if self._plot_func is not None else self._plotly_fig
     
     def _standardize_df(self, df: GenericFrame) -> Frame:
         import narwhals as nw

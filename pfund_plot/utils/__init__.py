@@ -56,9 +56,7 @@ def is_daily_data(df: nw.DataFrame[Any]) -> bool:
         date2 = df.select('date').row(1)[0]
         delta = date2 - date1
         return delta == datetime.timedelta(days=1)
-    else:
-        # if only has one data point, check if the time is '00:00:00'
-        return str(date1.time()) == '00:00:00'
+    return False
 
 
 def load_panel_extensions(extensions: list[str] = None):

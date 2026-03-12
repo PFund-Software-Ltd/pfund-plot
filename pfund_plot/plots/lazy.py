@@ -4,6 +4,9 @@ from typing import TYPE_CHECKING, Any, Literal
 if TYPE_CHECKING:
     from panel.pane import Pane
     from panel.io.server import Server
+    from narwhals.typing import IntoFrame
+    from pfeed.feeds.market_feed import MarketFeed
+    from pfund_plot.widgets.base import BaseWidget
     from pfund_plot.typing import (
         RenderedResult,
         Component,
@@ -115,6 +118,14 @@ class LazyPlot:
         self._plot._create()  # create pane+widgets+component
         return self._plot._component
     
+    @property
+    def df(self) -> IntoFrame:
+        return self._plot._df.to_native()
+    
+    @property
+    def feed(self) -> MarketFeed | None:
+        return self._plot._feed
+    
     def style(self, **kwargs) -> LazyPlot:
         """Configure style options.
 
@@ -187,6 +198,18 @@ class LazyPlot:
     def get_mode(self) -> DisplayMode:
         return self._plot._mode
     
+    def remove_widgets(self, *WidgetClasses: type[BaseWidget]) -> LazyPlot:
+        """Remove widgets from the plot.
+
+        Args:
+            *WidgetClasses: The widget classes to remove.
+
+        Returns:
+            Self for method chaining
+        """
+        self._plot._remove_widgets(*WidgetClasses)
+        return self
+    
     def _get_existing_server(self) -> Server | None:
         renderer = self._plot._renderer
         server = renderer.server
@@ -203,7 +226,7 @@ class LazyPlot:
         Returns:
             The rendered plot output
         """
-        if self._plot._streaming_feed is not None and self._plot._notebook_type is not None:
+        if self._plot._feed is not None and self._plot._notebook_type is not None:
             raise RuntimeError("Cannot render streaming plot in synchronous mode, use show_async() instead.")
         if server := self._get_existing_server():
             return server

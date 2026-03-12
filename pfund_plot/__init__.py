@@ -1,14 +1,13 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from pfund_plot.plots.dataframe import (
-        dataframe_plot as dataframe,
-        dataframe_plot as df,
-    )
     from pfund_plot.plots.candlestick import (
         Candlestick as candlestick,
         Candlestick as ohlc,
         Candlestick as kline,
+    )
+    from pfund_plot.plots.line import (
+        Line as line,
     )
     from pfund_plot.plots.layout import (
         Layout as layout,
@@ -17,7 +16,7 @@ if TYPE_CHECKING:
         Tabs as tabs,
     )
     from pfund_plot.plots.plotly import (
-        Plotly as plotly,
+        Plotly,
     )
 
 from importlib.metadata import version
@@ -40,12 +39,15 @@ pn.config.js_files = {
 
 
 def __getattr__(name: str):
-    if name == 'plotly':
+    if name == 'Plotly':
         from pfund_plot.plots.plotly import Plotly
         return Plotly
     elif name in ('candlestick', 'ohlc', 'kline'):
         from pfund_plot.plots.candlestick import Candlestick
         return Candlestick
+    elif name in ('line',):
+        from pfund_plot.plots.line import Line
+        return Line
     elif name == 'layout':
         from pfund_plot.plots.layout import Layout
         return Layout
@@ -64,9 +66,9 @@ __version__ = version("pfund_plot")
 __all__ = (
     "__version__",
     "get_config", "configure",
-    "plotly",
+    "Plotly",
     "candlestick", "ohlc", "kline",
-    "dataframe", "df",
+    "line",
     "layout", "tabs",
 )
 def __dir__():
