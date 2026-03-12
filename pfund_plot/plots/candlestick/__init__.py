@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from narwhals.typing import IntoFrame
     from panel.layout import Panel
     from pfeed.streaming import BarMessage
-    from pfund_plot.widgets.base import BaseWidget
+    from pfund_plot.widgets.base import BaseWidget, BaseStreamingWidget
     from pfund_plot.plots.plot import MessageKey
 
 import panel as pn
@@ -16,6 +16,7 @@ from pfund_kit.style import cprint, RichColor, TextStyle
 from pfund_plot.plots.plot import BasePlot
 from pfund_plot.enums import PlottingBackend
 from pfund_plot.widgets.datetime_widget import DatetimeRangeWidget
+from pfund_plot.widgets.ticker_widget import TickerSelectWidget
 
 
 __all__ = ["Candlestick"]
@@ -42,6 +43,7 @@ class Candlestick(BasePlot):
     SUPPORTED_BACKENDS: ClassVar[list[PlottingBackend]] = [PlottingBackend.bokeh, PlottingBackend.svelte]
     SUPPORT_STREAMING: ClassVar[bool] = True
     SUPPORTED_WIDGETS: ClassVar[list[type[BaseWidget]]] = [DatetimeRangeWidget]
+    SUPPORTED_STREAMING_WIDGETS: ClassVar[list[type[BaseStreamingWidget]]] = [TickerSelectWidget]
     style = CandlestickStyle
     control = CandlestickControl
 
@@ -73,12 +75,9 @@ class Candlestick(BasePlot):
             )
         return df
     
-    # TODO: add ticker selector: ticker = pn.widgets.Select(options=['AAPL', 'IBM', 'GOOG', 'MSFT'], name='Ticker')
-    # TODO: use tick data to update the current candlestick
     def _create_component(self):
         # TODO: add volume plot when show_volume is True
         # show_volume = style['show_volume']
-        toolbox = self._create_toolbox()
 
         # NOTE: somehow data update on anywidget (svelte) in marimo notebook doesn't work using Panel
         # (probably need a refresh of the marimo cell to reflect the changes), so use mo.vstack() as a workaround
@@ -86,15 +85,13 @@ class Candlestick(BasePlot):
             import marimo as mo
 
             # NOTE: self._style is NOT applied in this case
-            items = [self._anywidget] + ([toolbox] if toolbox else [])
-            self._component = mo.vstack(items)
+            self._component = mo.vstack([self._anywidget])
         else:
             # total_height is the height of the component (including the figure + widgets)
             height = self._style["total_height"]
             width = self._style["width"]
-            items = [self._pane] + ([toolbox] if toolbox else [])
             self._component: Panel = pn.Column(
-                *items,
+                self._pane,
                 name="Candlestick Chart",
                 # normally these 3 parameters aren't required, but when inside a layout (GridStack), they are useful
                 sizing_mode=self._get_sizing_mode(height, width),

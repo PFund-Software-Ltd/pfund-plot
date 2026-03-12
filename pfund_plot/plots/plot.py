@@ -1,4 +1,4 @@
-# pyright: reportAttributeAccessIssue=false, reportOptionalMemberAccess=false, reportConstantRedefinition=false, reportUnusedParameter=false
+# pyright: reportAttributeAccessIssue=false, reportOptionalMemberAccess=false, reportConstantRedefinition=false, reportUnusedParameter=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportUnknownArgumentType=false
 from __future__ import annotations
 from typing import Callable, TYPE_CHECKING, ClassVar, Any, cast, TypeAlias
 
@@ -12,7 +12,6 @@ if TYPE_CHECKING:
     from pfeed.feeds.market_feed import MarketFeed
     from pfund_plot.renderers.base import BaseRenderer
     from pfund_plot.plots.lazy import LazyPlot
-    from pfund_plot.widgets.base import BaseWidget
     from pfund.typing import ProductName, ResolutionRepr
     from pfund_plot.typing import (
         RenderedResult,
@@ -24,6 +23,7 @@ if TYPE_CHECKING:
         Control,
     )
     MessageKey: TypeAlias = tuple[ProductName, ResolutionRepr]
+    StreamingDfs: TypeAlias = dict[MessageKey, Any]  # MessageKey -> nw.DataFrame
 
 import asyncio
 import time
@@ -37,6 +37,7 @@ import panel as pn
 
 from pfund_kit.style import cprint, RichColor, TextStyle
 from pfund_plot.enums import PlottingBackend, DisplayMode, NotebookType
+from pfund_plot.widgets.base import BaseWidget, BaseStreamingWidget
 
 
 class BasePlot(ABC):
@@ -44,7 +45,9 @@ class BasePlot(ABC):
     SUPPORTED_BACKENDS: ClassVar[list[PlottingBackend] | None] = None
     SUPPORT_STREAMING: ClassVar[bool] = False
     SUPPORTED_WIDGETS: ClassVar[list[type[BaseWidget]] | None] = None
+    SUPPORTED_STREAMING_WIDGETS: ClassVar[list[type[BaseStreamingWidget]] | None] = None
     _ChosenWidgetClasses: ClassVar[list[type[BaseWidget]]] = []
+    _ChosenStreamingWidgetClasses: ClassVar[list[type[BaseStreamingWidget]]] = []
     # Wrapper class like CandlestickStyle, used to access the style() function based on backend
     style: ClassVar[Any | None] = None
     # Wrapper class like CandlestickControl, used to access the control() function based on backend
@@ -70,6 +73,8 @@ class BasePlot(ABC):
         )
         if cls.SUPPORTED_WIDGETS is not None:
             cls._ChosenWidgetClasses = list(cls.SUPPORTED_WIDGETS)
+        if cls.SUPPORTED_STREAMING_WIDGETS is not None:
+            cls._ChosenStreamingWidgetClasses = list(cls.SUPPORTED_STREAMING_WIDGETS)
         for backend in cls.SUPPORTED_BACKENDS:
             if cls.style is not None:
                 assert hasattr(cls.style, backend.value), (
@@ -81,16 +86,22 @@ class BasePlot(ABC):
                 )
 
     def __init__(
-        self, 
-        data: IntoFrame | MarketFeed, 
+        self,
+        data: IntoFrame | MarketFeed,
         x: str | None = None,
         y: str | list[str] | None = None,
+        callback: Callable[..., Any] | None = None,
+        **reactive_params: Any,
     ):
         '''
         Args:
             data: The dataframe for static plot or pfeed's feed object for streaming plot
             x: the column name of the x-axis, if None, will use the index or the first column of the dataframe
             y: the column name of the y-axis, if None, will plot all numeric columns of the dataframe
+            callback: A reactive callback function. When provided with **reactive_params,
+                      auto-creates widgets that re-fetch data on change.
+            **reactive_params: name=value pairs for reactive widgets (e.g. ticker=["BTC", "ETH"]).
+                               Requires callback to be set.
         '''
         from pfeed.feeds.base_feed import BaseFeed
         from pfund_kit.utils import get_notebook_type
@@ -102,19 +113,23 @@ class BasePlot(ABC):
         else:
             self._df: nw.DataFrame[Any] | None = None
             self._feed: MarketFeed | None = data
+        self._reactive_params: dict[str, Any] = reactive_params
+        self._reactive_callback: Callable[..., Any] | None = callback
+        self._reactive_widgets: dict[str, PanelWidget] = {}
         self._setup()
         if self._df is not None:
             self._df = self._standardize_df(self._df)
         self._x: str | None = x
         self._y: str | list[str] | None = y
-        self._active_msg_key: MessageKey | None = None
-        self._streaming_dfs: dict[MessageKey, nw.DataFrame[Any]] = {}
-        self._streaming_pipe: Pipe | None = None
-        self._streaming_thread: Thread | None = None
         self._anywidget: AnyWidget | None = None
         self._plot: Plot | None = None
         self._pane: Pane | None = None
         self._widgets: dict[type[BaseWidget], BaseWidget] = {}
+        self._active_msg_key: MessageKey | None = None
+        self._streaming_dfs: dict[MessageKey, nw.DataFrame[Any]] = {}
+        self._streaming_pipe: Pipe | None = None
+        self._streaming_thread: Thread | None = None
+        self._streaming_widgets: dict[type[BaseStreamingWidget], BaseStreamingWidget] = {}
         self._component: Component | None = None
 
         self._notebook_type: NotebookType | None = get_notebook_type()
@@ -134,6 +149,7 @@ class BasePlot(ABC):
         self._style: Style | None = None
         self._control: Control | None = None
         self._ChosenWidgetClasses: list[type[BaseWidget]] = list(cls._ChosenWidgetClasses)
+        self._ChosenStreamingWidgetClasses: list[type[BaseStreamingWidget]] = list(cls._ChosenStreamingWidgetClasses)
         self._set_backend(cls._backend)
         self._set_mode(cls._mode)
 
@@ -150,37 +166,139 @@ class BasePlot(ABC):
         return msg_key
 
     def _create_widgets(self) -> None:
+        if not self._control.get('widgets', True):
+            return
+
         for WidgetClass in self._ChosenWidgetClasses:
             if WidgetClass not in self._widgets:
                 self._widgets[WidgetClass] = WidgetClass(self._df, self._control, self._update_pane)
 
+        if self._feed is not None:
+            for WidgetClass in self._ChosenStreamingWidgetClasses:
+                if WidgetClass not in self._streaming_widgets:
+                    self._streaming_widgets[WidgetClass] = WidgetClass(
+                        self._streaming_dfs, self._active_msg_key, self._update_active_stream,
+                    )
+
     def _update_widgets(self, df: nw.DataFrame[Any]) -> None:
-        if not self._widgets:
+        if not self._widgets and not self._streaming_widgets:
             self._create_widgets()
         for widget in self._widgets.values():
             widget.update_df(df)
+        for widget in self._streaming_widgets.values():
+            widget.update_streaming_state(self._streaming_dfs)
 
-    def _get_widget_panel_objects(self) -> list[PanelWidget]:
-        objects = []
-        for widget in self._widgets.values():
-            objects.extend(widget.get_panel_objects())
-        return objects
-
-    def _create_toolbox(self) -> pn.FlexBox | None:
-        if not self._widgets:
+    def _attach_widgets(self) -> None:
+        """Append non-streaming widgets (e.g. datetime range) at the bottom of the component."""
+        if not self._widgets and not self._streaming_widgets:
             self._create_widgets()
-        widget_objects = self._get_widget_panel_objects()
+        widget_objects: list[PanelWidget] = []
+        for widget in self._widgets.values():
+            widget_objects.extend(widget.get_panel_objects())
         if not widget_objects:
-            return None
-        return pn.FlexBox(
+            return
+        toolbox = pn.FlexBox(
             *widget_objects,
             align_items="center",
             justify_content="center",
         )
+        if isinstance(self._component, pn.Column):
+            self._component.append(toolbox)
+        else:
+            self._component = pn.Column(self._component, toolbox)
+
+    @staticmethod
+    def _infer_widget(name: str, value: Any) -> PanelWidget:
+        """Infer and create a Panel widget from a reactive param's name and value.
+
+        The value's Python type determines which widget is created:
+            Panel widget    → used as-is (escape hatch for full customization)
+            list            → Select dropdown (first item is default)
+            (min, max, val) → IntSlider if val is int, FloatSlider if float
+            bool            → Toggle button
+            str             → TextInput
+
+        The param name is used as the widget label,
+        with underscores replaced by spaces and title-cased (e.g. 'num_bars' → 'Num Bars').
+        """
+        if isinstance(value, pn.widgets.Widget):
+            return value
+        if isinstance(value, list):
+            return pn.widgets.Select(name=name.replace('_', ' ').title(), options=value, value=value[0])
+        if isinstance(value, tuple) and len(value) == 3:
+            min_val, max_val, default = value
+            if isinstance(default, float):
+                return pn.widgets.FloatSlider(name=name.replace('_', ' ').title(), start=min_val, end=max_val, value=default)
+            return pn.widgets.IntSlider(name=name.replace('_', ' ').title(), start=min_val, end=max_val, value=default)
+        # NOTE: bool check must come before any future int check, since bool is a subclass of int
+        if isinstance(value, bool):
+            return pn.widgets.Toggle(name=name.replace('_', ' ').title(), value=value)
+        if isinstance(value, str):
+            return pn.widgets.TextInput(name=name.replace('_', ' ').title(), value=value)
+        raise ValueError(f"Cannot create widget from {type(value).__name__} for param '{name}'. " +
+                         "Pass a list, tuple (min, max, default), bool, str, or a Panel widget.")
+
+    def _create_reactive_widgets(self) -> None:
+        if not self._reactive_params:
+            return
+        for name, value in self._reactive_params.items():
+            self._reactive_widgets[name] = self._infer_widget(name, value)
+        self._setup_reactive_binding()
+
+    def _setup_reactive_binding(self) -> None:
+        callback = self._reactive_callback
+        assert callback is not None, "callback is required when reactive_params are provided"
+        widgets = self._reactive_widgets
+
+        def on_change(*events: Any) -> None:
+            kwargs = {name: w.value for name, w in widgets.items()}
+            df = callback(**kwargs)
+            df = self._standardize_df(df)
+            self._update_df(df)
+            self._update_pane(df)
+
+        for widget in widgets.values():
+            _ = widget.param.watch(on_change, 'value')
+
+    def _attach_reactive_widgets(self) -> None:
+        """Insert reactive widgets at the top of the component."""
+        if not self._reactive_widgets:
+            return
+        reactive_bar = pn.Row(
+            *self._reactive_widgets.values(),
+        )
+        if isinstance(self._component, pn.Column):
+            self._component.insert(0, reactive_bar)
+        else:
+            self._component = pn.Column(reactive_bar, self._component)
+
+    def _attach_streaming_widgets(self) -> None:
+        """Insert streaming widgets at the top of the component."""
+        streaming_objects = []
+        for widget in self._streaming_widgets.values():
+            streaming_objects.extend(widget.get_panel_objects())
+        if not streaming_objects:
+            return
+        streaming_bar = pn.Row(*streaming_objects)
+        if isinstance(self._component, pn.Column):
+            self._component.insert(0, streaming_bar)
+        else:
+            self._component = pn.Column(streaming_bar, self._component)
 
     def _update_df(self, df: nw.DataFrame[Any]):
         self._df = df
-    
+
+    def _update_active_stream(self, msg_key: MessageKey) -> None:
+        """Switch which streaming product is displayed."""
+        self._active_msg_key = msg_key
+        if msg_key in self._streaming_dfs:
+            df = self._streaming_dfs[msg_key]
+            self._update_df(df)
+            self._update_pane(df)
+            # Update other widgets (e.g. datetime range) for the new product's data
+            for widget in self._widgets.values():
+                widget.update_df(df)
+
     def _update_streaming_df(self, msg_key: MessageKey, df: nw.DataFrame[Any]):
         # if exceeds max_data, truncate the dataframe
         df = self._truncate_streaming_df(df)
@@ -250,14 +368,23 @@ class BasePlot(ABC):
             pfeed_config = get_config()
             data_tool = pfeed_config.data_tool
             import_hvplot_df_module(data_tool)
+        
+        if self._reactive_params:
+            assert self._reactive_callback is not None, "callback is required when reactive_params are provided"
+            assert self._feed is None, "reactive params are not supported with streaming feed"
 
     def _create(self):
         if self._pane is None:
             self._create_pane()
         if not self._widgets:
             self._create_widgets()
+        if self._reactive_params and not self._reactive_widgets:
+            self._create_reactive_widgets()
         if self._component is None:
             self._create_component()
+            self._attach_widgets()
+            self._attach_streaming_widgets()
+            self._attach_reactive_widgets()
 
     def _add_periodic_callback(self, callback: Callable[..., Any]):
         '''Add a periodic callback to the renderer.
@@ -321,7 +448,7 @@ class BasePlot(ABC):
         if self._df is not None and self._is_streaming_ready():
             self._update_pane(self._df)
             self._update_widgets(self._df)
-    
+            
     def _wait_for_streaming_ready(self):
         if self._feed is not None and self._df is None:
             while not self._is_streaming_ready():
@@ -448,15 +575,19 @@ class BasePlot(ABC):
         self._set_renderer()
     
     @classmethod
-    def remove_widgets(cls, *WidgetClasses: type[BaseWidget]) -> None:
+    def remove_widgets(cls, *WidgetClasses: type[BaseWidget | BaseStreamingWidget]) -> None:
         for WidgetClass in WidgetClasses:
             if WidgetClass in cls._ChosenWidgetClasses:
                 cls._ChosenWidgetClasses.remove(WidgetClass)
+            if WidgetClass in cls._ChosenStreamingWidgetClasses:
+                cls._ChosenStreamingWidgetClasses.remove(WidgetClass)
                 
-    def _remove_widgets(self, *WidgetClasses: type[BaseWidget]) -> None:
+    def _remove_widgets(self, *WidgetClasses: type[BaseWidget | BaseStreamingWidget]) -> None:
         for WidgetClass in WidgetClasses:
             if WidgetClass in self._ChosenWidgetClasses:
                 self._ChosenWidgetClasses.remove(WidgetClass)
+            if WidgetClass in self._ChosenStreamingWidgetClasses:
+                self._ChosenStreamingWidgetClasses.remove(WidgetClass)
 
     def _set_renderer(self):
         if self._mode == DisplayMode.notebook:

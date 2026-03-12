@@ -46,6 +46,7 @@ def control(
     num_data: int | None = None,
     max_data: int | None = None,
     slider_step: int | None = None,
+    widgets: bool = True,
     linked_axes: bool = True,
     update_interval: int = 5000,  # ms
     incremental_update: bool = True,
@@ -58,6 +59,8 @@ def control(
         max_data: the maximum number of data points kept in memory.
             If None, data will continue to grow unbounded.
         slider_step: the step size of the datetime range slider. if None, it will be derived from the data.
+        widgets: whether to show widgets (datetime range, ticker select, etc.). default is True.
+            For granular control, use remove_widgets() to remove specific widget classes.
         linked_axes: whether to link the axes of bokeh plots inside this pane across a panel layout.
             i.e. when multiple plots are placed in a layout (plt.layout(...)), the axes of the plots will be linked.
         incremental_update: whether to update the plot even when the bar is incomplete during streaming. default is True.

@@ -198,6 +198,16 @@ class LazyPlot:
     def get_mode(self) -> DisplayMode:
         return self._plot._mode
     
+    @property
+    def reactive_widgets(self) -> dict[str, Any]:
+        """Access the auto-created Panel widgets for customization.
+
+        Returns:
+            dict mapping parameter names to Panel widget instances.
+            Empty dict if reactive params weren't provided or component not yet created.
+        """
+        return self._plot._reactive_widgets
+
     def remove_widgets(self, *WidgetClasses: type[BaseWidget]) -> LazyPlot:
         """Remove widgets from the plot.
 

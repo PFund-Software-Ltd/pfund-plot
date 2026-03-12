@@ -1,6 +1,6 @@
 # pyright: reportUnusedParameter=false
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -79,5 +79,5 @@ def control(
     return locals()
 
 
-def plot(df: Frame, style: dict, control: dict) -> CandlestickWidget:
+def plot(df: Frame, style: dict, control: dict, **kwargs: Any) -> CandlestickWidget:
     return CandlestickWidget(df, height=style["height"], width=style["width"])

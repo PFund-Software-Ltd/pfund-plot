@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from narwhals.typing import IntoFrame
     from panel.layout import Panel
     from pfeed.streaming.streaming_message import StreamingMessage
-    from pfund_plot.widgets.base import BaseWidget
+    from pfund_plot.widgets.base import BaseWidget, BaseStreamingWidget
     from pfund_plot.plots.plot import MessageKey
 
 import narwhals as nw
@@ -16,6 +16,7 @@ from pfund_kit.style import cprint, RichColor, TextStyle
 from pfund_plot.enums import PlottingBackend
 from pfund_plot.plots.plot import BasePlot
 from pfund_plot.widgets.datetime_widget import DatetimeRangeWidget
+from pfund_plot.widgets.ticker_widget import TickerSelectWidget
 
 
 __all__ = ["Line"]
@@ -38,6 +39,7 @@ class Line(BasePlot):
     SUPPORTED_BACKENDS = [PlottingBackend.bokeh]
     SUPPORT_STREAMING: ClassVar[bool] = True
     SUPPORTED_WIDGETS: ClassVar[list[type[BaseWidget]]] = [DatetimeRangeWidget]
+    SUPPORTED_STREAMING_WIDGETS: ClassVar[list[type[BaseStreamingWidget]]] = [TickerSelectWidget]
     style = LineStyle
     control = LineControl
 
@@ -51,14 +53,11 @@ class Line(BasePlot):
         self._df = df
 
     def _create_component(self) -> None:
-        toolbox = self._create_toolbox()
-
         # total_height is the height of the component (including the figure + widgets)
         height = self._style["total_height"]
         width = self._style["width"]
-        items = [self._pane] + ([toolbox] if toolbox else [])
         self._component: Panel = pn.Column(
-            *items,
+            self._pane,
             name="Line Chart",
             # normally these 3 parameters aren't required, but when inside a layout (GridStack), they are useful
             sizing_mode=self._get_sizing_mode(height, width),
