@@ -74,7 +74,6 @@ def style(
 def control(
     num_data: int = DEFAULT_NUM_DATA,
     slider_step: int = DEFAULT_SLIDER_STEP,
-    show_volume: bool = True,
 ):
     return locals()
 

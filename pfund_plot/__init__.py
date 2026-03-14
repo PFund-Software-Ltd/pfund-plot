@@ -16,7 +16,10 @@ if TYPE_CHECKING:
         Tabs as tabs,
     )
     from pfund_plot.plots.plotly import (
-        Plotly,
+        Plotly as plotly,
+    )
+    from pfund_plot.overlays.marker import (
+        Marker as marker,
     )
 
 from importlib.metadata import version
@@ -39,7 +42,7 @@ pn.config.js_files = {
 
 
 def __getattr__(name: str):
-    if name == 'Plotly':
+    if name == 'plotly':
         from pfund_plot.plots.plotly import Plotly
         return Plotly
     elif name in ('candlestick', 'ohlc', 'kline'):
@@ -54,6 +57,9 @@ def __getattr__(name: str):
     elif name == 'tabs':
         from pfund_plot.plots.layout.tabs import Tabs
         return Tabs
+    elif name == 'marker':
+        from pfund_plot.overlays.marker import Marker
+        return Marker
     else:
         raise AttributeError(f"'{__name__}' has no attribute '{name}'")
     # TODO
@@ -66,10 +72,11 @@ __version__ = version("pfund_plot")
 __all__ = (
     "__version__",
     "get_config", "configure",
-    "Plotly",
+    "plotly",
     "candlestick", "ohlc", "kline",
     "line",
     "layout", "tabs",
+    "marker",
 )
 def __dir__():
     return sorted(__all__)

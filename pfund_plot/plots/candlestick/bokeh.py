@@ -54,7 +54,6 @@ def control(
     update_interval: int = 5000,  # ms
     incremental_update: bool = True,
     widgets: bool = True,
-    show_volume: bool = True,
     datetime_precision: Literal["d", "s", "ms"] = "s",
 ):
     """
@@ -70,7 +69,6 @@ def control(
             i.e. when multiple plots are placed in a layout (plt.layout(...)), the axes of the plots will be linked.
         incremental_update: whether to update the plot even when the bar is incomplete during streaming. default is True.
         update_interval: the interval in milliseconds to update the plot during streaming. default is 5000 ms.
-        show_volume: whether to show the volume plot. default is True.
         datetime_precision: the precision of datetime formatting on the hover tooltip.
             "d" for days (%Y-%m-%d), "s" for seconds (default, %Y-%m-%d %H:%M:%S), "ms" for milliseconds (%Y-%m-%d %H:%M:%S.%3N).
     """

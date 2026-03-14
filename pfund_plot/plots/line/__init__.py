@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import ClassVar, TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
-    from narwhals.typing import IntoFrame
     from panel.layout import Panel
     from pfeed.streaming.streaming_message import StreamingMessage
     from pfund_plot.widgets.base import BaseWidget, BaseStreamingWidget
@@ -42,12 +41,6 @@ class Line(BasePlot):
     SUPPORTED_STREAMING_WIDGETS: ClassVar[list[type[BaseStreamingWidget]]] = [TickerSelectWidget]
     style = LineStyle
     control = LineControl
-
-    def _standardize_df(self, df: IntoFrame) -> nw.DataFrame[Any]:
-        df = nw.from_native(df)
-        if isinstance(df, nw.LazyFrame):
-            df = df.collect()
-        return df
 
     def _update_df(self, df: nw.DataFrame[Any]):
         self._df = df

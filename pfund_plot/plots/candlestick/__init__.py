@@ -76,9 +76,6 @@ class Candlestick(BasePlot):
         return df
     
     def _create_component(self):
-        # TODO: add volume plot when show_volume is True
-        # show_volume = style['show_volume']
-
         # NOTE: somehow data update on anywidget (svelte) in marimo notebook doesn't work using Panel
         # (probably need a refresh of the marimo cell to reflect the changes), so use mo.vstack() as a workaround
         if self._is_using_marimo_svelte_combo():

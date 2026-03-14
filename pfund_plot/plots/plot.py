@@ -65,6 +65,16 @@ class BasePlot(ABC):
         instance.__init__(*args, **kwargs)
         return LazyPlot(instance)
 
+    def __deepcopy__(self, memo: dict) -> BasePlot:
+        from copy import deepcopy
+        cls = type(self)
+        # bypass __new__ which would call __init__ and wrap in LazyPlot
+        new = object.__new__(cls)
+        memo[id(self)] = new
+        for k, v in self.__dict__.items():
+            setattr(new, k, deepcopy(v, memo))
+        return new
+
     def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
         class_name = cls.__name__
@@ -131,6 +141,9 @@ class BasePlot(ABC):
         self._streaming_thread: Thread | None = None
         self._streaming_widgets: dict[type[BaseStreamingWidget], BaseStreamingWidget] = {}
         self._component: Component | None = None
+        self._overlays: list[BasePlot] = []
+        self._holoviews_opts: list[tuple[tuple[Any, ...], dict[str, Any]]] = []
+        self._parent_plot: BasePlot | None = None  # set when this plot is used as an overlay
 
         self._notebook_type: NotebookType | None = get_notebook_type()
 
@@ -153,9 +166,17 @@ class BasePlot(ABC):
         self._set_backend(cls._backend)
         self._set_mode(cls._mode)
 
-    @abstractmethod
+    @staticmethod
+    def _is_hvplot(plot: Plot) -> bool:
+        from holoviews.core.overlay import Overlay, NdOverlay
+        from holoviews.core.element import Element
+        return isinstance(plot, (Overlay, NdOverlay, Element))
+    
     def _standardize_df(self, df: IntoFrame) -> nw.DataFrame[Any]:
-        pass
+        df = nw.from_native(df)
+        if isinstance(df, nw.LazyFrame):
+            df = df.collect()
+        return df
 
     def _create_msg_key(self, msg: StreamingMessage) -> MessageKey:
         '''Create a message key for streaming'''
@@ -190,22 +211,39 @@ class BasePlot(ABC):
 
     def _attach_widgets(self) -> None:
         """Append non-streaming widgets (e.g. datetime range) at the bottom of the component."""
+
+        def _append_toolbox(widget_objects: list[PanelWidget]) -> None:
+            if not widget_objects:
+                return
+            toolbox = pn.FlexBox(
+                *widget_objects,
+                align_items="center",
+                justify_content="center",
+            )
+            if isinstance(self._component, pn.Column):
+                self._component.append(toolbox)
+            else:
+                self._component = pn.Column(self._component, toolbox)
+
         if not self._widgets and not self._streaming_widgets:
             self._create_widgets()
+
         widget_objects: list[PanelWidget] = []
         for widget in self._widgets.values():
             widget_objects.extend(widget.get_panel_objects())
-        if not widget_objects:
-            return
-        toolbox = pn.FlexBox(
-            *widget_objects,
-            align_items="center",
-            justify_content="center",
-        )
-        if isinstance(self._component, pn.Column):
-            self._component.append(toolbox)
-        else:
-            self._component = pn.Column(self._component, toolbox)
+        _append_toolbox(widget_objects)
+
+        # attach overlay widgets
+        for overlay in self._overlays:
+            overlay._parent_plot = self
+
+            if not overlay._widgets and not overlay._streaming_widgets:
+                overlay._create_widgets()
+
+            overlay_widget_objects: list[PanelWidget] = []
+            for widget in overlay._widgets.values():
+                overlay_widget_objects.extend(widget.get_panel_objects())
+            _append_toolbox(overlay_widget_objects)
 
     @staticmethod
     def _infer_widget(name: str, value: Any) -> PanelWidget:
@@ -284,6 +322,12 @@ class BasePlot(ABC):
             self._component.insert(0, streaming_bar)
         else:
             self._component = pn.Column(streaming_bar, self._component)
+
+    def _add_overlay(self, overlay: BasePlot):
+        self._overlays.append(overlay)
+
+    def _add_opts(self, args: tuple[Any, ...], kwargs: dict[str, Any]):
+        self._holoviews_opts.append((args, kwargs))
 
     def _update_df(self, df: nw.DataFrame[Any]):
         self._df = df
@@ -424,7 +468,7 @@ class BasePlot(ABC):
         assert self._feed is not None, "feed is not set"
         requests = cast(list[MarketFeedStreamRequest], self._feed._requests)
         assert all(request.is_streaming() for request in requests), "Not all requests in the streaming feed are for streaming"
-        
+
         self._add_periodic_callback(self._refresh_streaming_ui)
 
         # add on_callback to the first of the custom_transformations list
@@ -442,6 +486,11 @@ class BasePlot(ABC):
             self._streaming_thread.start()
         else:
             asyncio.get_running_loop().create_task(self._feed.run_async())
+
+        # start streaming for overlays that have their own feeds
+        for overlay in self._overlays:
+            if overlay._feed is not None:
+                overlay._start_streaming()
     
     def _refresh_streaming_ui(self):
         '''during streaming, update pane and widgets accordingly using the newly updated data (updated in _on_streaming_callback)'''
@@ -627,7 +676,7 @@ class BasePlot(ABC):
         if backend == PlottingBackend.panel:
             raise ValueError("Panel backend does not support figure property")
         elif backend in [PlottingBackend.bokeh, PlottingBackend.plotly, PlottingBackend.matplotlib]:
-            if self._is_plotted_by_hvplot():
+            if self._is_hvplot(self._plot):
                 # use hvplot to convert holoviews Overlay to the underlying plotting library's figure
                 fig = hvplot.render(plot, backend=backend)
                 if backend == PlottingBackend.plotly:
@@ -635,7 +684,7 @@ class BasePlot(ABC):
                     # hvplot.render() returns a dict, convert it to a plotly Figure
                     fig: dict
                     fig = go.Figure(fig)
-            else:  # plot is from plt.Bokeh(), plt.Plotly() or plt.Matplotlib()
+            else:  # plot is from plt.bokeh(), plt.plotly() or plt.matplotlib()
                 plot: RawFigure
                 fig = plot
         # TODO
@@ -663,22 +712,27 @@ class BasePlot(ABC):
         else:
             return None
     
-    def _is_plotted_by_hvplot(self) -> bool:
-        from holoviews.core.overlay import Overlay, NdOverlay
-        from holoviews.element import Chart
-        return isinstance(self._plot, (Overlay, NdOverlay, Chart))
-
     def _build_plot(self, df: nw.DataFrame[Any] | None = None) -> Plot:
-        """Returns a plot object for the given data"""
+        """Returns a plot object for the given data, composing overlays and opts if any."""
         df = df if df is not None else self._df
-        return self._plot_func(
+        result = self._plot_func(
             df=df,
             x=self._x,
             y=self._y,
             style=self._style,
             control=self._control,
         )
-    
+        if self._overlays:
+            for overlay in self._overlays:
+                overlay_plot = overlay._build_plot()
+                if not self._is_hvplot(overlay_plot):
+                    raise TypeError("Operation '*' only supports Holoviews plots.")
+                result = result * overlay_plot
+        if self._holoviews_opts:
+            for args, kwargs in self._holoviews_opts:
+                result = result.opts(*args, **kwargs)
+        return result
+
     def _create_plot(self):
         self._plot = self._build_plot(df=self._df)
 
@@ -697,7 +751,7 @@ class BasePlot(ABC):
             # no pane needed for panel backend (e.g. GridStack, use it directly as a component)
             pass
         elif backend in [PlottingBackend.bokeh, PlottingBackend.plotly, PlottingBackend.matplotlib]:
-            if self._is_plotted_by_hvplot():
+            if self._is_hvplot(self._plot):
                 from holoviews.streams import Pipe
                 from holoviews import DynamicMap
 
@@ -709,7 +763,7 @@ class BasePlot(ABC):
                 self._pane = pn.pane.HoloViews(
                     dmap, linked_axes=self._control.get("linked_axes", True)
                 )
-            else:  # from plt.Bokeh(), plt.Plotly() or plt.Matplotlib()
+            else:  # from plt.bokeh(), plt.plotly() or plt.matplotlib()
                 if backend == PlottingBackend.bokeh:
                     self._pane = pn.pane.Bokeh(self._plot)
                 elif backend == PlottingBackend.plotly:
@@ -729,8 +783,22 @@ class BasePlot(ABC):
         #     self._pane = pn.pane.Vega(self._plot)
         else:
             raise ValueError(f"Unsupported backend: {backend}")
+    
+    def _is_overlay(self) -> bool:
+        return self._parent_plot is not None
 
     def _update_pane(self, df: nw.DataFrame[Any]):
+        if self._is_overlay():
+            self._update_df(df)
+            assert self._parent_plot._streaming_pipe is not None, (
+                "Overlay widgets require the base plot to be rendered via a HoloViews pipe."
+            )
+            # NOTE: the overlay has no rendered pane — it's composited inside the parent's DynamicMap.
+            # Re-send the parent's current pipe data to trigger a DynamicMap re-render,
+            # which will call _build_plot → overlay._build_plot() with the updated overlay._df.
+            # This is not passing new data; it's just a re-render trigger.
+            self._parent_plot._streaming_pipe.send(self._parent_plot._streaming_pipe.data)
+            return
         if self._pane is None:
             self._create_pane()
         if self._backend == PlottingBackend.bokeh:

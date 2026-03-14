@@ -1,8 +1,10 @@
+# pyright: reportUnknownMemberType=false, reportAttributeAccessIssue=false
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Literal
 
 if TYPE_CHECKING:
     from panel.pane import Pane
+    from panel.viewable import Viewable
     from panel.io.server import Server
     from narwhals.typing import IntoFrame
     from pfeed.feeds.market_feed import MarketFeed
@@ -14,20 +16,19 @@ if TYPE_CHECKING:
         Figure,
     )
     from pfund_plot.enums import PlottingBackend, DisplayMode
+    from pfund_plot.plots.plot import BasePlot
 
 import panel as pn
-
-from pfund_plot.plots.plot import BasePlot
 
 
 class LazyRow(pn.Row):
     """A pn.Row subclass that supports + and | operators for chaining."""
 
-    def __add__(self, other: Any) -> LazyRow:
+    def __add__(self, other: LazyPlot | Viewable) -> LazyRow:
         right = other.component if isinstance(other, LazyPlot) else other
         return LazyRow(*self.objects, right)
 
-    def __or__(self, other: Any) -> LazyColumn:
+    def __or__(self, other: LazyPlot | Viewable) -> LazyColumn:
         right = other.component if isinstance(other, LazyPlot) else other
         return LazyColumn(self, right)
 
@@ -35,11 +36,11 @@ class LazyRow(pn.Row):
 class LazyColumn(pn.Column):
     """A pn.Column subclass that supports + and | operators for chaining."""
 
-    def __add__(self, other: Any) -> LazyRow:
+    def __add__(self, other: LazyPlot | Viewable) -> LazyRow:
         right = other.component if isinstance(other, LazyPlot) else other
         return LazyRow(self, right)
 
-    def __or__(self, other: Any) -> LazyColumn:
+    def __or__(self, other: LazyPlot | Viewable) -> LazyColumn:
         right = other.component if isinstance(other, LazyPlot) else other
         return LazyColumn(*self.objects, right)
 
@@ -56,7 +57,7 @@ class LazyPlot:
     def __init__(self, plot_instance: BasePlot):
         self._plot = plot_instance
         self._grid_spec: tuple[slice, slice] | None = None
-    
+
     def __getitem__(self, key: tuple[int | slice, int | slice]) -> LazyPlot:
         """Set grid position for use with plt.layout (GridStack).
 
@@ -101,12 +102,22 @@ class LazyPlot:
             self._plot._create_plot()
         return self._plot._plot
     
+    def opts(self, *args: Any, **kwargs: Any) -> LazyPlot:
+        """Pass holoviews opts to the underlying plot.
+
+        Example:
+            candlestick.opts(multi_y=True)
+            (candlestick * volume).opts(multi_y=True)
+        """
+        self._plot._add_opts(args, kwargs)
+        return self
+    
     @property
     def pane(self) -> Pane:
         if self._plot._pane is None:
             self._plot._create_pane()
         return self._plot._pane
-    
+
     @property
     def widgets(self) -> Any:
         if self._plot._widgets is None:
@@ -114,12 +125,14 @@ class LazyPlot:
         return self._plot._widgets
 
     @property
-    def component(self) -> Component:
+    def component(self) -> Component | None:
         self._plot._create()  # create pane+widgets+component
         return self._plot._component
     
     @property
-    def df(self) -> IntoFrame:
+    def df(self) -> IntoFrame | None:
+        if self._plot._df is None:
+            return None
         return self._plot._df.to_native()
     
     @property
@@ -282,7 +295,7 @@ class LazyPlot:
             return result._repr_html_()
         return None
 
-    def __add__(self, other: Any) -> LazyRow:
+    def __add__(self, other: LazyPlot | Viewable) -> LazyRow:
         """Combine plots horizontally using + operator.
 
         Args:
@@ -300,26 +313,47 @@ class LazyPlot:
         right = other.component if isinstance(other, LazyPlot) else other
         return LazyRow(left, right)
 
-    def __radd__(self, other: Any) -> LazyRow:
+    def __radd__(self, other: Viewable) -> LazyRow:
         """Support reverse addition (when left operand doesn't support +)."""
         return LazyRow(other, self.component)
 
-    def __mul__(self, other: LazyPlot) -> Any:
-        """Composite plot using * operator.
+    def __mul__(self, other: LazyPlot) -> LazyPlot:
+        """Overlay another plot or overlay layer onto this plot using * operator.
+
+        Returns a new LazyPlot with the overlay appended, leaving the original unchanged.
+        This allows reuse: plot * marker1 and plot * marker2 are independent.
 
         Args:
-            other: Another LazyPlot to composite with
+            other: A LazyPlot or LazyOverlay to composite onto this plot
 
         Returns:
-            Composite plot
+            A new LazyPlot with the overlay added
 
         Example:
-            plot1 * plot2  # Overlay plots
+            candlestick * markers      # overlay markers on candlestick
+            candlestick * volume_bars  # overlay volume on candlestick
         """
-        # TODO: Implement composite plot functionality
-        raise NotImplementedError("Composite plots (*) are not yet supported")
+        from copy import deepcopy
+        if not isinstance(other, LazyPlot):
+            raise TypeError(f"Cannot overlay {type(other).__name__} onto a plot.")
 
-    def __or__(self, other: Any) -> LazyColumn:
+        other_plot = other._plot
+        current_plot = self._plot
+        if other_plot.is_support_streaming() != current_plot.is_support_streaming():
+            raise RuntimeError("Cannot overlay a streaming plot with a non-streaming plot.")
+        if other_plot._backend != current_plot._backend:
+            raise RuntimeError("Cannot overlay plots with different backends.")
+        if other_plot._mode != current_plot._mode:
+            raise RuntimeError("Cannot overlay plots with different modes.")
+        # NOTE: deepcopy both plots so the originals are not mutated —
+        # conceptually the result is a new plot instance that carries its own _overlays list.
+        # The overlay must also be cloned so that _parent_plot doesn't get shared
+        # when the same overlay is reused across multiple compositions.
+        cloned_plot = deepcopy(self._plot)
+        cloned_plot._add_overlay(deepcopy(other._plot))
+        return LazyPlot(cloned_plot)
+
+    def __or__(self, other: LazyPlot | Viewable) -> LazyColumn:
         """Stack plots vertically using | operator.
 
         Args:
@@ -337,6 +371,6 @@ class LazyPlot:
         bottom = other.component if isinstance(other, LazyPlot) else other
         return LazyColumn(top, bottom)
 
-    def __ror__(self, other: Any) -> LazyColumn:
+    def __ror__(self, other: Viewable) -> LazyColumn:
         """Support reverse or (when left operand doesn't support |)."""
         return LazyColumn(other, self.component)
