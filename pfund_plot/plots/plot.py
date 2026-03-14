@@ -101,6 +101,7 @@ class BasePlot(ABC):
         x: str | None = None,
         y: str | list[str] | None = None,
         callback: Callable[..., Any] | None = None,
+        name: str | None = None,
         **reactive_params: Any,
     ):
         '''
@@ -110,6 +111,8 @@ class BasePlot(ABC):
             y: the column name of the y-axis, if None, will plot all numeric columns of the dataframe
             callback: A reactive callback function. When provided with **reactive_params,
                       auto-creates widgets that re-fetch data on change.
+            name: Display name for this plot (used as label when widgets are shown alongside overlays).
+                  Defaults to the class name lowercased (e.g. "candlestick", "line").
             **reactive_params: name=value pairs for reactive widgets (e.g. ticker=["BTC", "ETH"]).
                                Requires callback to be set.
         '''
@@ -123,6 +126,7 @@ class BasePlot(ABC):
         else:
             self._df: nw.DataFrame[Any] | None = None
             self._feed: MarketFeed | None = data
+        self.name: str | None = name or self.__class__.__name__.lower()
         self._reactive_params: dict[str, Any] = reactive_params
         self._reactive_callback: Callable[..., Any] | None = callback
         self._reactive_widgets: dict[str, PanelWidget] = {}
@@ -264,8 +268,12 @@ class BasePlot(ABC):
         overlay_widgets_attr: str,
         merged_classes: set[type],
         position: Literal["top", "bottom"] = "bottom",
-    ) -> None:
-        """Render overlay widgets that weren't merged with the parent, each with a label."""
+    ) -> bool:
+        """Render overlay widgets that weren't merged with the parent, each with a label.
+
+        Returns True if any unmerged overlay widgets were found.
+        """
+        has_unmerged = False
         for overlay in self._overlays:
             overlay_widgets = getattr(overlay, overlay_widgets_attr)
             overlay_objects: list[PanelWidget] = []
@@ -273,7 +281,10 @@ class BasePlot(ABC):
                 if WidgetClass in merged_classes:
                     continue
                 overlay_objects.extend(widget.get_panel_objects())
+            if overlay_objects:
+                has_unmerged = True
             self._append_toolbox(overlay_objects, label=overlay.name, position=position)
+        return has_unmerged
 
     def _attach_widgets(self) -> None:
         """Append non-streaming widgets at the bottom of the component.
@@ -298,8 +309,9 @@ class BasePlot(ABC):
         for widget in self._widgets.values():
             widget_objects.extend(widget.get_panel_objects())
         # Unmerged overlay widgets
-        self._collect_unmerged_overlay_widgets('_widgets', merged)
-        self._append_toolbox(widget_objects)
+        has_unmerged = self._collect_unmerged_overlay_widgets('_widgets', merged)
+        label = self.name if has_unmerged else ""
+        self._append_toolbox(widget_objects, label=label)
 
     @staticmethod
     def _infer_widget(name: str, value: Any) -> PanelWidget:
@@ -333,32 +345,86 @@ class BasePlot(ABC):
                          "Pass a list, tuple (min, max, default), bool, str, or a Panel widget.")
 
     def _create_reactive_widgets(self) -> None:
+        """Create Panel widgets from reactive params. Binding is deferred to _attach_reactive_widgets."""
         if not self._reactive_params:
             return
         for name, value in self._reactive_params.items():
             self._reactive_widgets[name] = self._infer_widget(name, value)
-        self._setup_reactive_binding()
 
-    def _setup_reactive_binding(self) -> None:
+    def _setup_reactive_binding(self, merged_params: set[str] | None = None) -> None:
         callback = self._reactive_callback
         assert callback is not None, "callback is required when reactive_params are provided"
         widgets = self._reactive_widgets
+        overlays = self._overlays
 
         def on_change(*events: Any) -> None:
             kwargs = {name: w.value for name, w in widgets.items()}
             df = callback(**kwargs)
             df = self._standardize_df(df)
             self._update_df(df)
+
+            # Fan out merged params to overlays
+            if merged_params:
+                for overlay in overlays:
+                    if overlay._reactive_callback is not None:
+                        overlay_kwargs = {n: w.value for n, w in overlay._reactive_widgets.items()}
+                        # Override merged params with parent's current values
+                        for p in merged_params:
+                            if p in overlay_kwargs:
+                                overlay_kwargs[p] = widgets[p].value
+                        overlay_df = overlay._reactive_callback(**overlay_kwargs)
+                        overlay_df = overlay._standardize_df(overlay_df)
+                        overlay._update_df(overlay_df)
+
             self._update_pane(df)
 
         for widget in widgets.values():
             _ = widget.param.watch(on_change, 'value')
 
     def _attach_reactive_widgets(self) -> None:
-        """Insert reactive widgets at the top of the component."""
-        if not self._reactive_widgets:
+        """Insert reactive widgets at the top of the component.
+
+        Smart merging: if an overlay has the exact same reactive params (names
+        AND values), its widgets are merged — one set of widgets controls both
+        plots via fan-out. Otherwise the overlay's widgets are shown separately
+        with a label and their own binding.
+        """
+        if not self._reactive_widgets and not any(
+            overlay._reactive_params for overlay in self._overlays
+        ):
             return
-        self._append_toolbox(list(self._reactive_widgets.values()), position="top")
+
+        # Create overlay reactive widgets (mirrors _attach_widgets pattern)
+        for overlay in self._overlays:
+            if overlay._reactive_params and not overlay._reactive_widgets:
+                overlay._create_reactive_widgets()
+
+        # Determine which overlays can be fully merged (all params match by name AND value)
+        mergeable_overlays: set[int] = set()
+        for i, overlay in enumerate(self._overlays):
+            if overlay._reactive_params and self._reactive_params == overlay._reactive_params:
+                mergeable_overlays.add(i)
+
+        # Set up parent binding with fan-out to mergeable overlays
+        if self._reactive_widgets:
+            merged_params = set(self._reactive_params.keys()) if mergeable_overlays else None
+            self._setup_reactive_binding(merged_params)
+
+        # Show parent reactive widgets (with label when overlays have separate widgets)
+        if self._reactive_widgets:
+            has_unmerged_overlays = any(
+                i not in mergeable_overlays and overlay._reactive_widgets
+                for i, overlay in enumerate(self._overlays)
+            )
+            label = self.name if has_unmerged_overlays else ""
+            self._append_toolbox(list(self._reactive_widgets.values()), label=label, position="top")
+
+        # Show non-mergeable overlay reactive widgets separately
+        for i, overlay in enumerate(self._overlays):
+            if i in mergeable_overlays or not overlay._reactive_widgets:
+                continue
+            overlay._setup_reactive_binding()
+            self._append_toolbox(list(overlay._reactive_widgets.values()), label=overlay.name, position="top")
 
     def _attach_streaming_widgets(self) -> None:
         """Insert streaming widgets at the top of the component."""
@@ -368,8 +434,9 @@ class BasePlot(ABC):
         for widget in self._streaming_widgets.values():
             streaming_objects.extend(widget.get_panel_objects())
         # Unmerged overlay streaming widgets (insert first so they end up below parent's)
-        self._collect_unmerged_overlay_widgets('_streaming_widgets', merged, position="top")
-        self._append_toolbox(streaming_objects, position="top")
+        has_unmerged = self._collect_unmerged_overlay_widgets('_streaming_widgets', merged, position="top")
+        label = self.name if has_unmerged else ""
+        self._append_toolbox(streaming_objects, label=label, position="top")
 
     def _add_overlay(self, overlay: BasePlot):
         self._overlays.append(overlay)
@@ -707,13 +774,9 @@ class BasePlot(ABC):
             self._renderer = DesktopRenderer()
 
     @property
-    def name(self) -> str:
-        return self.__class__.__name__.lower()
-
-    @property
     def _plot_func(self) -> Callable[[nw.DataFrame[Any], Style, Control], Plot]:
         """Runs the plot function for the current backend."""
-        module_path = f"pfund_plot.plots.{self.name}.{self._backend}"
+        module_path = f"pfund_plot.plots.{self.__class__.__name__.lower()}.{self._backend}"
         module = importlib.import_module(module_path)
         return getattr(module, "plot")
 

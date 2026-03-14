@@ -37,7 +37,7 @@ class BaseOverlay(BasePlot):
 
     @property
     def _plot_func(self):
-        module_path = f"pfund_plot.overlays.{self.name}.{self._backend}"
+        module_path = f"pfund_plot.overlays.{self.__class__.__name__.lower()}.{self._backend}"
         module = importlib.import_module(module_path)
         return getattr(module, "plot")
 
