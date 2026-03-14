@@ -1,6 +1,6 @@
 # pyright: reportAttributeAccessIssue=false, reportOptionalMemberAccess=false, reportConstantRedefinition=false, reportUnusedParameter=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportUnknownArgumentType=false
 from __future__ import annotations
-from typing import Callable, TYPE_CHECKING, ClassVar, Any, cast, TypeAlias
+from typing import Callable, TYPE_CHECKING, ClassVar, Any, Literal, cast, TypeAlias
 
 if TYPE_CHECKING:
     from narwhals.typing import IntoFrame
@@ -209,41 +209,97 @@ class BasePlot(ABC):
         for widget in self._streaming_widgets.values():
             widget.update_streaming_state(self._streaming_dfs)
 
-    def _attach_widgets(self) -> None:
-        """Append non-streaming widgets (e.g. datetime range) at the bottom of the component."""
+    def _append_toolbox(self, widget_objects: list[PanelWidget], label: str = "", position: Literal["top", "bottom"] = "bottom") -> None:
+        """Add a group of widget objects to the component, optionally with a label header.
 
-        def _append_toolbox(widget_objects: list[PanelWidget]) -> None:
-            if not widget_objects:
-                return
-            toolbox = pn.FlexBox(
-                *widget_objects,
-                align_items="center",
-                justify_content="center",
-            )
+        Args:
+            position: "bottom" appends after the plot, "top" inserts before it.
+        """
+        if not widget_objects:
+            return
+        items: list[PanelWidget] = list(widget_objects)
+        if label:
+            items.insert(0, pn.pane.Markdown(f"**{label}**"))
+        toolbox = pn.FlexBox(
+            *items,
+            align_items="center",
+            justify_content="center",
+        )
+        if position == "top":
+            if isinstance(self._component, pn.Column):
+                self._component.insert(0, toolbox)
+            else:
+                self._component = pn.Column(toolbox, self._component)
+        else:
             if isinstance(self._component, pn.Column):
                 self._component.append(toolbox)
             else:
                 self._component = pn.Column(self._component, toolbox)
 
+    def _resolve_widget_merging(
+        self,
+        parent_widgets: dict[type, BaseWidget | BaseStreamingWidget],
+        overlay_widgets_attr: str,
+    ) -> set[type]:
+        """Merge parent widgets with overlay widgets of the same class.
+
+        For each parent widget, if an overlay has the same widget class and
+        can_merge_with returns True, register the overlay as a participant
+        (one widget controls both). Track which overlay widget classes were
+        merged so they can be skipped during individual rendering.
+
+        Returns the set of widget classes that were merged.
+        """
+        merged: set[type] = set()
+        for WidgetClass, widget in parent_widgets.items():
+            for overlay in self._overlays:
+                overlay_widgets = getattr(overlay, overlay_widgets_attr)
+                if WidgetClass in overlay_widgets and widget.can_merge_with(overlay_widgets[WidgetClass]):
+                    widget.add_overlay(overlay_widgets[WidgetClass])
+                    merged.add(WidgetClass)
+        return merged
+
+    def _collect_unmerged_overlay_widgets(
+        self,
+        overlay_widgets_attr: str,
+        merged_classes: set[type],
+        position: Literal["top", "bottom"] = "bottom",
+    ) -> None:
+        """Render overlay widgets that weren't merged with the parent, each with a label."""
+        for overlay in self._overlays:
+            overlay_widgets = getattr(overlay, overlay_widgets_attr)
+            overlay_objects: list[PanelWidget] = []
+            for WidgetClass, widget in overlay_widgets.items():
+                if WidgetClass in merged_classes:
+                    continue
+                overlay_objects.extend(widget.get_panel_objects())
+            self._append_toolbox(overlay_objects, label=overlay.name, position=position)
+
+    def _attach_widgets(self) -> None:
+        """Append non-streaming widgets at the bottom of the component.
+
+        Smart merging: parent widgets with matching class are auto-merged
+        so one widget (e.g. datetime slider) controls both the parent plot
+        and its overlays. Overlay-only widgets that can't be merged are
+        rendered individually with a label.
+        """
         if not self._widgets and not self._streaming_widgets:
             self._create_widgets()
 
-        widget_objects: list[PanelWidget] = []
-        for widget in self._widgets.values():
-            widget_objects.extend(widget.get_panel_objects())
-        _append_toolbox(widget_objects)
-
-        # attach overlay widgets
+        # Set overlay parent refs and create their widgets
         for overlay in self._overlays:
             overlay._parent_plot = self
-
             if not overlay._widgets and not overlay._streaming_widgets:
                 overlay._create_widgets()
 
-            overlay_widget_objects: list[PanelWidget] = []
-            for widget in overlay._widgets.values():
-                overlay_widget_objects.extend(widget.get_panel_objects())
-            _append_toolbox(overlay_widget_objects)
+        # Merge + collect parent widgets
+        merged = self._resolve_widget_merging(self._widgets, '_widgets')
+        widget_objects: list[PanelWidget] = []
+        for widget in self._widgets.values():
+            widget_objects.extend(widget.get_panel_objects())
+        # Unmerged overlay widgets
+        self._collect_unmerged_overlay_widgets('_widgets', merged)
+        self._append_toolbox(widget_objects)
 
     @staticmethod
     def _infer_widget(name: str, value: Any) -> PanelWidget:
@@ -302,26 +358,18 @@ class BasePlot(ABC):
         """Insert reactive widgets at the top of the component."""
         if not self._reactive_widgets:
             return
-        reactive_bar = pn.Row(
-            *self._reactive_widgets.values(),
-        )
-        if isinstance(self._component, pn.Column):
-            self._component.insert(0, reactive_bar)
-        else:
-            self._component = pn.Column(reactive_bar, self._component)
+        self._append_toolbox(list(self._reactive_widgets.values()), position="top")
 
     def _attach_streaming_widgets(self) -> None:
         """Insert streaming widgets at the top of the component."""
-        streaming_objects = []
+        # Merge + collect parent streaming widgets
+        merged = self._resolve_widget_merging(self._streaming_widgets, '_streaming_widgets')
+        streaming_objects: list[PanelWidget] = []
         for widget in self._streaming_widgets.values():
             streaming_objects.extend(widget.get_panel_objects())
-        if not streaming_objects:
-            return
-        streaming_bar = pn.Row(*streaming_objects)
-        if isinstance(self._component, pn.Column):
-            self._component.insert(0, streaming_bar)
-        else:
-            self._component = pn.Column(streaming_bar, self._component)
+        # Unmerged overlay streaming widgets (insert first so they end up below parent's)
+        self._collect_unmerged_overlay_widgets('_streaming_widgets', merged, position="top")
+        self._append_toolbox(streaming_objects, position="top")
 
     def _add_overlay(self, overlay: BasePlot):
         self._overlays.append(overlay)
@@ -370,6 +418,12 @@ class BasePlot(ABC):
         if cls.SUPPORTED_WIDGETS is None:
             return []
         return cls.SUPPORTED_WIDGETS
+    
+    @classmethod
+    def get_supported_streaming_widgets(cls) -> list[type[BaseStreamingWidget]]:
+        if cls.SUPPORTED_STREAMING_WIDGETS is None:
+            return []
+        return cls.SUPPORTED_STREAMING_WIDGETS
     
     @classmethod
     def is_support_streaming(cls) -> bool:

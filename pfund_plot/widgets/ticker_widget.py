@@ -26,7 +26,7 @@ class TickerSelectWidget(BaseStreamingWidget):
         active_key: MessageKey,
         update_callback: Callable[[MessageKey], None],
     ):
-        self._update_callback = update_callback
+        super().__init__(streaming_dfs, active_key, update_callback)
         msg_keys = list(streaming_dfs.keys())
         self._select = pn.widgets.Select(
             name='Ticker',
@@ -45,7 +45,16 @@ class TickerSelectWidget(BaseStreamingWidget):
         # Mixed resolutions — disambiguate with "(resolution)"
         return {f"{product} ({res})": (product, res) for product, res in msg_keys}
 
+    def _fan_out_to_overlays(self, msg_key: MessageKey) -> None:
+        """Switch each overlay widget's active stream to the same msg_key.
+        Must be called BEFORE the parent's _update_callback so the DynamicMap re-render
+        picks up the updated overlay dfs.
+        """
+        for overlay_widget in self._overlays:
+            overlay_widget._update_callback(msg_key)
+
     def _on_select(self, event: Any) -> None:
+        self._fan_out_to_overlays(event.new)
         self._update_callback(event.new)
 
     def update_streaming_state(self, streaming_dfs: StreamingDfs) -> None:

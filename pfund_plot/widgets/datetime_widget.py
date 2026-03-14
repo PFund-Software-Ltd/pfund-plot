@@ -1,6 +1,6 @@
 # pyright: reportUnknownMemberType=false, reportGeneralTypeIssues=false, reportUnusedParameter=false, reportUnknownVariableType=false, reportArgumentType=false, reportUnknownArgumentType=false, reportAttributeAccessIssue=false
 from __future__ import annotations
-from typing import TYPE_CHECKING, Callable, Any
+from typing import TYPE_CHECKING, ClassVar, Callable, Any
 if TYPE_CHECKING:
     from narwhals.typing import Frame
     from param.parameterized import Event
@@ -41,10 +41,10 @@ def round_date(dt: datetime.datetime, to: str = 'floor') -> datetime.datetime:
 
 
 class DatetimeRangeWidget(BaseWidget):
+    REQUIRED_COLS: ClassVar[list[str] | None] = ["date"]
+
     def __init__(self, df: nw.DataFrame[Any], control: dict[str, Any], update_callback: Callable[[nw.DataFrame[Any]], None]):
-        self._df = df
-        self._control: dict[str, Any] = control
-        self._update_callback = update_callback
+        super().__init__(df, control, update_callback)
         date_col = self._df['date']
         num_data_shown = date_col.len()
         if 'num_data' in control and control['num_data'] is not None:
@@ -90,10 +90,20 @@ class DatetimeRangeWidget(BaseWidget):
     def get_panel_objects(self) -> list[pn.widgets.Widget]:
         return [self._datetime_range_input, self._datetime_range_slider]
 
-    def _filter_df(self, start_date: datetime.datetime, end_date: datetime.datetime) -> Frame:
-        return self._df.filter(
+    @staticmethod
+    def _filter_df(df: nw.DataFrame[Any], start_date: datetime.datetime, end_date: datetime.datetime) -> Frame:
+        return df.filter(
             (nw.col("date") >= start_date) & (nw.col("date") <= end_date)
         )
+
+    def _fan_out_to_overlays(self, start_date: datetime.datetime, end_date: datetime.datetime) -> None:
+        """Filter each overlay widget's full df by the same date range and trigger its update.
+        Must be called BEFORE the parent's _update_callback so the DynamicMap re-render
+        picks up the updated overlay dfs.
+        """
+        for overlay_widget in self._overlays:
+            filtered = self._filter_df(overlay_widget._df, start_date, end_date)
+            overlay_widget._update_callback(filtered)
 
     def _derive_slider_step(self) -> int:
         date_col = self._df['date']
@@ -111,7 +121,9 @@ class DatetimeRangeWidget(BaseWidget):
             _ = self._datetime_range_slider.param.update(value=(start_date, end_date))
         finally:
             self._slider_watcher = self._datetime_range_slider.param.watch(self._update_datetime_range_slider, 'value')
-        df_filtered = self._filter_df(start_date, end_date)
+        # update overlay dfs BEFORE parent re-render so DynamicMap picks them up
+        self._fan_out_to_overlays(start_date, end_date)
+        df_filtered = self._filter_df(self._df, start_date, end_date)
         self._update_callback(df_filtered)
 
     def _update_datetime_range_slider(self, event: Event):
@@ -122,7 +134,9 @@ class DatetimeRangeWidget(BaseWidget):
             _ = self._datetime_range_input.param.update(value=(start_date, end_date))
         finally:
             self._input_watcher = self._datetime_range_input.param.watch(self._update_datetime_range_input, 'value')
-        df_filtered = self._filter_df(start_date, end_date)
+        # update overlay dfs BEFORE parent re-render so DynamicMap picks them up
+        self._fan_out_to_overlays(start_date, end_date)
+        df_filtered = self._filter_df(self._df, start_date, end_date)
         self._update_callback(df_filtered)
 
     def update_df(self, df: nw.DataFrame[Any]):

@@ -42,6 +42,7 @@ class BaseOverlay(BasePlot):
         return getattr(module, "plot")
 
     def _build_plot(self, df: nw.DataFrame[Any] | None = None) -> Plot:
+        df = df if df is not None else self._df
         return self._plot_func(
             df=df,
             x=self._x,
