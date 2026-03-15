@@ -21,6 +21,9 @@ if TYPE_CHECKING:
     from pfund_plot.plots.scatter import (
         Scatter as scatter,
     )
+    from pfund_plot.plots.marker import (
+        Marker as marker,
+    )
 
 from importlib.metadata import version
 
@@ -60,6 +63,9 @@ def __getattr__(name: str):
     elif name in ('scatter',):
         from pfund_plot.plots.scatter import Scatter
         return Scatter
+    elif name in ('marker',):
+        from pfund_plot.plots.marker import Marker
+        return Marker
     else:
         raise AttributeError(f"'{__name__}' has no attribute '{name}'")
     # TODO
@@ -77,6 +83,7 @@ __all__ = (
     "line",
     "layout", "tabs",
     "scatter",
+    "marker",
 )
 def __dir__():
     return sorted(__all__)

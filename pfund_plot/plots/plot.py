@@ -126,15 +126,15 @@ class BasePlot(ABC):
         else:
             self._df: nw.DataFrame[Any] | None = None
             self._feed: MarketFeed | None = data
-        self.name: str | None = name or self.__class__.__name__.lower()
+        self.name: str | None = name or self._class_name
         self._reactive_params: dict[str, Any] = reactive_params
         self._reactive_callback: Callable[..., Any] | None = callback
         self._reactive_widgets: dict[str, PanelWidget] = {}
         self._setup()
-        if self._df is not None:
-            self._df = self._standardize_df(self._df)
         self._x: str | None = x
         self._y: str | list[str] | None = y
+        if self._df is not None:
+            self._df = self._standardize_df(self._df)
         self._anywidget: AnyWidget | None = None
         self._plot: Plot | None = None
         self._pane: Pane | None = None
@@ -175,6 +175,10 @@ class BasePlot(ABC):
         from holoviews.core.overlay import Overlay, NdOverlay
         from holoviews.core.element import Element
         return isinstance(plot, (Overlay, NdOverlay, Element))
+    
+    @property
+    def _class_name(self) -> str:
+        return self.__class__.__name__.lower()
     
     def _standardize_df(self, df: IntoFrame) -> nw.DataFrame[Any]:
         import datetime
@@ -570,7 +574,7 @@ class BasePlot(ABC):
             import_hvplot_df_module(match_df_with_data_tool(self._df))
 
         if self._feed is not None:
-            assert self.SUPPORT_STREAMING, f"{self.__class__.__name__} does not support streaming"
+            assert self.SUPPORT_STREAMING, f"{self._class_name} does not support streaming"
             if not isinstance(self._feed, StreamingFeedMixin):
                 raise ValueError("feed must be a pfeed's Feed object that supports streaming")
             # set pipeline mode to True for streaming to standardize the run method to be feed.run()
@@ -611,16 +615,16 @@ class BasePlot(ABC):
         self._renderer.add_periodic_callback(periodic_callback)
     
     def _on_streaming_callback(self, msg: StreamingMessage) -> StreamingMessage:
-        raise NotImplementedError(f"{self.__class__.__name__} does not support streaming")
+        raise NotImplementedError(f"{self._class_name} does not support streaming")
     
     def _is_streaming_ready(self) -> bool:
         return bool(self._streaming_dfs)
     
     def _create_streaming_row(self, msg: StreamingMessage) -> nw.DataFrame[Any]:
-        raise NotImplementedError(f"{self.__class__.__name__} does not support streaming")
+        raise NotImplementedError(f"{self._class_name} does not support streaming")
     
     def _create_streaming_df(self, msg_key: MessageKey, msg: StreamingMessage) -> nw.DataFrame[Any]:
-        raise NotImplementedError(f"{self.__class__.__name__} does not support streaming")
+        raise NotImplementedError(f"{self._class_name} does not support streaming")
     
     def _truncate_streaming_df(self, df: nw.DataFrame[Any]) -> nw.DataFrame[Any]:
         assert self._control is not None, "control is not set"
@@ -822,7 +826,7 @@ class BasePlot(ABC):
     @property
     def _plot_func(self) -> Callable[[nw.DataFrame[Any], Style, Control], Plot]:
         """Runs the plot function for the current backend."""
-        module_path = f"pfund_plot.plots.{self.__class__.__name__.lower()}.{self._backend}"
+        module_path = f"pfund_plot.plots.{self._class_name}.{self._backend}"
         module = importlib.import_module(module_path)
         return getattr(module, "plot")
 
