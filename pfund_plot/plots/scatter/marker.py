@@ -15,14 +15,16 @@ __all__ = ["Marker"]
 
 
 class Marker(Scatter):
-    """Marker plot that colors points by the sign of the y column.
+    """Marker plot that colors points by signal direction.
 
-    Positive values (>= 0) get one color/marker, negative values get another.
+    Positive signal values (>= 0) get one color/marker, negative values get another.
 
     Args:
         data: DataFrame with marker positions
         x: Column name for x-axis position
-        y: Numeric column for y-axis position, sign determines positive/negative styling
+        y: Column name for y-axis position (e.g. 'close' price)
+        signal: Column whose sign determines positive/negative styling.
+            If None, defaults to the y column.
         pos_color: Color for positive values (default: 'green')
         neg_color: Color for negative values (default: 'red')
         pos_marker: Marker shape for positive values (default: 'triangle_up')
@@ -30,7 +32,7 @@ class Marker(Scatter):
 
     Example:
         plt.marker(df, x='date', y='pnl')
-        plt.ohlc(ohlc_df) * plt.marker(signals_df, x='date', y='trade')
+        plt.ohlc(df) * plt.marker(df, x='date', y='close', signal='trade')
     """
 
     def __init__(
@@ -38,11 +40,13 @@ class Marker(Scatter):
         data: IntoFrame,
         x: str,
         y: str,
+        signal: str | None = None,
         pos_color: str='green',
         neg_color: str='red',
         pos_marker: Literal['circle', 'square', 'triangle_up', 'triangle_down', 'diamond', 'cross', 'x', 'star']='triangle_up',
         neg_marker: Literal['circle', 'square', 'triangle_up', 'triangle_down', 'diamond', 'cross', 'x', 'star']='triangle_down',
     ):
+        self._signal = signal
         self._pos_color = pos_color
         self._neg_color = neg_color
         self._pos_marker = pos_marker
@@ -59,7 +63,8 @@ class Marker(Scatter):
 
     def _standardize_df(self, df: IntoFrame) -> nw.DataFrame[Any]:
         df: nw.DataFrame[Any] = super()._standardize_df(df)
-        is_positive = nw.col(self._y) >= 0
+        signal_col = self._signal if self._signal else self._y
+        is_positive = nw.col(signal_col) >= 0
         df = df.with_columns(
             nw.when(is_positive)
             .then(nw.lit(self._pos_color))

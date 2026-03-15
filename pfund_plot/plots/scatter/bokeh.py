@@ -65,6 +65,7 @@ def control(
     slider_step: int | None = None,
     widgets: bool = True,
     linked_axes: bool = True,
+    include_extra_cols: bool = False,
 ):
     """
     Args:
@@ -74,6 +75,7 @@ def control(
         widgets: whether to show widgets. default is True.
             For granular control, use remove_widgets() to remove specific widget classes.
         linked_axes: whether to link axes across plots in a layout (plt.layout(...)).
+        include_extra_cols: whether to include extra columns in the hover tooltip.
     """
     return locals()
 
@@ -83,6 +85,7 @@ def plot(
     x: str,
     y: str,
     style: dict[str, Any],
+    control: dict[str, Any],
     **kwargs: Any,
 ) -> Element | Overlay:
     import hvplot
@@ -99,9 +102,10 @@ def plot(
         'alpha': style['opacity'],
         'responsive': True,
         'grid': style['grid'],
-        # Collect extra columns for hover tooltip
-        'hover_cols': [c for c in columns if c not in (x, y)],
     }
+    
+    if control['include_extra_cols']:
+        scatter_kwargs['hover_cols'] = [c for c in columns if c not in (x, y)]
 
     color_is_col = isinstance(color, str) and color in columns
     size_is_col = isinstance(size, str) and size in columns

@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from pfund_plot.plots.scatter import (
         Scatter as scatter,
     )
-    from pfund_plot.plots.marker import (
+    from pfund_plot.plots.scatter.marker import (
         Marker as marker,
     )
 
@@ -64,7 +64,7 @@ def __getattr__(name: str):
         from pfund_plot.plots.scatter import Scatter
         return Scatter
     elif name in ('marker',):
-        from pfund_plot.plots.marker import Marker
+        from pfund_plot.plots.scatter.marker import Marker
         return Marker
     else:
         raise AttributeError(f"'{__name__}' has no attribute '{name}'")

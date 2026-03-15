@@ -135,6 +135,10 @@ class BasePlot(ABC):
         self._y: str | list[str] | None = y
         if self._df is not None:
             self._df = self._standardize_df(self._df)
+            # auto-resolve x to 'date' column when not specified,
+            # ensures consistent axis dimensions across overlays
+            if self._x is None and 'date' in self._df.columns:
+                self._x = 'date'
         self._anywidget: AnyWidget | None = None
         self._plot: Plot | None = None
         self._pane: Pane | None = None
@@ -241,7 +245,7 @@ class BasePlot(ABC):
             if WidgetClass not in self._widgets and _has_required_cols(WidgetClass):
                 self._widgets[WidgetClass] = WidgetClass(self._df, self._control, self._update_pane)
 
-        if self._feed is not None:
+        if self.is_streaming():
             for WidgetClass in self._ChosenStreamingWidgetClasses:
                 if WidgetClass not in self._streaming_widgets:
                     self._streaming_widgets[WidgetClass] = WidgetClass(
@@ -546,6 +550,9 @@ class BasePlot(ABC):
     def is_support_streaming(cls) -> bool:
         return cls.SUPPORT_STREAMING
     
+    def is_streaming(self):
+        return self.is_support_streaming() and self._feed is not None
+    
     @staticmethod
     def _derive_y_cols(df: nw.DataFrame[Any], x: str | None, y: str | list[str] | None) -> list[str]:
         if y is None:
@@ -573,7 +580,7 @@ class BasePlot(ABC):
         if self._df is not None:
             import_hvplot_df_module(match_df_with_data_tool(self._df))
 
-        if self._feed is not None:
+        if self.is_streaming():
             assert self.SUPPORT_STREAMING, f"{self._class_name} does not support streaming"
             if not isinstance(self._feed, StreamingFeedMixin):
                 raise ValueError("feed must be a pfeed's Feed object that supports streaming")
@@ -660,7 +667,7 @@ class BasePlot(ABC):
 
         # start streaming for overlays that have their own feeds
         for overlay in self._overlays:
-            if overlay._feed is not None:
+            if overlay.is_streaming():
                 overlay._start_streaming()
     
     def _refresh_streaming_ui(self):
@@ -670,13 +677,13 @@ class BasePlot(ABC):
             self._update_widgets(self._df)
             
     def _wait_for_streaming_ready(self):
-        if self._feed is not None and self._df is None:
+        if self.is_streaming() and self._df is None:
             while not self._is_streaming_ready():
                 cprint("Not enough data to plot, waiting for streaming data...", style=TextStyle.BOLD + RichColor.YELLOW)
                 time.sleep(1)
                 
     async def _wait_for_streaming_ready_async(self):
-        if self._feed is not None and self._df is None:
+        if self.is_streaming() and self._df is None:
             while not self._is_streaming_ready():
                 cprint("Not enough data to plot, waiting for streaming data...", style=TextStyle.BOLD + RichColor.YELLOW)
                 await asyncio.sleep(1)
@@ -686,7 +693,7 @@ class BasePlot(ABC):
         return self._renderer.render(self._component)
     
     def _render_sync(self) -> RenderedResult:
-        if self._feed is not None:
+        if self.is_streaming():
             self._start_streaming()
             # NOTE: when streaming, need to wait for enough data before creating plot/pane etc.
             # otherwise the e.g. x-axis might be wrong and cannot be fixed once it's served
@@ -694,7 +701,7 @@ class BasePlot(ABC):
         return self._render()
 
     async def _render_async(self) -> RenderedResult:
-        if self._feed is not None:
+        if self.is_streaming():
             self._start_streaming()
             await self._wait_for_streaming_ready_async()
         return self._render()

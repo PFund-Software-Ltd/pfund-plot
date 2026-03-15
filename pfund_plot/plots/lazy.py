@@ -339,7 +339,7 @@ class LazyPlot:
 
         other_plot = other._plot
         current_plot = self._plot
-        if other_plot.is_support_streaming() != current_plot.is_support_streaming():
+        if other_plot.is_streaming() != current_plot.is_streaming():
             raise RuntimeError("Cannot overlay a streaming plot with a non-streaming plot.")
         if other_plot._backend != current_plot._backend:
             raise RuntimeError("Cannot overlay plots with different backends.")

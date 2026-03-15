@@ -48,5 +48,6 @@ class Scatter(BasePlot):
     style = ScatterStyle
     control = ScatterControl
 
+    # TODO: add "by" parameter to group by, see https://hvplot.holoviz.org/en/docs/latest/ref/api/manual/hvplot.hvPlot.scatter.html
     def __init__(self, data: IntoFrame, x: str, y: str):
         super().__init__(data=data, x=x, y=y)
