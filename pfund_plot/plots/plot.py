@@ -30,7 +30,7 @@ import time
 import warnings
 import importlib
 from threading import Thread
-from abc import ABC, abstractmethod
+from abc import ABC
 
 import narwhals as nw
 import panel as pn
@@ -177,9 +177,39 @@ class BasePlot(ABC):
         return isinstance(plot, (Overlay, NdOverlay, Element))
     
     def _standardize_df(self, df: IntoFrame) -> nw.DataFrame[Any]:
+        import datetime
+
         df = nw.from_native(df)
         if isinstance(df, nw.LazyFrame):
             df = df.collect()
+        # convert all columns to lowercase
+        df = df.rename({col: col.lower() for col in df.columns})
+        # rename common datetime column names to 'date'
+        date_original_name = "date"
+        for alias in ("datetime", "timestamp"):
+            if alias in df.columns and "date" not in df.columns:
+                date_original_name = alias
+                df = df.rename({alias: "date"})
+        # if 'date' column exists, ensure it's a proper datetime type
+        if "date" in df.columns:
+            date_value = df.select("date").row(0)[0]
+            if not isinstance(date_value, datetime.datetime):
+                try:
+                    df = df.with_columns(
+                        nw.col("date").str.to_datetime(format=None),
+                    )
+                except Exception:
+                    raise TypeError(f"Column '{date_original_name}' cannot be converted to datetime (got {type(date_value).__name__})")
+            # normalize to naive UTC — Panel/Bokeh widgets don't handle tz-aware datetimes consistently
+            date_dtype = df.collect_schema()["date"]
+            if hasattr(date_dtype, 'time_zone') and date_dtype.time_zone is not None:  # pyright: ignore[reportAttributeAccessIssue]
+                df = df.with_columns(
+                    nw.col("date").dt.convert_time_zone("UTC").dt.replace_time_zone(None)
+                )
+        if self.REQUIRED_COLS:
+            missing_cols = [col for col in self.REQUIRED_COLS if col not in df.columns]
+            if missing_cols:
+                raise ValueError(f"Missing required columns: {missing_cols}")
         return df
 
     def _create_msg_key(self, msg: StreamingMessage) -> MessageKey:
@@ -190,12 +220,21 @@ class BasePlot(ABC):
             self._active_msg_key = msg_key
         return msg_key
 
+
     def _create_widgets(self) -> None:
-        if not self._control.get('widgets', True):
+        def _has_required_cols(WidgetClass: type[BaseWidget]) -> bool:
+            """Check if the df has the columns required by the widget."""
+            required = WidgetClass.REQUIRED_COLS
+            if not required:
+                return True
+            return all(col in self._df.columns for col in required)
+        
+        from pfund_plot.config import get_config
+        if get_config().disable_widgets or not self._control.get('widgets', True):
             return
 
         for WidgetClass in self._ChosenWidgetClasses:
-            if WidgetClass not in self._widgets:
+            if WidgetClass not in self._widgets and _has_required_cols(WidgetClass):
                 self._widgets[WidgetClass] = WidgetClass(self._df, self._control, self._update_pane)
 
         if self._feed is not None:
@@ -466,9 +505,16 @@ class BasePlot(ABC):
         if msg_key == self._active_msg_key:
             self._update_df(df)
 
-    @abstractmethod
     def _create_component(self) -> None:
-        pass
+        height = self._style.get("total_height")
+        width = self._style.get("width")
+        self._component = pn.Column(
+            self._pane,
+            name=self._style.get("title", ""),
+            sizing_mode=self._get_sizing_mode(height, width),
+            height=height,
+            width=width,
+        )
 
     @classmethod
     def get_supported_backends(cls) -> list[PlottingBackend]:
@@ -881,6 +927,8 @@ class BasePlot(ABC):
                     dmap, linked_axes=self._control.get("linked_axes", True)
                 )
             else:  # from plt.bokeh(), plt.plotly() or plt.matplotlib()
+                # TODO: plotly and matplotlib should be able to use DynamicMap as well
+                # see: https://www.holoviews.org/reference/containers/plotly/DynamicMap.html
                 if backend == PlottingBackend.bokeh:
                     self._pane = pn.pane.Bokeh(self._plot)
                 elif backend == PlottingBackend.plotly:

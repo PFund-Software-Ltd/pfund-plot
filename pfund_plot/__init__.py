@@ -18,8 +18,8 @@ if TYPE_CHECKING:
     from pfund_plot.plots.plotly import (
         Plotly as plotly,
     )
-    from pfund_plot.overlays.marker import (
-        Marker as marker,
+    from pfund_plot.plots.scatter import (
+        Scatter as scatter,
     )
 
 from importlib.metadata import version
@@ -57,9 +57,9 @@ def __getattr__(name: str):
     elif name == 'tabs':
         from pfund_plot.plots.layout.tabs import Tabs
         return Tabs
-    elif name == 'marker':
-        from pfund_plot.overlays.marker import Marker
-        return Marker
+    elif name in ('scatter',):
+        from pfund_plot.plots.scatter import Scatter
+        return Scatter
     else:
         raise AttributeError(f"'{__name__}' has no attribute '{name}'")
     # TODO
@@ -76,7 +76,7 @@ __all__ = (
     "candlestick", "ohlc", "kline",
     "line",
     "layout", "tabs",
-    "marker",
+    "scatter",
 )
 def __dir__():
     return sorted(__all__)

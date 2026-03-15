@@ -46,6 +46,3 @@ class Plotly(BasePlot):
 
     def _create_widgets(self) -> None:
         pass
-
-    def _create_component(self) -> None:
-        self._component = pn.Column(self._pane)

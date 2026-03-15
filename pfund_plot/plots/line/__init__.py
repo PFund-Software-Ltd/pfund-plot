@@ -3,13 +3,11 @@ from __future__ import annotations
 from typing import ClassVar, TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
-    from panel.layout import Panel
     from pfeed.streaming.streaming_message import StreamingMessage
     from pfund_plot.widgets.base import BaseWidget, BaseStreamingWidget
     from pfund_plot.plots.plot import MessageKey
 
 import narwhals as nw
-import panel as pn
 
 from pfund_kit.style import cprint, RichColor, TextStyle
 from pfund_plot.enums import PlottingBackend
@@ -42,22 +40,6 @@ class Line(BasePlot):
     style = LineStyle
     control = LineControl
 
-    def _update_df(self, df: nw.DataFrame[Any]):
-        self._df = df
-
-    def _create_component(self) -> None:
-        # total_height is the height of the component (including the figure + widgets)
-        height = self._style["total_height"]
-        width = self._style["width"]
-        self._component: Panel = pn.Column(
-            self._pane,
-            name="Line Chart",
-            # normally these 3 parameters aren't required, but when inside a layout (GridStack), they are useful
-            sizing_mode=self._get_sizing_mode(height, width),
-            height=height,
-            width=width,
-        )
-    
     def _is_streaming_ready(self) -> bool:
         if not self._streaming_dfs:
             return False

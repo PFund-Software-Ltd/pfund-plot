@@ -58,17 +58,16 @@ def control(
 ):
     """
     Args:
-        num_data: the initial number of data points to display.
-            This can be changed by a slider in the plot.
-        max_data: the maximum number of data points kept in memory.
+        num_data: (DatetimeRangeWidget) initial number of most recent data points to display.
+        max_data: (streaming) maximum number of data points kept in memory.
             If None, data will continue to grow unbounded.
-        slider_step: the step size of the datetime range slider. if None, it will be derived from the data.
-        widgets: whether to show widgets (datetime range, ticker select, etc.). default is True.
+        slider_step: (DatetimeRangeWidget) step size in ms for the datetime range slider.
+            If None, derived from data resolution.
+        linked_axes: whether to link axes across plots in a layout (plt.layout(...)).
+        update_interval: (streaming) interval in ms to update the plot. default is 5000 ms.
+        incremental_update: (streaming) whether to update even when the bar is incomplete. default is True.
+        widgets: whether to show widgets. default is True.
             For granular control, use remove_widgets() to remove specific widget classes.
-        linked_axes: whether to link the axes of bokeh plots inside this pane across a panel layout.
-            i.e. when multiple plots are placed in a layout (plt.layout(...)), the axes of the plots will be linked.
-        incremental_update: whether to update the plot even when the bar is incomplete during streaming. default is True.
-        update_interval: the interval in milliseconds to update the plot during streaming. default is 5000 ms.
         datetime_precision: the precision of datetime formatting on the hover tooltip.
             "d" for days (%Y-%m-%d), "s" for seconds (default, %Y-%m-%d %H:%M:%S), "ms" for milliseconds (%Y-%m-%d %H:%M:%S.%3N).
     """

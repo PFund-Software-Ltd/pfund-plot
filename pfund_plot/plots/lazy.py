@@ -324,7 +324,7 @@ class LazyPlot:
         This allows reuse: plot * marker1 and plot * marker2 are independent.
 
         Args:
-            other: A LazyPlot or LazyOverlay to composite onto this plot
+            other: A LazyPlot to composite onto this plot
 
         Returns:
             A new LazyPlot with the overlay added

@@ -33,6 +33,7 @@ def configure(
     data_path: str | None = None,
     cache_path: str | None = None,
     static_dirs: dict[str, str] | None = None,
+    disable_widgets: bool | None = None,
     theme: PanelTheme | str | None = None,
     design: PanelDesign | str | None = None,
     persist: bool = False,
@@ -83,6 +84,7 @@ class PFundPlotConfig(Configuration):
     def _initialize_from_data(self):
         assert isinstance(self._data, dict), "self._data is not a dict"
         
+        self.disable_widgets: bool = self._data.get('disable_widgets', False)
         self.theme = self._data.get('theme', PanelTheme.default)
         self.design = self._data.get('design', PanelDesign.native)
         pn.extension(theme=self.theme)
@@ -96,6 +98,7 @@ class PFundPlotConfig(Configuration):
     def to_dict(self) -> dict[str, Any]:
         return {
             **super().to_dict(),
+            'disable_widgets': self.disable_widgets,
             'theme': self.theme,
             'design': self.design,
             'static_dirs': self.static_dirs,

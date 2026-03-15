@@ -3,13 +3,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, ClassVar, cast
 
 if TYPE_CHECKING:
-    from narwhals.typing import IntoFrame
-    from panel.layout import Panel
     from pfeed.streaming import BarMessage
     from pfund_plot.widgets.base import BaseWidget, BaseStreamingWidget
     from pfund_plot.plots.plot import MessageKey
 
-import panel as pn
 import narwhals as nw
 
 from pfund_kit.style import cprint, RichColor, TextStyle
@@ -47,34 +44,6 @@ class Candlestick(BasePlot):
     style = CandlestickStyle
     control = CandlestickControl
 
-    def _standardize_df(self, df: IntoFrame) -> nw.DataFrame[Any]:
-        import datetime
-        df = nw.from_native(df)
-        if isinstance(df, nw.LazyFrame):
-            df = df.collect()
-        # convert all columns to lowercase
-        df = df.rename({col: col.lower() for col in df.columns})
-        # rename 'datetime' to 'date'
-        if "datetime" in df.columns and "date" not in df.columns:
-            df = df.rename({"datetime": "date"})
-        missing_cols = [col for col in self.REQUIRED_COLS if col not in df.columns]  # pyright: ignore[reportOptionalIterable]
-        if missing_cols:
-            raise ValueError(f"Missing required columns: {missing_cols}")
-        date_value = df.select("date").row(0)[0]
-        # convert date to datetime if not already
-        if not isinstance(date_value, datetime.datetime):
-            # REVIEW: this might mess up the datetime format
-            df = df.with_columns(
-                nw.col("date").str.to_datetime(format=None),
-            )
-        # normalize to naive UTC — Panel/Bokeh widgets don't handle tz-aware datetimes consistently
-        date_dtype = df.collect_schema()["date"]
-        if hasattr(date_dtype, 'time_zone') and date_dtype.time_zone is not None:  # pyright: ignore[reportAttributeAccessIssue]
-            df = df.with_columns(
-                nw.col("date").dt.convert_time_zone("UTC").dt.replace_time_zone(None)
-            )
-        return df
-    
     def _create_component(self):
         # NOTE: somehow data update on anywidget (svelte) in marimo notebook doesn't work using Panel
         # (probably need a refresh of the marimo cell to reflect the changes), so use mo.vstack() as a workaround
@@ -84,17 +53,7 @@ class Candlestick(BasePlot):
             # NOTE: self._style is NOT applied in this case
             self._component = mo.vstack([self._anywidget])
         else:
-            # total_height is the height of the component (including the figure + widgets)
-            height = self._style["total_height"]
-            width = self._style["width"]
-            self._component: Panel = pn.Column(
-                self._pane,
-                name="Candlestick Chart",
-                # normally these 3 parameters aren't required, but when inside a layout (GridStack), they are useful
-                sizing_mode=self._get_sizing_mode(height, width),
-                height=height,
-                width=width,
-            )
+            super()._create_component()
     
     def _is_streaming_ready(self):
         '''Return True if all streaming dataframes have at least 2 rows (needed for hvplot ohlc to compute candle width).'''

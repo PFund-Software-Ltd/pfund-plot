@@ -6,12 +6,14 @@ if TYPE_CHECKING:
     from holoviews.core.overlay import NdOverlay
 
 import narwhals as nw
+
 from pfund_plot.enums import PlottingBackend
     
 
 __all__ = ["plot", "style", "control"]
 
 
+DEFAULT_COLOR = "steelblue"
 DEFAULT_HEIGHT = 280
 
 
@@ -19,7 +21,7 @@ def style(
     title: str = "",
     xlabel: str = "",
     ylabel: str = "",
-    line_color: str = "steelblue",
+    color: str = DEFAULT_COLOR,
     bg_color: str = '',  # empty string by default because Panel will automatically use the theme color
     grid: bool = False,
     total_height: int | None = None,
@@ -31,7 +33,7 @@ def style(
         title: the title of the plot
         xlabel: the label of the x-axis
         ylabel: the label of the y-axis
-        line_color: the color of the line, hex code is supported, only used when there is only one line
+        color: the color of the line, hex code is supported, only used when there is only one line
         bg_color: the background color of the plot, hex code is supported
         total_height: the height of the component (including the figure + widgets)
             Default is None, when it is None, Panel will automatically adjust its height
@@ -54,18 +56,16 @@ def control(
 ):
     """
     Args:
-        num_data: the initial number of data points to display.
-            This can be changed by a slider in the plot.
-        max_data: the maximum number of data points kept in memory.
+        num_data: (DatetimeRangeWidget) initial number of most recent data points to display.
+        max_data: (streaming) maximum number of data points kept in memory.
             If None, data will continue to grow unbounded.
-        slider_step: the step size of the datetime range slider. if None, it will be derived from the data.
-        widgets: whether to show widgets (datetime range, ticker select, etc.). default is True.
+        slider_step: (DatetimeRangeWidget) step size in ms for the datetime range slider.
+            If None, derived from data resolution.
+        widgets: whether to show widgets. default is True.
             For granular control, use remove_widgets() to remove specific widget classes.
-        linked_axes: whether to link the axes of bokeh plots inside this pane across a panel layout.
-            i.e. when multiple plots are placed in a layout (plt.layout(...)), the axes of the plots will be linked.
-        incremental_update: whether to update the plot even when the bar is incomplete during streaming. default is True.
-            This is only used when streaming bar data
-        update_interval: the interval in milliseconds to update the plot during streaming. default is 5000 ms.
+        linked_axes: whether to link axes across plots in a layout (plt.layout(...)).
+        incremental_update: (streaming) whether to update even when the bar is incomplete. default is True.
+        update_interval: (streaming) interval in ms to update the plot. default is 5000 ms.
         datetime_precision: the precision of datetime formatting on the hover tooltip.
             "d" for days (%Y-%m-%d), "s" for seconds (default, %Y-%m-%d %H:%M:%S), "ms" for milliseconds (%Y-%m-%d %H:%M:%S.%3N).
     """
@@ -147,9 +147,11 @@ def plot(
     else:
         tools = [_create_crosshair_tool()]
 
-    line_kwargs: dict[str, Any] = {}
+    line_kwargs: dict[str, Any] = {
+        "responsive": True,
+    }
     if is_single_line:
-        line_kwargs["color"] = style["line_color"]
+        line_kwargs["color"] = style["color"]
     else:
         line_kwargs["hover_cols"] = y_cols
 
@@ -159,7 +161,6 @@ def plot(
             x=x,
             y=y,
             tools=tools,
-            responsive=True,
             grid=style["grid"],
             bgcolor=style["bg_color"],
             **line_kwargs,
