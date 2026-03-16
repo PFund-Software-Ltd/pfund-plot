@@ -38,20 +38,22 @@ class Marker(Scatter):
     def __init__(
         self,
         data: IntoFrame,
-        x: str,
-        y: str,
+        x: str | None = None,
+        y: str | list[str] | None = None,
         signal: str | None = None,
         pos_color: str='green',
         neg_color: str='red',
         pos_marker: Literal['circle', 'square', 'triangle_up', 'triangle_down', 'diamond', 'cross', 'x', 'star']='triangle_up',
         neg_marker: Literal['circle', 'square', 'triangle_up', 'triangle_down', 'diamond', 'cross', 'x', 'star']='triangle_down',
+        name: str | None = None,
+        **reactive_params: Any,
     ):
         self._signal = signal
         self._pos_color = pos_color
         self._neg_color = neg_color
         self._pos_marker = pos_marker
         self._neg_marker = neg_marker
-        super().__init__(data=data, x=x, y=y)
+        super().__init__(data=data, x=x, y=y, name=name, **reactive_params)
     
     @property
     def _plot_func(self) -> Callable[[nw.DataFrame[Any], Style, Control], Plot]:

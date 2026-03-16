@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Literal
 
 if TYPE_CHECKING:
-    from holoviews import Element
     from holoviews.core.overlay import Overlay
 
 import narwhals as nw
@@ -82,12 +81,12 @@ def control(
 
 def plot(
     df: nw.DataFrame[Any],
-    x: str,
-    y: str,
+    x: str | None,
+    y: str | list[str] | None,
     style: dict[str, Any],
     control: dict[str, Any],
     **kwargs: Any,
-) -> Element | Overlay:
+) -> Overlay:
     import hvplot
 
     _ = hvplot.extension(PlottingBackend.bokeh)
@@ -103,9 +102,16 @@ def plot(
         'responsive': True,
         'grid': style['grid'],
     }
-    
+
     if control['include_extra_cols']:
-        scatter_kwargs['hover_cols'] = [c for c in columns if c not in (x, y)]
+        exclude: set[str] = set()
+        if x:
+            exclude.add(x)
+        if isinstance(y, list):
+            exclude.update(y)
+        elif y:
+            exclude.add(y)
+        scatter_kwargs['hover_cols'] = [c for c in columns if c not in exclude]
 
     color_is_col = isinstance(color, str) and color in columns
     size_is_col = isinstance(size, str) and size in columns
@@ -128,7 +134,7 @@ def plot(
         scatter_kwargs['marker'] = MARKER_MAP.get(marker, marker)
 
 
-    scatter = (
+    return (
         df.to_native().hvplot.scatter(
             x=x,
             y=y,
@@ -142,4 +148,3 @@ def plot(
         )
     )
 
-    return scatter

@@ -1,6 +1,6 @@
 # pyright: reportArgumentType=false, reportOptionalMemberAccess=false, reportOptionalSubscript=false, reportCallIssue=false, reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false
 from __future__ import annotations
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, ClassVar, Any
 
 if TYPE_CHECKING:
     from narwhals.typing import IntoFrame
@@ -49,5 +49,12 @@ class Scatter(BasePlot):
     control = ScatterControl
 
     # TODO: add "by" parameter to group by, see https://hvplot.holoviz.org/en/docs/latest/ref/api/manual/hvplot.hvPlot.scatter.html
-    def __init__(self, data: IntoFrame, x: str, y: str):
-        super().__init__(data=data, x=x, y=y)
+    def __init__(
+        self, 
+        data: IntoFrame, 
+        x: str | None = None, 
+        y: str | list[str] | None = None,
+        name: str | None = None,
+        **reactive_params: Any,
+    ):
+        super().__init__(data=data, x=x, y=y, name=name, **reactive_params)

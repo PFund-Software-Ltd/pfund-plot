@@ -135,10 +135,8 @@ class BasePlot(ABC):
         self._y: str | list[str] | None = y
         if self._df is not None:
             self._df = self._standardize_df(self._df)
-            # auto-resolve x to 'date' column when not specified,
-            # ensures consistent axis dimensions across overlays
-            if self._x is None and 'date' in self._df.columns:
-                self._x = 'date'
+            self._x = self._derive_x_col(self._df, self._x)
+        self._plot_kwargs: dict[str, Any] = {}
         self._anywidget: AnyWidget | None = None
         self._plot: Plot | None = None
         self._pane: Pane | None = None
@@ -227,7 +225,6 @@ class BasePlot(ABC):
         if self._active_msg_key is None:
             self._active_msg_key = msg_key
         return msg_key
-
 
     def _create_widgets(self) -> None:
         def _has_required_cols(WidgetClass: type[BaseWidget]) -> bool:
@@ -568,7 +565,11 @@ class BasePlot(ABC):
         x_col = x
         native_df = df.to_native()
         if x is None:
-            if hasattr(native_df, 'index') and native_df.index.name is not None:
+            if 'date' in df.columns:
+                # auto-resolve x to 'date' column when not specified,
+                # ensures consistent axis dimensions across overlays
+                x_col = 'date'
+            elif hasattr(native_df, 'index') and native_df.index.name is not None:
                 x_col = native_df.index.name
         return x_col
     
@@ -895,6 +896,7 @@ class BasePlot(ABC):
             y=self._y,
             style=self._style,
             control=self._control,
+            **self._plot_kwargs,
         )
         if self._overlays:
             for overlay in self._overlays:

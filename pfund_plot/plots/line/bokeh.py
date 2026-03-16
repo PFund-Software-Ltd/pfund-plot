@@ -134,8 +134,8 @@ def plot(
     
     _ = hvplot.extension(PlottingBackend.bokeh)
 
-    # resolve x and y column names
-    x_col = Line._derive_x_col(df, x)
+    # resolve y column names
+    x_col = x
     y_cols = Line._derive_y_cols(df, x, y)
 
     is_single_line = len(y_cols) == 1
