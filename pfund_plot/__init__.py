@@ -28,6 +28,10 @@ if TYPE_CHECKING:
     from pfund_plot.plots.bokeh import (
         Bokeh as bokeh,
     )
+    from pfund_plot.plots.holoviews import (
+        Holoviews as holoviews,
+        Holoviews as hv,
+    )
     from pfund_plot.plots.scatter import (
         Scatter as scatter,
     )
@@ -91,6 +95,9 @@ def __getattr__(name: str):
     elif name == 'bokeh':
         from pfund_plot.plots.bokeh import Bokeh
         return Bokeh
+    elif name in ('holoviews', 'hv'):
+        from pfund_plot.plots.holoviews import Holoviews
+        return Holoviews
     else:
         raise AttributeError(f"'{__name__}' has no attribute '{name}'")
     # TODO
@@ -103,7 +110,7 @@ __version__ = version("pfund_plot")
 __all__ = (
     "__version__",
     "get_config", "configure",
-    "plotly", "altair", "matplotlib", "mpl", "bokeh",
+    "plotly", "altair", "matplotlib", "mpl", "bokeh", "holoviews", "hv",
     "candlestick", "ohlc", "kline",
     "line",
     "layout", "tabs",

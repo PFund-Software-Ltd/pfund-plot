@@ -176,9 +176,8 @@ class BasePlot(ABC):
 
     @staticmethod
     def _is_hvplot(plot: Plot) -> bool:
-        from holoviews.core.overlay import Overlay, NdOverlay
-        from holoviews.core.element import Element
-        return isinstance(plot, (Overlay, NdOverlay, Element))
+        from holoviews.core import Dimensioned
+        return isinstance(plot, Dimensioned)
     
     @property
     def _class_name(self) -> str:
@@ -943,6 +942,8 @@ class BasePlot(ABC):
         if backend == PlottingBackend.panel:
             # no pane needed for panel backend (e.g. GridStack, use it directly as a component)
             pass
+        elif backend == PlottingBackend.holoviews:
+            self._pane = pn.pane.HoloViews(self._plot, **self._pane_kwargs)
         elif backend in [
             PlottingBackend.bokeh, 
             PlottingBackend.plotly, 

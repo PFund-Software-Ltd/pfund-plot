@@ -3,10 +3,11 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     import pandas as pd
     from narwhals.typing import IntoFrame
-    from bokeh.plotting._figure import figure as BokehFigure
+    from bokeh.model import Model as BokehModel
     from plotly.graph_objects import Figure as PlotlyFigure
     from altair import Chart as AltairChart
     from matplotlib.figure import Figure as MatplotlibFigure
+    from holoviews.core import Dimensioned as HoloviewsDimensioned
     from pfund_plot.plots.lazy import LazyPlot
 
 import datetime
@@ -97,7 +98,7 @@ def import_hvplot_df_module(data_tool: DataTool | str) -> None:
         raise ValueError(f"Unsupported data tool: {data_tool}, must be one of ['pandas', 'polars', 'dask']")
 
 
-def convert_to_lazy_plot(obj: PlotlyFigure | AltairChart | MatplotlibFigure | BokehFigure) -> LazyPlot:
+def convert_to_lazy_plot(obj: PlotlyFigure | AltairChart | MatplotlibFigure | BokehModel | HoloviewsDimensioned) -> LazyPlot:
     """Convert plotting library figures to LazyPlot instances."""
     import pfund_plot as plt
 
@@ -130,6 +131,14 @@ def convert_to_lazy_plot(obj: PlotlyFigure | AltairChart | MatplotlibFigure | Bo
         from bokeh.model import Model as BokehModel
         if isinstance(obj, BokehModel):
             return plt.bokeh(obj)
+    except ImportError:
+        pass
+
+    # Holoviews
+    try:
+        from holoviews.core import Dimensioned
+        if isinstance(obj, Dimensioned):
+            return plt.holoviews(obj)
     except ImportError:
         pass
 
