@@ -25,6 +25,9 @@ if TYPE_CHECKING:
         Matplotlib as matplotlib,
         Matplotlib as mpl,
     )
+    from pfund_plot.plots.bokeh import (
+        Bokeh as bokeh,
+    )
     from pfund_plot.plots.scatter import (
         Scatter as scatter,
     )
@@ -85,6 +88,9 @@ def __getattr__(name: str):
     elif name in ('matplotlib', 'mpl'):
         from pfund_plot.plots.matplotlib import Matplotlib
         return Matplotlib
+    elif name == 'bokeh':
+        from pfund_plot.plots.bokeh import Bokeh
+        return Bokeh
     else:
         raise AttributeError(f"'{__name__}' has no attribute '{name}'")
     # TODO
@@ -97,7 +103,7 @@ __version__ = version("pfund_plot")
 __all__ = (
     "__version__",
     "get_config", "configure",
-    "plotly", "altair", "matplotlib", "mpl",
+    "plotly", "altair", "matplotlib", "mpl", "bokeh",
     "candlestick", "ohlc", "kline",
     "line",
     "layout", "tabs",
