@@ -42,6 +42,7 @@ from pfund_plot.widgets.base import BaseWidget, BaseStreamingWidget
 
 class BasePlot(ABC):
     REQUIRED_COLS: ClassVar[list[str] | None] = None
+    REQUIRED_DATA: ClassVar[bool] = True
     SUPPORTED_BACKENDS: ClassVar[list[PlottingBackend] | None] = None
     SUPPORT_STREAMING: ClassVar[bool] = False
     SUPPORTED_WIDGETS: ClassVar[list[type[BaseWidget]] | None] = None
@@ -97,7 +98,7 @@ class BasePlot(ABC):
 
     def __init__(
         self,
-        data: IntoFrame | MarketFeed,
+        data: IntoFrame | MarketFeed | None = None,
         x: str | None = None,
         y: str | list[str] | None = None,
         callback: Callable[..., Any] | None = None,
@@ -235,7 +236,7 @@ class BasePlot(ABC):
             return all(col in self._df.columns for col in required)
         
         from pfund_plot.config import get_config
-        if get_config().disable_widgets or not self._control.get('widgets', True):
+        if get_config().disable_widgets or self._control is None or not self._control.get('widgets', True):
             return
 
         for WidgetClass in self._ChosenWidgetClasses:
@@ -515,7 +516,7 @@ class BasePlot(ABC):
         width = self._style.get("width")
         self._component = pn.Column(
             self._pane,
-            name=self._style.get("title", ""),
+            name=self._style.get("title", self._class_name),
             sizing_mode=self._get_sizing_mode(height, width),
             height=height,
             width=width,
@@ -578,10 +579,15 @@ class BasePlot(ABC):
         from pfeed import get_config
         from pfeed.feeds.streaming_feed_mixin import StreamingFeedMixin
 
+        if self.REQUIRED_DATA:
+            assert self._df is not None or self._feed is not None, (
+                f"{self._class_name} requires either a dataframe or a feed"
+            )
+
         if self._df is not None:
             import_hvplot_df_module(match_df_with_data_tool(self._df))
 
-        if self.is_streaming():
+        if self.is_streaming() and self.REQUIRED_DATA:
             assert self.SUPPORT_STREAMING, f"{self._class_name} does not support streaming"
             if not isinstance(self._feed, StreamingFeedMixin):
                 raise ValueError("feed must be a pfeed's Feed object that supports streaming")
@@ -644,6 +650,9 @@ class BasePlot(ABC):
     def _start_streaming(self):
         from pfeed.requests.market_feed_stream_request import MarketFeedStreamRequest
 
+        if not self.is_streaming():
+            return
+        
         assert self._feed is not None, "feed is not set"
         requests = cast(list[MarketFeedStreamRequest], self._feed._requests)
         assert all(request.is_streaming() for request in requests), "Not all requests in the streaming feed are for streaming"
@@ -657,14 +666,15 @@ class BasePlot(ABC):
                 self._on_streaming_callback,
                 *transformations,
             )
-        if self._notebook_type is None:
-            self._streaming_thread = Thread(
-                target=self._feed.run,
-                daemon=True,
-            )
-            self._streaming_thread.start()
-        else:
-            asyncio.get_running_loop().create_task(self._feed.run_async())
+        if not self._feed.is_running():
+            if self._notebook_type is None:
+                self._streaming_thread = Thread(
+                    target=self._feed.run,
+                    daemon=True,
+                )
+                self._streaming_thread.start()
+            else:
+                asyncio.get_running_loop().create_task(self._feed.run_async())
 
         # start streaming for overlays that have their own feeds
         for overlay in self._overlays:
@@ -678,11 +688,16 @@ class BasePlot(ABC):
             self._update_widgets(self._df)
             
     def _wait_for_streaming_ready(self):
+        if not self.is_streaming():
+            return
         if self.is_streaming() and self._df is None:
             while not self._is_streaming_ready():
                 cprint("Not enough data to plot, waiting for streaming data...", style=TextStyle.BOLD + RichColor.YELLOW)
                 time.sleep(1)
-                
+        for overlay in self._overlays:
+            if overlay.is_streaming():
+                overlay._wait_for_streaming_ready()
+
     async def _wait_for_streaming_ready_async(self):
         if self.is_streaming() and self._df is None:
             while not self._is_streaming_ready():
@@ -913,7 +928,7 @@ class BasePlot(ABC):
         self._plot = self._build_plot(df=self._df)
 
     def _create_pane(self):
-        if self._control and self._control.get("num_data") is not None:
+        if self._df is not None and self._control and self._control.get("num_data") is not None:
             df = self._df.tail(self._control["num_data"])
         else:
             df = self._df

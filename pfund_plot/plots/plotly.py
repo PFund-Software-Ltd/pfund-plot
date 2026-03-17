@@ -1,11 +1,11 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Callable, TypeAlias
+from typing import TYPE_CHECKING, Callable, TypeAlias, ClassVar
 if TYPE_CHECKING:
     from plotly.graph_objects import Figure as PlotlyFigure
     from pfeed.typing import GenericFrame
-    from narwhals.typing import Frame
+    from narwhals.typing import IntoFrame
     from pfeed.feeds.market_feed import MarketFeed
-    PlotlyFunction: TypeAlias = Callable[[Frame], PlotlyFigure]
+    PlotlyFunction: TypeAlias = Callable[[IntoFrame], PlotlyFigure]
 
 import panel as pn
 
@@ -15,15 +15,15 @@ from pfund_plot.enums import PlottingBackend
 
 class Plotly(BasePlot):
     SUPPORTED_BACKENDS = [PlottingBackend.plotly]
+    REQUIRED_DATA: ClassVar[bool] = False
     
     def __init__(
         self, 
         fig_or_func: PlotlyFigure | PlotlyFunction,
-        df: GenericFrame | None = None,
-        feed: MarketFeed | None = None,
+        data: IntoFrame | MarketFeed | None = None,
     ):
         pn.extension("plotly")
-        super().__init__(df=df, feed=feed)
+        super().__init__(data=data)
         self._plotly_fig: PlotlyFigure | None = None
         self._plot: PlotlyFigure | None
         self._plotly_func: PlotlyFunction | None = None
@@ -39,10 +39,5 @@ class Plotly(BasePlot):
     def _create_plot(self):
         self._plot: PlotlyFigure = self._plot_func(self._df) if self._plot_func is not None else self._plotly_fig
     
-    def _standardize_df(self, df: GenericFrame) -> Frame:
-        import narwhals as nw
-        df: Frame = nw.from_native(df)
-        return df
-
-    def _create_widgets(self) -> None:
-        pass
+    def _create_component(self) -> None:
+        self._component = pn.Column(self._pane)

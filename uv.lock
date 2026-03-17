@@ -1663,16 +1663,16 @@ wheels = [
 
 [[package]]
 name = "ipywidgets-bokeh"
-version = "1.6.0"
+version = "1.7.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "bokeh" },
     { name = "ipykernel" },
     { name = "ipywidgets" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/04/8e/109c4241e39f9412836674cb6d4eb2ca5fb348af548eeb17e5ce3b447da9/ipywidgets_bokeh-1.6.0.tar.gz", hash = "sha256:42f3dbe39bd1618a98f1b9ea43ac2573533fc56badb85fee5145d1235467f636", size = 1032615, upload-time = "2024-03-25T17:52:50.204Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2b/36/8e73850527befbd4ef79294ce6f2611b9c04058e03219da2fe0713830258/ipywidgets_bokeh-1.7.0.tar.gz", hash = "sha256:062a1c3ee927831471df2d6438d5e8e5dc668c961192a3b619a0d2e70c8f7901", size = 2457274, upload-time = "2026-03-16T07:59:17.654Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ae/b8/7f129828a2188be26e57d819abeb23dd22411f1e51937cad40a03c6688ec/ipywidgets_bokeh-1.6.0-py3-none-any.whl", hash = "sha256:8d036f7337f3e13ecec814c0a08263dae1d176159dfacad276d060e374c65a28", size = 1037058, upload-time = "2024-03-25T17:52:48.064Z" },
+    { url = "https://files.pythonhosted.org/packages/bf/7f/0765d03f057fc53b3da8107e68a75467829dee4f227b7b67d3738d687fe0/ipywidgets_bokeh-1.7.0-py3-none-any.whl", hash = "sha256:3a4a8bb700d269bbe5b05bf901196b0f348ddccb0d8802167e5123eee4d0a7bc", size = 2466452, upload-time = "2026-03-16T07:59:14.723Z" },
 ]
 
 [[package]]
@@ -1983,7 +1983,7 @@ wheels = [
 
 [[package]]
 name = "jupyterlab"
-version = "4.5.5"
+version = "4.5.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "async-lru" },
@@ -2000,9 +2000,9 @@ dependencies = [
     { name = "tornado" },
     { name = "traitlets" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/6e/2d/953a5612a34a3c799a62566a548e711d103f631672fd49650e0f2de80870/jupyterlab-4.5.5.tar.gz", hash = "sha256:eac620698c59eb810e1729909be418d9373d18137cac66637141abba613b3fda", size = 23968441, upload-time = "2026-02-23T18:57:34.339Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ac/d5/730628e03fff2e8a8e8ccdaedde1489ab1309f9a4fa2536248884e30b7c7/jupyterlab-4.5.6.tar.gz", hash = "sha256:642fe2cfe7f0f5922a8a558ba7a0d246c7bc133b708dfe43f7b3a826d163cf42", size = 23970670, upload-time = "2026-03-11T14:17:04.531Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b9/52/372d3494766d690dfdd286871bf5f7fb9a6c61f7566ccaa7153a163dd1df/jupyterlab-4.5.5-py3-none-any.whl", hash = "sha256:a35694a40a8e7f2e82f387472af24e61b22adcce87b5a8ab97a5d9c486202a6d", size = 12446824, upload-time = "2026-02-23T18:57:30.398Z" },
+    { url = "https://files.pythonhosted.org/packages/e1/1b/dad6fdcc658ed7af26fdf3841e7394072c9549a8b896c381ab49dd11e2d9/jupyterlab-4.5.6-py3-none-any.whl", hash = "sha256:d6b3dac883aa4d9993348e0f8e95b24624f75099aed64eab6a4351a9cdd1e580", size = 12447124, upload-time = "2026-03-11T14:17:00.229Z" },
 ]
 
 [[package]]
@@ -2281,7 +2281,7 @@ wheels = [
 
 [[package]]
 name = "marimo"
-version = "0.20.4"
+version = "0.21.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
@@ -2302,9 +2302,9 @@ dependencies = [
     { name = "uvicorn" },
     { name = "websockets" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/9c/eb/3c19ce54be3440cece96bffbb2027c57d618ab336d53ef6a962f570ce468/marimo-0.20.4.tar.gz", hash = "sha256:7f46ce837953717504673e33e47fb42a619bf5f9d2000d1a3a3b1663a47c5498", size = 38336283, upload-time = "2026-03-04T01:15:13.641Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ea/30/052e4ebf21bd3f49fa47fd844716c53292e468ee6d6d8c716852dcbe3764/marimo-0.21.0.tar.gz", hash = "sha256:b4d515858eded6b6a25b58ce971fd62080cbb89738a73aaf6c29c34da489d47b", size = 38366236, upload-time = "2026-03-16T21:55:12.436Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/56/62/bf2c92cc7aab69edfb3907e9bf102c37c1e16b8f4bc6ddd4258ae4c8063c/marimo-0.20.4-py3-none-any.whl", hash = "sha256:3200edd7209f470821b58deb4a45e0577889fab1052748d77088f18bef7d9dd8", size = 38752562, upload-time = "2026-03-04T01:15:09.608Z" },
+    { url = "https://files.pythonhosted.org/packages/b6/e7/215d55f2d485f508d23a1dcbec57f3edd4a913ad06c3cabe6cb353d31933/marimo-0.21.0-py3-none-any.whl", hash = "sha256:5a54bdc6ae38486f7af1d287778d4b888e7ebaea6fce885439835ea2a037d381", size = 38780820, upload-time = "2026-03-16T21:55:09.217Z" },
 ]
 
 [package.optional-dependencies]
@@ -2813,7 +2813,7 @@ wheels = [
 
 [[package]]
 name = "notebook"
-version = "7.5.4"
+version = "7.5.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jupyter-server" },
@@ -2822,9 +2822,9 @@ dependencies = [
     { name = "notebook-shim" },
     { name = "tornado" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/78/08/9d446fbb49f95de316ea6d7f25d0a4bc95117dd574e35f405895ac706f29/notebook-7.5.4.tar.gz", hash = "sha256:b928b2ba22cb63aa83df2e0e76fe3697950a0c1c4a41b84ebccf1972b1bb5771", size = 14167892, upload-time = "2026-02-24T14:13:56.116Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/1f/6d/41052c48d6f6349ca0a7c4d1f6a78464de135e6d18f5829ba2510e62184c/notebook-7.5.5.tar.gz", hash = "sha256:dc0bfab0f2372c8278c457423d3256c34154ac2cc76bf20e9925260c461013c3", size = 14169167, upload-time = "2026-03-11T16:32:51.922Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/59/01/05e5387b53e0f549212d5eff58845886f3827617b5c9409c966ddc07cb6d/notebook-7.5.4-py3-none-any.whl", hash = "sha256:860e31782b3d3a25ca0819ff039f5cf77845d1bf30c78ef9528b88b25e0a9850", size = 14578014, upload-time = "2026-02-24T14:13:52.274Z" },
+    { url = "https://files.pythonhosted.org/packages/f8/aa/cbd1deb9f07446241e88f8d5fecccd95b249bca0b4e5482214a4d1714c49/notebook-7.5.5-py3-none-any.whl", hash = "sha256:a7c14dbeefa6592e87f72290ca982e0c10f5bbf3786be2a600fda9da2764a2b8", size = 14578929, upload-time = "2026-03-11T16:32:48.021Z" },
 ]
 
 [[package]]
@@ -3122,7 +3122,7 @@ wheels = [
 
 [[package]]
 name = "panel"
-version = "1.8.9"
+version = "1.8.10"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "bleach" },
@@ -3140,9 +3140,9 @@ dependencies = [
     { name = "tqdm" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a8/cc/132c78a211db173378432525d08f5f0a6f3e87b51a514d7ccad1ee146ec9/panel-1.8.9.tar.gz", hash = "sha256:0ac2468eea2e7e3da4706d3b76c1d492e91f493e6ae55f1d3e76dbb970f9adf0", size = 32143304, upload-time = "2026-03-03T17:50:04.463Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/dd/c6/9e0de5cab6eac1416a76bf94e0fcec229423526eeb25558e44ba7bdc506c/panel-1.8.10.tar.gz", hash = "sha256:762881b06efb99f3d201749a3634c6b5f18f46cfca520970c2c1bb31bed42c90", size = 32186528, upload-time = "2026-03-16T12:59:00.448Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/db/eb/72fa6b636b6d770e57a18a6af181109e3c04a71b8a91dacee1c193220057/panel-1.8.9-py3-none-any.whl", hash = "sha256:e8e0ae0965ff56f75b77811acb20019d0c02daf15b5579321b3818587f1d2df7", size = 30229022, upload-time = "2026-03-03T17:50:01.276Z" },
+    { url = "https://files.pythonhosted.org/packages/58/85/3290cc84bb35503293ea23d2a0b39a78cf02c560ae1455502b042975c951/panel-1.8.10-py3-none-any.whl", hash = "sha256:b1de9304e729b87fdeee59a5be5b0d3ce7786dc301626cb728f69fbc4c136693", size = 30270089, upload-time = "2026-03-16T12:58:57.03Z" },
 ]
 
 [[package]]
@@ -3252,7 +3252,7 @@ requires-dist = [
     { name = "dask", extras = ["complete", "dataframe"], marker = "extra == 'dask'", specifier = ">=2026.1.2" },
     { name = "deltalake", specifier = ">=1.4.2" },
     { name = "duckdb", marker = "extra == 'duckdb'", specifier = ">=1.4.4" },
-    { name = "huggingface-hub", marker = "extra == 'hf'", specifier = ">=1.4.1" },
+    { name = "huggingface-hub", marker = "extra == 'hf'", specifier = ">=1.5.0" },
     { name = "lancedb", marker = "extra == 'lancedb'", specifier = ">=0.29.2" },
     { name = "msgspec", specifier = ">=0.20.0" },
     { name = "narwhals", specifier = ">=2.17.0" },
@@ -3260,7 +3260,7 @@ requires-dist = [
     { name = "pandera", specifier = ">=0.29.0" },
     { name = "pfund", editable = "../pfund" },
     { name = "polars", specifier = ">=1.38.1" },
-    { name = "prefect", marker = "extra == 'prefect'", specifier = ">=3.6.19" },
+    { name = "prefect", marker = "extra == 'prefect'", specifier = ">=3.6.21" },
     { name = "pyarrow", specifier = ">=23.0.1" },
     { name = "pydantic", specifier = ">=2.12.5" },
     { name = "pyspark", extras = ["connect", "pandas-on-spark", "sql"], marker = "extra == 'spark'", specifier = ">=4.1.1" },
@@ -3403,12 +3403,12 @@ requires-dist = [
     { name = "anywidget", specifier = ">=0.9.21" },
     { name = "datashader", specifier = ">=0.18.2" },
     { name = "hvplot", specifier = ">=0.12.2" },
-    { name = "ipywidgets-bokeh", specifier = ">=1.6.0" },
+    { name = "ipywidgets-bokeh", specifier = ">=1.7.0" },
     { name = "jupyter-bokeh", marker = "extra == 'jupyter'", specifier = ">=4.0.5" },
-    { name = "marimo", extras = ["recommended", "lsp"], marker = "extra == 'marimo'", specifier = ">=0.20.4" },
+    { name = "marimo", extras = ["recommended", "lsp"], marker = "extra == 'marimo'", specifier = ">=0.21.0" },
     { name = "matplotlib", marker = "extra == 'matplotlib'", specifier = ">=3.10.8" },
-    { name = "notebook", marker = "extra == 'jupyter'", specifier = ">=7.5.4" },
-    { name = "panel", specifier = ">=1.8.9" },
+    { name = "notebook", marker = "extra == 'jupyter'", specifier = ">=7.5.5" },
+    { name = "panel", specifier = ">=1.8.10" },
     { name = "papermill", marker = "extra == 'jupyter'", specifier = ">=2.7.0" },
     { name = "pfeed", editable = "../pfeed" },
     { name = "plotly", marker = "extra == 'plotly'", specifier = ">=6.6.0" },

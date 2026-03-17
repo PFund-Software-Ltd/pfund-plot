@@ -1,9 +1,11 @@
+# pyright: reportUnusedParameter=false, reportArgumentType=false
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from pfund_plot.plots.lazy import LazyPlot
 
+import panel as pn
 from panel.layout.gridstack import GridStack
 
 
@@ -19,11 +21,14 @@ def control(
     num_cols: int = DEFAULT_NUM_COLS,
     allow_drag: bool = True,
     allow_resize: bool = True,
+    linked_axes: bool = True,
 ):
     return locals()
 
 
-def plot(*plots: LazyPlot, style: dict, control: dict) -> GridStack:
+def plot(*plots: LazyPlot, style: dict[str, Any], control: dict[str, Any], **kwargs: Any) -> GridStack:
+    pn.extension("gridstack")
+
     gstack = GridStack(
         sizing_mode="stretch_both",
         allow_drag=control["allow_drag"],

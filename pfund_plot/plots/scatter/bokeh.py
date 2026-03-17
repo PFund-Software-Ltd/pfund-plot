@@ -26,7 +26,7 @@ DEFAULT_HEIGHT = 280
 
 
 def style(
-    title: str = "",
+    title: str = "Scatter",
     xlabel: str = "",
     ylabel: str = "",
     color: str = DEFAULT_COLOR,

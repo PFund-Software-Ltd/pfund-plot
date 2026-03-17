@@ -17,7 +17,7 @@ depends-on = [
 
 [dependencies]
 python = ">=3.11.14"
-uv = ">=0.10.2"
+uv = ">=0.10.10"
 gh = ">=2.87.2"
 
 [pypi-dependencies]
@@ -27,10 +27,10 @@ pfeed = { path = "../pfeed", editable = true }
 pfund = { path = "../pfund", editable = true }
 pfund-kit = { path = "../pfund-kit", editable = true }
 # pfeed = ">=0.0.5"
-panel = ">=1.8.9"
+panel = ">=1.8.10"
 hvplot = ">=0.12.2"
 anywidget = ">=0.9.21"
-ipywidgets-bokeh = ">=1.6.0"
+ipywidgets-bokeh = ">=1.7.0"
 pywebview = ">=6.1"
 datashader = ">=0.18.2"
 
@@ -47,9 +47,9 @@ py312 = ["py312", "test", "optional"]
 py313 = ["py313", "test", "optional"]
 
 [feature.optional.pypi-dependencies]
-marimo = { version = ">=0.20.4", extras = ["recommended", "lsp"] }
+marimo = { version = ">=0.21.0", extras = ["recommended", "lsp"] }
 jupyter-bokeh = ">=4.0.5"
-notebook = ">=7.5.4"
+notebook = ">=7.5.5"
 papermill = ">=2.7.0"
 voila = ">=0.5.11"
 matplotlib = ">=3.10.8"
@@ -68,7 +68,6 @@ watchfiles = ">=1.1.1"  # "panel serve myfile.py --dev" requires watchfiles inst
 selenium = ">=4.39.0"  # saving bokeh images requires selenium
 bokeh-sampledata = ">=2025.0"
 hvsampledata = ">=0.1.4"
-dayplot = ">=0.5.1"
 
 [feature.test.pypi-dependencies]
 pytest = ">=9.0.2"

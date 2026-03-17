@@ -19,7 +19,7 @@ DEFAULT_HEIGHT = 280
 
 
 def style(
-    title: str = "",
+    title: str = "Label",
     xlabel: str = "",
     ylabel: str = "",
     color: str = DEFAULT_COLOR,

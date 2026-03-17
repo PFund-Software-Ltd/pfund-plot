@@ -1,16 +1,5 @@
-from __future__ import annotations
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from narwhals.typing import Frame
-    from pfeed.typing import GenericFrame
-    from panel.layout import GridStack
-    from pfund_plot.typing import RawFigure
-
-import panel as pn
-
-from pfund_plot.plots.plot import BasePlot
-from pfund_plot.enums import PlottingBackend
+from pfund_kit.style import cprint, RichColor, TextStyle
+from pfund_plot.plots.layout.layout import BaseLayout
 from pfund_plot.plots.lazy import LazyPlot
 
 
@@ -26,40 +15,16 @@ class LayoutControl:
     panel = panel_control
 
 
-class Layout(BasePlot):
-    SUPPORTED_BACKENDS = [PlottingBackend.panel]
+class Layout(BaseLayout):
     _MAX_COLS = 12  # maximum number of columns in a grid when using GridStack
 
     style = LayoutStyle
     control = LayoutControl
 
-    def __new__(cls, *plots: LazyPlot | RawFigure):
-        from pfund_plot.utils import convert_to_lazy_plot
-
-        # Convert any plotting library figures to LazyPlot instances
-        lazy_plots = tuple(
-            convert_to_lazy_plot(plot) if not isinstance(plot, LazyPlot) else plot
-            for plot in plots
-        )
-        # super().__new__ will call __init__ with converted_plots
-        return super().__new__(cls, *lazy_plots)
-
-    def __init__(self, *plots: LazyPlot):
-        pn.extension("gridstack")
-
-        self._plots: tuple[LazyPlot, ...] = plots
-        self._plot: GridStack
-        super().__init__(df=None, feed=None)
+    def __init__(self, *plots: LazyPlot):  # pyright: ignore[reportInconsistentConstructor]
+        super().__init__(*plots)
         if self._notebook_type:
             raise ValueError("Layout cannot be used in notebook environment.")
-
-    # just a layout of plots, it has no data for itself to standardize
-    def _standardize_df(self, df: GenericFrame) -> Frame:
-        return df
-
-    # no widgets for layout
-    def _create_widgets(self):
-        pass
 
     def _validate_grid_specs(self):
         # Check grid_spec consistency: either all plots have it or none do
@@ -78,15 +43,40 @@ class Layout(BasePlot):
                     raise ValueError(
                         f"Column index exceeds maximum of {self._MAX_COLS}. Grid uses a {self._MAX_COLS}-column system."
                     )
+        assert self._control is not None, "control is not set"
         assert self._control["num_cols"] <= self._MAX_COLS, (
             f"'num_cols' must be less than or equal to {self._MAX_COLS}"
         )
+    
+    def _warn_if_widgets_with_drag(self):
+        """Warn if child plots have widgets and GridStack drag is enabled.
 
-    def _create_plot(self):
-        self._plot: GridStack = self._plot_func(
-            *self._plots, style=self._style, control=self._control
-        )
+        GridStack's drag handler intercepts pointer events, which prevents
+        click-based widgets (e.g. Select dropdowns, buttons) from working.
+        Drag-based widgets (e.g. sliders) are unaffected.
+        """
+        if self._control is None or not self._control.get("allow_drag", True):
+            return
+        for lazyplot in self._plots:
+            plot = lazyplot._plot
+            has_widgets = plot._widgets or plot._streaming_widgets or plot._reactive_widgets
+            if not has_widgets:
+                for overlay in plot._overlays:
+                    has_widgets = overlay._widgets or overlay._streaming_widgets or overlay._reactive_widgets
+                    if has_widgets:
+                        break
+            if has_widgets:
+                cprint(
+                    "Widgets detected inside Layout with allow_drag=True. Click-based widgets (e.g. dropdowns, buttons) may not work. "
+                    + "Use plt.layout(...).control(allow_drag=False) to fix this.",
+                    style=TextStyle.BOLD + RichColor.YELLOW,
+                )
+                break
 
     def _create_component(self):
         self._validate_grid_specs()
-        self._component: GridStack = self._plot
+        super()._create_component()
+
+    def _create(self):
+        super()._create()
+        self._warn_if_widgets_with_drag()

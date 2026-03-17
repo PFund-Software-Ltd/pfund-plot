@@ -18,7 +18,7 @@ DEFAULT_NUM_DATA = 150
 
 
 def style(
-    title: str = "",
+    title: str = "Candlestick",
     xlabel: str = "date",
     ylabel: str = "price",
     pos_color: str = "green",

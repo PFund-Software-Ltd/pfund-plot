@@ -102,6 +102,28 @@ class LazyPlot:
             self._plot._create_plot()
         return self._plot._plot
     
+    @property
+    def is_streaming(self) -> bool:
+        return self._plot.is_streaming()
+    
+    @property
+    def widgets(self) -> Any:
+        if not self._plot._widgets:
+            self._plot._create_widgets()
+        return self._plot._widgets
+    
+    @property
+    def streaming_widgets(self) -> Any:
+        if self._plot.is_streaming() and not self._plot._streaming_widgets:
+            self._plot._create_widgets()
+        return self._plot._streaming_widgets
+    
+    @property
+    def reactive_widgets(self) -> Any:
+        if self._plot._reactive_params and not self._plot._reactive_widgets:
+            self._plot._create_reactive_widgets()
+        return self._plot._reactive_widgets
+    
     def opts(self, *args: Any, **kwargs: Any) -> LazyPlot:
         """Pass holoviews opts to the underlying plot.
 
@@ -117,12 +139,6 @@ class LazyPlot:
         if self._plot._pane is None:
             self._plot._create_pane()
         return self._plot._pane
-
-    @property
-    def widgets(self) -> Any:
-        if self._plot._widgets is None:
-            self._plot._create_widgets()
-        return self._plot._widgets
 
     @property
     def component(self) -> Component | None:
