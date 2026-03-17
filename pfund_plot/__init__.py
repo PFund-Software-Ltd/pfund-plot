@@ -21,6 +21,10 @@ if TYPE_CHECKING:
     from pfund_plot.plots.altair import (
         Altair as altair,
     )
+    from pfund_plot.plots.matplotlib import (
+        Matplotlib as matplotlib,
+        Matplotlib as mpl,
+    )
     from pfund_plot.plots.scatter import (
         Scatter as scatter,
     )
@@ -40,7 +44,7 @@ from pfund_plot.config import get_config, configure
 
 # NOTE: data update in anywidget (backend=svelte) may have issues (especially in marimo) after loading panel extensions
 # if anywidget+svelte backend is not working, try to comment this out
-pn.extension("plotly", "vega")
+pn.extension("plotly", "vega", 'ipywidgets')
 # NOTE: this MUST be True, otherwise, some widgets won't work properly, e.g. candlestick widgets, slider and input will both trigger each other due to panel's async update, which leads to infinite loop.
 pn.config.throttled = True  # If panel sliders and inputs should be throttled until release of mouse.
 # NOTE: /assets can only be recognized when setting pn.serve(static_dirs=pfund_plot.config.static_dirs)
@@ -78,6 +82,9 @@ def __getattr__(name: str):
     elif name == 'altair':
         from pfund_plot.plots.altair import Altair
         return Altair
+    elif name in ('matplotlib', 'mpl'):
+        from pfund_plot.plots.matplotlib import Matplotlib
+        return Matplotlib
     else:
         raise AttributeError(f"'{__name__}' has no attribute '{name}'")
     # TODO
@@ -90,14 +97,13 @@ __version__ = version("pfund_plot")
 __all__ = (
     "__version__",
     "get_config", "configure",
-    "plotly",
+    "plotly", "altair", "matplotlib", "mpl",
     "candlestick", "ohlc", "kline",
     "line",
     "layout", "tabs",
     "scatter",
     "marker",
     "label",
-    "altair",
 )
 def __dir__():
     return sorted(__all__)

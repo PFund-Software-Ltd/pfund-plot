@@ -963,11 +963,11 @@ class BasePlot(ABC):
                 )
             else:
                 if backend == PlottingBackend.bokeh:
-                    self._pane = pn.pane.Bokeh(self._plot)
+                    self._pane = pn.pane.Bokeh(self._plot, **self._pane_kwargs)
                 elif backend == PlottingBackend.plotly:
                     self._pane = pn.pane.Plotly(self._plot, **self._pane_kwargs)
                 elif backend == PlottingBackend.matplotlib:
-                    self._pane = pn.pane.Matplotlib(self._plot)
+                    self._pane = pn.pane.Matplotlib(self._plot, **self._pane_kwargs)
                 elif backend == PlottingBackend.altair:
                     self._pane = pn.pane.Vega(self._plot, **self._pane_kwargs)
         elif backend == PlottingBackend.svelte:

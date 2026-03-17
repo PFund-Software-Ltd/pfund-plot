@@ -117,13 +117,13 @@ def convert_to_lazy_plot(obj: PlotlyFigure | AltairChart | MatplotlibFigure | Bo
     except ImportError:
         pass
 
-    # # Matplotlib
-    # try:
-    #     from matplotlib.figure import Figure as MplFigure
-    #     if isinstance(obj, MplFigure):
-    #         return plt.matplotlib(obj)
-    # except ImportError:
-    #     pass
+    # Matplotlib
+    try:
+        from matplotlib.figure import Figure as MatplotlibFigure
+        if isinstance(obj, MatplotlibFigure):
+            return plt.matplotlib(obj)
+    except ImportError:
+        pass
 
     # # Bokeh
     # try:
