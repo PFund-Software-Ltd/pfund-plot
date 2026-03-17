@@ -314,6 +314,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/39/08/aaaad47bc4e9dc8c725e68f9d04865dbcb2052843ff09c97b08904852d84/urllib3-2.6.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/15/19/b35928e55307beb69b60b88446df3cb8d7ff3ba0993fc2214a43266c17d1/uv-0.9.27-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/3d/d8/2083a1daa7439a66f3a48589a57d576aa117726762618f6bb09fe3798796/uvicorn-0.40.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/e6/9f/ca52771fe972e0dcc5167fedb609940e01516066938ff2ee28b273ae4f29/vega_datasets-0.9.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/04/d5/81d1403788f072e7d0e2b2fe539a0ae4410f27886ff52df094e5348c99ea/vegafusion-2.0.3-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/6a/2a/dc2228b2888f51192c7dc766106cd475f1b768c10caaf9727659726f7391/virtualenv-20.36.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/02/06/463e8b2b1815d30ad63ab45a72c01672bae1c0b0f6a30ba89ea437b98463/voila-0.5.11-py3-none-any.whl
@@ -642,6 +643,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/39/08/aaaad47bc4e9dc8c725e68f9d04865dbcb2052843ff09c97b08904852d84/urllib3-2.6.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/44/1d/be2d80573c531389933059f6e5ef265ef7324c268f3ade80e500aa627f6b/uv-0.9.27-py3-none-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/3d/d8/2083a1daa7439a66f3a48589a57d576aa117726762618f6bb09fe3798796/uvicorn-0.40.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/e6/9f/ca52771fe972e0dcc5167fedb609940e01516066938ff2ee28b273ae4f29/vega_datasets-0.9.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/c0/1a/2b8219908173b977419f30ea14e21c4578004906cd3c8e0b450a5b892c6d/vegafusion-2.0.3-cp39-abi3-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/6a/2a/dc2228b2888f51192c7dc766106cd475f1b768c10caaf9727659726f7391/virtualenv-20.36.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/02/06/463e8b2b1815d30ad63ab45a72c01672bae1c0b0f6a30ba89ea437b98463/voila-0.5.11-py3-none-any.whl
@@ -12102,6 +12104,13 @@ packages:
   - watchfiles>=0.13 ; extra == 'standard'
   - websockets>=10.4 ; extra == 'standard'
   requires_python: '>=3.10'
+- pypi: https://files.pythonhosted.org/packages/e6/9f/ca52771fe972e0dcc5167fedb609940e01516066938ff2ee28b273ae4f29/vega_datasets-0.9.0-py3-none-any.whl
+  name: vega-datasets
+  version: 0.9.0
+  sha256: 3d7c63917be6ca9b154b565f4779a31fedce57b01b5b9d99d8a34a7608062a1d
+  requires_dist:
+  - pandas
+  requires_python: '>=3.5'
 - pypi: https://files.pythonhosted.org/packages/04/d5/81d1403788f072e7d0e2b2fe539a0ae4410f27886ff52df094e5348c99ea/vegafusion-2.0.3-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
   name: vegafusion
   version: 2.0.3

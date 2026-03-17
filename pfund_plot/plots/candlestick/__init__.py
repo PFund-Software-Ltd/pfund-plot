@@ -37,7 +37,11 @@ class CandlestickControl:
 
 class Candlestick(BasePlot):
     REQUIRED_COLS: ClassVar[list[str]] = ["date", "open", "high", "low", "close", "volume"]
-    SUPPORTED_BACKENDS: ClassVar[list[PlottingBackend]] = [PlottingBackend.bokeh, PlottingBackend.svelte]
+    SUPPORTED_BACKENDS: ClassVar[list[PlottingBackend]] = [
+        PlottingBackend.bokeh, 
+        # TODO: add back svelte
+        # PlottingBackend.svelte,
+    ]
     SUPPORT_STREAMING: ClassVar[bool] = True
     SUPPORTED_WIDGETS: ClassVar[list[type[BaseWidget]]] = [DatetimeRangeWidget]
     SUPPORTED_STREAMING_WIDGETS: ClassVar[list[type[BaseStreamingWidget]]] = [TickerSelectWidget]

@@ -127,7 +127,7 @@ class BasePlot(ABC):
         else:
             self._df: nw.DataFrame[Any] | None = None
             self._feed: MarketFeed | None = data
-        self.name: str | None = name or self._class_name
+        self.name: str = name or self._class_name
         self._reactive_params: dict[str, Any] = reactive_params
         self._reactive_callback: Callable[..., Any] | None = callback
         self._reactive_widgets: dict[str, PanelWidget] = {}
@@ -138,6 +138,7 @@ class BasePlot(ABC):
             self._df = self._standardize_df(self._df)
             self._x = self._derive_x_col(self._df, self._x)
         self._plot_kwargs: dict[str, Any] = {}
+        self._pane_kwargs: dict[str, Any] = {}
         self._anywidget: AnyWidget | None = None
         self._plot: Plot | None = None
         self._pane: Pane | None = None
@@ -512,11 +513,17 @@ class BasePlot(ABC):
             self._update_df(df)
 
     def _create_component(self) -> None:
-        height = self._style.get("total_height")
-        width = self._style.get("width")
+        if self._style:
+            height = self._style.get("total_height")
+            width = self._style.get("width")
+            name = self._style.get("title", self.name)
+        else:
+            height = None
+            width = None
+            name = self.name
         self._component = pn.Column(
             self._pane,
-            name=self._style.get("title", self._class_name),
+            name=name,
             sizing_mode=self._get_sizing_mode(height, width),
             height=height,
             width=width,
@@ -868,18 +875,13 @@ class BasePlot(ABC):
         elif backend in [PlottingBackend.bokeh, PlottingBackend.plotly, PlottingBackend.matplotlib]:
             if self._is_hvplot(self._plot):
                 # use hvplot to convert holoviews Overlay to the underlying plotting library's figure
-                fig = hvplot.render(plot, backend=backend)
+                fig: dict = hvplot.render(plot, backend=backend)
                 if backend == PlottingBackend.plotly:
                     import plotly.graph_objects as go
                     # hvplot.render() returns a dict, convert it to a plotly Figure
-                    fig: dict
                     fig = go.Figure(fig)
             else:  # plot is from plt.bokeh(), plt.plotly() or plt.matplotlib()
-                plot: RawFigure
-                fig = plot
-        # TODO
-        # elif self._backend == PlottingBackend.altair:
-        #     pass
+                fig: RawFigure = plot
         else:
             raise ValueError(f"Unsupported backend: {backend}")
         return fig
@@ -919,7 +921,7 @@ class BasePlot(ABC):
                 if not self._is_hvplot(overlay_plot):
                     raise TypeError("Operation '*' only supports Holoviews plots.")
                 result = result * overlay_plot
-        if self._holoviews_opts:
+        if self._holoviews_opts and self._is_hvplot(result):
             for args, kwargs in self._holoviews_opts:
                 result = result.opts(*args, **kwargs)
         return result
@@ -941,7 +943,12 @@ class BasePlot(ABC):
         if backend == PlottingBackend.panel:
             # no pane needed for panel backend (e.g. GridStack, use it directly as a component)
             pass
-        elif backend in [PlottingBackend.bokeh, PlottingBackend.plotly, PlottingBackend.matplotlib]:
+        elif backend in [
+            PlottingBackend.bokeh, 
+            PlottingBackend.plotly, 
+            PlottingBackend.matplotlib, 
+            PlottingBackend.altair,
+        ]:
             if self._is_hvplot(self._plot):
                 from holoviews.streams import Pipe
                 from holoviews import DynamicMap
@@ -954,15 +961,15 @@ class BasePlot(ABC):
                 self._pane = pn.pane.HoloViews(
                     dmap, linked_axes=self._control.get("linked_axes", True)
                 )
-            else:  # from plt.bokeh(), plt.plotly() or plt.matplotlib()
-                # TODO: plotly and matplotlib should be able to use DynamicMap as well
-                # see: https://www.holoviews.org/reference/containers/plotly/DynamicMap.html
+            else:
                 if backend == PlottingBackend.bokeh:
                     self._pane = pn.pane.Bokeh(self._plot)
                 elif backend == PlottingBackend.plotly:
-                    self._pane = pn.pane.Plotly(self._plot)
+                    self._pane = pn.pane.Plotly(self._plot, **self._pane_kwargs)
                 elif backend == PlottingBackend.matplotlib:
                     self._pane = pn.pane.Matplotlib(self._plot)
+                elif backend == PlottingBackend.altair:
+                    self._pane = pn.pane.Vega(self._plot, **self._pane_kwargs)
         elif backend == PlottingBackend.svelte:
             if pn.extension._loaded_extensions:
                 warnings.warn(
@@ -971,9 +978,6 @@ class BasePlot(ABC):
                 )
             self._anywidget: AnyWidget = self._plot_func(df, self._style, self._control)
             self._pane = pn.pane.IPyWidget(self._anywidget)
-        # TODO
-        # elif backend == PlottingBackend.altair:
-        #     self._pane = pn.pane.Vega(self._plot)
         else:
             raise ValueError(f"Unsupported backend: {backend}")
     

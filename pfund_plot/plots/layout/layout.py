@@ -20,7 +20,7 @@ class BaseLayout(BasePlot):
 
         # Convert any plotting library figures to LazyPlot instances
         lazy_plots = tuple(
-            convert_to_lazy_plot(plot) if not isinstance(plot, LazyPlot) else plot
+            convert_to_lazy_plot(plot) if not isinstance(plot, LazyPlot) else plot  # pyright: ignore[reportArgumentType]
             for plot in plots
         )
         # super().__new__ will call __init__ with converted_plots

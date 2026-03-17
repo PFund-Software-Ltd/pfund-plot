@@ -109,14 +109,13 @@ def convert_to_lazy_plot(obj: PlotlyFigure | AltairChart | MatplotlibFigure | Bo
     except ImportError:
         pass
 
-    # TODO: plt.altair(), plt.matplotlib(), plt.bokeh() are not implemented yet
-    # # Altair
-    # try:
-    #     import altair as alt
-    #     if isinstance(obj, (alt.Chart, alt.LayerChart, alt.HConcatChart, alt.VConcatChart)):
-    #         return plt.altair(obj)
-    # except ImportError:
-    #     pass
+    # Altair (TopLevelMixin is the common base for Chart, LayerChart, HConcatChart, VConcatChart, ConcatChart, FacetChart, RepeatChart)
+    try:
+        from altair import TopLevelMixin
+        if isinstance(obj, TopLevelMixin):
+            return plt.altair(obj)
+    except ImportError:
+        pass
 
     # # Matplotlib
     # try:
