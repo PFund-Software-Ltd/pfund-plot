@@ -3,10 +3,10 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pfeed.typing import GenericFrame
     from pfeed.feeds.base_feed import BaseFeed
-    from pfund_plot.typing import tDisplayMode, tDataframeBackend
     from pfund_plot.typing import RenderedResult
     from panel.widgets import Widget
     from panel.pane import Pane
+    tDataframeBackend = Literal["tabulator", "perspective"]
 
 import panel as pn
 from bokeh.models.widgets.tables import DateFormatter

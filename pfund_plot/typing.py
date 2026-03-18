@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Literal, TYPE_CHECKING, TypeAlias, Any
+from typing import TYPE_CHECKING, TypeAlias, Any
 
 if TYPE_CHECKING:
     from marimo import Html as MarimoHtml
@@ -21,12 +21,3 @@ if TYPE_CHECKING:
 
     Style: TypeAlias = dict[str, Any]
     Control: TypeAlias = dict[str, Any]
-
-
-tDisplayMode = Literal["notebook", "browser", "desktop"]
-tPlottingBackend = Literal[
-    "panel", "bokeh", "svelte", "plotly", "altair", "matplotlib", "perspective",
-]
-tDataframeBackend = Literal["tabulator", "perspective"]
-tPanelTheme = Literal["default", "light", "dark"]
-tPanelDesign = Literal["native", "material", "fast", "bootstrap"]
