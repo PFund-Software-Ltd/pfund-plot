@@ -1,6 +1,7 @@
 from pfund_kit.cli import create_cli_group
 from pfund_kit.cli.commands import config, docker_compose, remove
 from pfund_plot.cli.commands.serve import serve
+from pfund_plot.cli.commands.gallery import gallery
 
 
 def init_context(ctx):
@@ -14,3 +15,4 @@ pfund_plot_group.add_command(config)
 pfund_plot_group.add_command(docker_compose)
 pfund_plot_group.add_command(remove)
 pfund_plot_group.add_command(serve)
+pfund_plot_group.add_command(gallery)

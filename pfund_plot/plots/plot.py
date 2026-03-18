@@ -557,6 +557,9 @@ class BasePlot(ABC):
     def is_streaming(self):
         return self.is_support_streaming() and self._feed is not None
     
+    def is_in_notebook_mode(self) -> bool:
+        return self._mode == DisplayMode.notebook
+    
     @staticmethod
     def _derive_y_cols(df: nw.DataFrame[Any], x: str | None, y: str | list[str] | None) -> list[str]:
         if y is None:
@@ -673,7 +676,7 @@ class BasePlot(ABC):
                 *transformations,
             )
         if not self._feed.is_running():
-            if self._notebook_type is None:
+            if not self.is_in_notebook_mode():
                 self._streaming_thread = Thread(
                     target=self._feed.run,
                     daemon=True,

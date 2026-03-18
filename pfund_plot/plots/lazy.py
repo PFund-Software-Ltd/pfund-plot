@@ -265,7 +265,7 @@ class LazyPlot:
         Returns:
             The rendered plot output
         """
-        if self._plot._feed is not None and self._plot._notebook_type is not None:
+        if self._plot.is_streaming() and self._plot.is_in_notebook_mode():
             raise RuntimeError("Cannot render streaming plot in synchronous mode, use show_async() instead.")
         if server := self._get_existing_server():
             return server
@@ -365,8 +365,15 @@ class LazyPlot:
         # conceptually the result is a new plot instance that carries its own _overlays list.
         # The overlay must also be cloned so that _parent_plot doesn't get shared
         # when the same overlay is reused across multiple compositions.
-        cloned_plot = deepcopy(self._plot)
-        cloned_plot._add_overlay(deepcopy(other._plot))
+        try:
+            cloned_plot = deepcopy(self._plot)
+            cloned_plot._add_overlay(deepcopy(other._plot))
+        except (RuntimeError, AttributeError, TypeError) as e:
+            raise RuntimeError(
+                "Cannot overlay a plot that has already been rendered. "
+                + "Bokeh objects cannot be copied after rendering. "
+                + "Create fresh plots for the overlay instead, e.g. plt.ohlc(df) * plt.label(df, ...)"
+            ) from e
         return LazyPlot(cloned_plot)
 
     def __or__(self, other: LazyPlot | Viewable) -> LazyColumn:

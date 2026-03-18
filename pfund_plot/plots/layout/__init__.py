@@ -1,6 +1,7 @@
 from pfund_kit.style import cprint, RichColor, TextStyle
 from pfund_plot.plots.layout.layout import BaseLayout
 from pfund_plot.plots.lazy import LazyPlot
+from pfund_plot.enums import DisplayMode
 
 
 class LayoutStyle:
@@ -23,8 +24,8 @@ class Layout(BaseLayout):
 
     def __init__(self, *plots: LazyPlot):  # pyright: ignore[reportInconsistentConstructor]
         super().__init__(*plots)
-        if self._notebook_type:
-            raise ValueError("Layout cannot be used in notebook environment.")
+        # it is ALWAYS in browser mode for layout
+        self._set_mode(DisplayMode.browser)
 
     def _validate_grid_specs(self):
         # Check grid_spec consistency: either all plots have it or none do
