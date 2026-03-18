@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Callable, Any
 
 if TYPE_CHECKING:
     from pfund_plot.typing import Component, RenderedResult
@@ -45,7 +45,7 @@ class BaseRenderer(ABC):
         return get_free_port()
 
     @abstractmethod
-    def render(self, component: Component, *args, **kwargs) -> RenderedResult:
+    def render(self, component: Component, *args: Any, **kwargs: Any) -> RenderedResult:
         pass
 
     def serve(
@@ -62,8 +62,8 @@ class BaseRenderer(ABC):
             raise ValueError("Server is already running")
         config = get_config()
         self.set_port_in_use(port)
-        self._server: StoppableThread | Server = pn.serve(
-            renderable,
+        self._server = pn.serve(  # pyright: ignore[reportUnknownMemberType]
+            renderable,  # pyright: ignore[reportArgumentType]
             show=show,
             threaded=threaded,
             port=port,

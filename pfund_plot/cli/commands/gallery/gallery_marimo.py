@@ -4,6 +4,8 @@ __generated_with = "0.21.0"
 app = marimo.App(width="columns")
 
 with app.setup:
+    from threading import Thread
+
     import marimo as mo
     import holoviews as hv
     import matplotlib.pyplot as mpl
@@ -14,6 +16,23 @@ with app.setup:
     import polars as pl
     import pfeed as pe
     import pfund_plot as plt
+
+    def stop_later(thread, delay):
+        import time
+        time.sleep(delay)
+        thread.stop()
+        print('Stopped the streaming thread')
+
+    def prepare_streaming_feed():
+        # separate this streaming feed from the non-streaming one on purpose
+        streaming_feed = pe.Bybit(pipeline_mode=True).market_feed
+        streaming_resolution = '1s'
+        for streaming_product in products:
+            streaming_feed.stream(
+                product=streaming_product,
+                resolution=streaming_resolution,
+            )
+        return streaming_feed
 
     feed = pe.Bybit(pipeline_mode=True).market_feed
     products = ['ETH_USDT_PERP', 'BTC_USDT_PERP']
@@ -331,24 +350,8 @@ def _():
 
 @app.cell
 def _(altair_fig, line, plotly_fig, tabs):
-    from threading import Thread
-
-    def stop_later(thread, delay):
-        import time
-        time.sleep(delay)
-        thread.stop()
-        print('Stopped the streaming thread')
-
-    streaming_feed = pe.Bybit(pipeline_mode=True).market_feed
-    streaming_resolution = '1s'
-    for streaming_product in products:
-        streaming_feed.stream(
-            product=streaming_product,
-            resolution=streaming_resolution,
-        )
-
-    layout_thread = plt.layout(
-        plt.ohlc(streaming_feed).control(update_interval=1000).mode('browser'),
+    browser_thread = plt.layout(
+        plt.ohlc(prepare_streaming_feed()).control(update_interval=1000).mode('browser'),
         tabs,
         line,
         plotly_fig,
@@ -356,7 +359,22 @@ def _(altair_fig, line, plotly_fig, tabs):
     ).mode('browser').control(allow_drag=False, linked_axes=False).show()
 
     # stop in background without blocking
-    Thread(target=stop_later, args=(layout_thread, 20)).start()
+    Thread(target=stop_later, args=(browser_thread, 20)).start()
+    return
+
+
+@app.cell
+def _(altair_fig, line, plotly_fig, tabs):
+    desktop_thread = plt.layout(
+        plt.ohlc(prepare_streaming_feed()).control(update_interval=1000).mode('desktop'),
+        tabs,
+        line,
+        plotly_fig,
+        altair_fig,
+    ).mode('desktop').control(allow_drag=False, linked_axes=False).show()
+
+    # stop in background without blocking
+    Thread(target=stop_later, args=(desktop_thread, 20)).start()
     return
 
 
