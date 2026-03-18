@@ -1,18 +1,20 @@
+# pyright: reportUnknownMemberType=false
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 if TYPE_CHECKING:
-    from pfund_plot.typing import Component, RenderedResult
-    from panel.io.threads import StoppableThread
+    from pfund_plot.typing import Component
 
 from threading import Thread
-from multiprocessing import Process, Event
+from multiprocessing import Process, Event as create_event
+from multiprocessing.synchronize import Event
 
+from pfund_kit.style import cprint, RichColor, TextStyle
 from pfund_plot.renderers.browser import BrowserRenderer
 
 
 def _run_webview(title: str, port: int, window_ready: Event):
     import webview as wv
-    window = wv.create_window(
+    _ = wv.create_window(
         title,
         url=f"http://localhost:{port}",
         resizable=True,
@@ -22,25 +24,27 @@ def _run_webview(title: str, port: int, window_ready: Event):
     
 
 class DesktopRenderer(BrowserRenderer):
-    def render(self, component: Component) -> RenderedResult:
+    def render(self, component: Component):
+        from panel.io.threads import StoppableThread
+        
         port = self._get_free_port()
         title = getattr(component, 'name', "PFund Plot")
-        window_ready = Event()
-        if self._is_notebook_env:
-            server: StoppableThread = self.serve(component, show=False, threaded=True, port=port)
+        window_ready = create_event()
+        if self.is_in_notebook_env():
+            server = cast(StoppableThread, self.serve(component, show=False, threaded=True, port=port))
             def run_process():
                 try:
                     process = Process(target=_run_webview, name=title, args=(title, port, window_ready,), daemon=True)
                     process.start()
                     process.join()
                 except Exception as e:
-                    print(f"An error occurred: {e}")
+                    cprint(f"An error occurred: {e}", style=TextStyle.BOLD + RichColor.RED)
                 finally:
                     server.stop()
             thread = Thread(target=run_process, daemon=True)
             thread.start()
-            # wait for the window to be ready before starting the periodic callback to prevent data loss when streaming=True
-            window_ready.wait()
+            # wait for the window to be ready before starting the periodic callback to prevent data loss during streaming
+            _ = window_ready.wait()
             self.run_periodic_callbacks()
             return server
         else:
@@ -50,20 +54,21 @@ class DesktopRenderer(BrowserRenderer):
             except RuntimeError as e:
                 if "freeze_support" in str(e) or "current process has finished its bootstrapping phase" in str(e):
                     raise RuntimeError(
-                        "Failed to start desktop renderer process.\n"
-                        "Please wrap your code with:\n\n"
-                        "    if __name__ == '__main__':\n"
+                        "Failed to start desktop renderer process.\n" +
+                        "Please wrap your code with:\n\n" +
+                        "    if __name__ == '__main__':\n" +
                         "        # your code here\n"
                     ) from None
                 raise
-            def app():
+            _ = window_ready.wait()
+
+            def _servable():
                 self.run_periodic_callbacks()
                 return component
-                
-            window_ready.wait()
             thread = Thread(
-                target=lambda: self.serve(app, show=False, threaded=False, port=port),
+                target=lambda: self.serve(_servable, show=False, threaded=False, port=port),
                 daemon=True
             )
             thread.start()
+
             process.join()

@@ -24,8 +24,16 @@ class Layout(BaseLayout):
 
     def __init__(self, *plots: LazyPlot):  # pyright: ignore[reportInconsistentConstructor]
         super().__init__(*plots)
-        # it is ALWAYS in browser mode for layout
-        self._set_mode(DisplayMode.browser)
+        default_mode = DisplayMode.browser
+        self._set_mode(default_mode)
+    
+    def _render(self):
+        if self._mode == DisplayMode.desktop:
+            cprint(
+                "There is a known issue in resizing when using plt.layout (GridStack) in desktop mode. Please consider switching to browser mode instead.", 
+                style=TextStyle.BOLD + RichColor.YELLOW
+            )
+        return super()._render()
 
     def _validate_grid_specs(self):
         # Check grid_spec consistency: either all plots have it or none do

@@ -6,19 +6,24 @@ if TYPE_CHECKING:
     from panel.io.callbacks import PeriodicCallback
     from panel.io.threads import StoppableThread
     from panel.io.server import Server
+    from pfund_plot.enums import NotebookType
 
 from abc import ABC, abstractmethod
 
 import panel as pn
 
-from pfund_plot.config import get_config
-
 
 class BaseRenderer(ABC):
     def __init__(self):
+        from pfund_kit.utils import get_notebook_type
+        
         self._periodic_callbacks: list[PeriodicCallback] = []
         self._port: int | None = None
         self._server: StoppableThread | Server | None = None
+        self._notebook_type: NotebookType | None = get_notebook_type()
+        
+    def is_in_notebook_env(self) -> bool:
+        return self._notebook_type is not None
     
     @property
     def server(self) -> StoppableThread | Server | None:
@@ -56,6 +61,8 @@ class BaseRenderer(ABC):
         threaded: bool = True,
         port: int | None = None,
     ) -> StoppableThread | Server:
+        from pfund_plot.config import get_config
+        
         if port is None:
             port = self._get_free_port()
         if self._server is not None:
