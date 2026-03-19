@@ -163,6 +163,36 @@ def _():
     return
 
 
+@app.cell(hide_code=True)
+def _():
+    mo.md(r"""
+    # 6. Area
+    """)
+    return
+
+
+@app.cell
+def _():
+    area = plt.area(df, x='date', y='close').style(marker='x')
+    area
+    return (area,)
+
+
+@app.cell(hide_code=True)
+def _():
+    mo.md(r"""
+    # 7. Bar
+    """)
+    return
+
+
+@app.cell
+def _():
+    bar = plt.bar(df, x='date', y=['high', 'low']).style(color=['steelblue', 'coral'])
+    bar
+    return (bar,)
+
+
 @app.cell(column=1, hide_code=True)
 def _():
     mo.md(r"""
@@ -328,10 +358,12 @@ def _():
 
 
 @app.cell
-def _(altair_fig, line, plotly_fig, reactive_candlestick):
+def _(altair_fig, area, bar, line, plotly_fig, reactive_candlestick):
     tabs = plt.tabs(
         reactive_candlestick,
         line,
+        area,
+        bar,
         plotly_fig,
         altair_fig,
     )
@@ -349,11 +381,13 @@ def _():
 
 
 @app.cell
-def _(altair_fig, line, plotly_fig, tabs):
+def _(altair_fig, plotly_fig, tabs):
     browser_thread = plt.layout(
         plt.ohlc(prepare_streaming_feed()).control(update_interval=1000).mode('browser'),
         tabs,
-        line,
+        plt.line(prepare_streaming_feed(), x='date', y='close').control(update_interval=1000).mode('browser'),
+        plt.area(prepare_streaming_feed(), x='date', y='close').style(marker='x').control(update_interval=1000).mode('browser'),
+        plt.bar(prepare_streaming_feed(), x='date', y='close').control(update_interval=1000).mode('browser'),
         plotly_fig,
         altair_fig,
     ).mode('browser').control(allow_drag=False, linked_axes=False).show()
@@ -364,17 +398,20 @@ def _(altair_fig, line, plotly_fig, tabs):
 
 
 @app.cell
-def _(altair_fig, line, plotly_fig, tabs):
-    desktop_thread = plt.layout(
-        plt.ohlc(prepare_streaming_feed()).control(update_interval=1000).mode('desktop'),
-        tabs,
-        line,
-        plotly_fig,
-        altair_fig,
-    ).mode('desktop').control(allow_drag=False, linked_axes=False).show()
+def _():
+    desktop_thread = plt.line(df, x='date', y='close').style(color='orange').control(widgets=False).mode('desktop').show()
+    # desktop_thread = plt.layout(
+    #     plt.ohlc(prepare_streaming_feed()).control(update_interval=1000).mode('desktop'),
+    #     tabs,
+    #     plt.line(prepare_streaming_feed(), x='date', y='close').control(update_interval=1000).mode('desktop'),
+    #     plt.area(prepare_streaming_feed(), x='date', y='close').style(marker='x').control(update_interval=1000).mode('desktop'),
+    #     plt.bar(prepare_streaming_feed(), x='date', y='close').control(update_interval=1000).mode('desktop'),
+    #     plotly_fig,
+    #     altair_fig,
+    # ).mode('desktop').control(allow_drag=False, linked_axes=False).show()
 
     # stop in background without blocking
-    Thread(target=stop_later, args=(desktop_thread, 20)).start()
+    Thread(target=stop_later, args=(desktop_thread, 3)).start()
     return
 
 

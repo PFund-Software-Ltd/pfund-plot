@@ -81,10 +81,10 @@ def control(
 
 def plot(
     df: nw.DataFrame[Any],
-    x: str | None,
-    y: str | list[str] | None,
     style: dict[str, Any],
     control: dict[str, Any],
+    x: str | None = None,
+    y: str | list[str] | None = None,
     **kwargs: Any,
 ) -> Overlay:
     import hvplot
@@ -97,12 +97,6 @@ def plot(
 
     columns = df.columns
 
-    scatter_kwargs: dict[str, Any] = {
-        'alpha': style['opacity'],
-        'responsive': True,
-        'grid': style['grid'],
-    }
-
     if control['include_extra_cols']:
         exclude: set[str] = set()
         if x:
@@ -111,34 +105,37 @@ def plot(
             exclude.update(y)
         elif y:
             exclude.add(y)
-        scatter_kwargs['hover_cols'] = [c for c in columns if c not in exclude]
+        kwargs['hover_cols'] = [c for c in columns if c not in exclude]
 
     color_is_col = isinstance(color, str) and color in columns
     size_is_col = isinstance(size, str) and size in columns
     marker_is_col = isinstance(marker, str) and marker in columns
 
     if color_is_col:
-        scatter_kwargs['c'] = color
+        kwargs['c'] = color
     else:
-        scatter_kwargs['color'] = color
+        kwargs['color'] = color
 
     if size_is_col:
-        scatter_kwargs['s'] = size
+        kwargs['s'] = size
     else:
-        scatter_kwargs['size'] = size
+        kwargs['size'] = size
     
     if marker_is_col:
         df = df.with_columns(nw.col(marker).replace_strict(MARKER_MAP, default=nw.col(marker)))
-        scatter_kwargs['marker'] = marker
+        kwargs['marker'] = marker
     else:
-        scatter_kwargs['marker'] = MARKER_MAP.get(marker, marker)
+        kwargs['marker'] = MARKER_MAP.get(marker, marker)
 
 
     return (
         df.to_native().hvplot.scatter(
             x=x,
             y=y,
-            **scatter_kwargs,
+            responsive=True,
+            alpha=style['opacity'],
+            grid=style['grid'],
+            **kwargs,
         )
         .opts(
             title=style['title'],

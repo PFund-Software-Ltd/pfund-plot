@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     )
     from pfund_plot.plots.altair import (
         Altair as altair,
+        Altair as vega,
     )
     from pfund_plot.plots.matplotlib import (
         Matplotlib as matplotlib,
@@ -40,6 +41,12 @@ if TYPE_CHECKING:
     )
     from pfund_plot.plots.label import (
         Label as label,
+    )
+    from pfund_plot.plots.area import (
+        Area as area,
+    )
+    from pfund_plot.plots.bar import (
+        Bar as bar,
     )
 
 from importlib.metadata import version
@@ -68,25 +75,31 @@ def __getattr__(name: str):
     elif name in ('candlestick', 'ohlc', 'kline'):
         from pfund_plot.plots.candlestick import Candlestick
         return Candlestick
-    elif name in ('line',):
+    elif name == 'line':
         from pfund_plot.plots.line import Line
         return Line
+    elif name == 'area':
+        from pfund_plot.plots.area import Area
+        return Area
     elif name == 'layout':
         from pfund_plot.plots.layout import Layout
         return Layout
     elif name == 'tabs':
         from pfund_plot.plots.layout.tabs import Tabs
         return Tabs
-    elif name in ('scatter',):
+    elif name == 'scatter':
         from pfund_plot.plots.scatter import Scatter
         return Scatter
-    elif name in ('marker',):
+    elif name == 'marker':
         from pfund_plot.plots.scatter.marker import Marker
         return Marker
     elif name == 'label':
         from pfund_plot.plots.label import Label
         return Label
-    elif name == 'altair':
+    elif name == 'bar':
+        from pfund_plot.plots.bar import Bar
+        return Bar
+    elif name in ('altair', 'vega'):
         from pfund_plot.plots.altair import Altair
         return Altair
     elif name in ('matplotlib', 'mpl'):
@@ -100,23 +113,21 @@ def __getattr__(name: str):
         return Holoviews
     else:
         raise AttributeError(f"'{__name__}' has no attribute '{name}'")
-    # TODO
-    # elif name in ('dataframe', 'df'):
-    #     from pfund_plot.plots.dataframe import dataframe_plot
-    
 
 
 __version__ = version("pfund_plot")
 __all__ = (
     "__version__",
     "get_config", "configure",
-    "plotly", "altair", "matplotlib", "mpl", "bokeh", "holoviews", "hv",
+    "plotly", "altair", "vega", "matplotlib", "mpl", "bokeh", "holoviews", "hv",
     "candlestick", "ohlc", "kline",
     "line",
     "layout", "tabs",
     "scatter",
     "marker",
     "label",
+    "area",
+    "bar",
 )
 def __dir__():
     return sorted(__all__)

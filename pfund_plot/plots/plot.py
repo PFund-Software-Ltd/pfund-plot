@@ -61,10 +61,30 @@ class BasePlot(ABC):
     def __new__(cls, *args: Any, **kwargs: Any) -> LazyPlot:
         from pfund_plot.plots.lazy import LazyPlot
 
-        instance: BasePlot = super().__new__(cls)
+        # Dynamically inject streaming mixin based on feed type
+        data = args[0] if args else kwargs.get('data')
+        cls = cls._check_if_inject_streaming_mixin(cls, data)
+
+        instance: BasePlot = object.__new__(cls)
         # manually call __init__ to initialize the instance
         instance.__init__(*args, **kwargs)
         return LazyPlot(instance)
+
+    @staticmethod
+    def _check_if_inject_streaming_mixin(cls: type[BasePlot], data: Any) -> type[BasePlot]:
+        """Dynamically inject streaming mixin based on feed type if not already in MRO."""
+        if not cls.SUPPORT_STREAMING:
+            return cls
+        from pfeed.feeds.base_feed import BaseFeed
+        if isinstance(data, BaseFeed):
+            from pfeed.feeds.market_feed import MarketFeed
+            if isinstance(data, MarketFeed):
+                from pfund_plot.mixins.streaming_market_feed_mixin import StreamingMarketFeedMixin
+                if StreamingMarketFeedMixin not in cls.__mro__:
+                    return type(cls.__name__, (StreamingMarketFeedMixin, cls), {'__module__': cls.__module__})
+            else:
+                raise ValueError(f"Unsupported feed type for streaming: {type(data)}")
+        return cls
 
     def __deepcopy__(self, memo: dict) -> BasePlot:
         from copy import deepcopy
@@ -103,6 +123,7 @@ class BasePlot(ABC):
         y: str | list[str] | None = None,
         callback: Callable[..., Any] | None = None,
         name: str | None = None,
+        plot_kwargs: dict[str, Any] | None = None,
         **reactive_params: Any,
     ):
         '''
@@ -114,6 +135,8 @@ class BasePlot(ABC):
                       auto-creates widgets that re-fetch data on change.
             name: Display name for this plot (used as label when widgets are shown alongside overlays).
                   Defaults to the class name lowercased (e.g. "candlestick", "line").
+            plot_kwargs: keyword arguments for the plot function.
+                e.g. if the plot function is hvplot.line, plot_kwargs will be passed to hvplot.line(**plot_kwargs)
             **reactive_params: name=value pairs for reactive widgets (e.g. ticker=["BTC", "ETH"]).
                                Requires callback to be set.
         '''
@@ -137,7 +160,7 @@ class BasePlot(ABC):
         if self._df is not None:
             self._df = self._standardize_df(self._df)
             self._x = self._derive_x_col(self._df, self._x)
-        self._plot_kwargs: dict[str, Any] = {}
+        self._plot_kwargs: dict[str, Any] = plot_kwargs or {}
         self._pane_kwargs: dict[str, Any] = {}
         self._anywidget: AnyWidget | None = None
         self._plot: Plot | None = None
@@ -189,34 +212,34 @@ class BasePlot(ABC):
         df = nw.from_native(df)
         if isinstance(df, nw.LazyFrame):
             df = df.collect()
-        # convert all columns to lowercase
-        df = df.rename({col: col.lower() for col in df.columns})
-        # rename common datetime column names to 'date'
-        date_original_name = "date"
-        for alias in ("datetime", "timestamp"):
-            if alias in df.columns and "date" not in df.columns:
-                date_original_name = alias
-                df = df.rename({alias: "date"})
-        # if 'date' column exists, ensure it's a proper datetime type
-        if "date" in df.columns:
-            date_value = df.select("date").row(0)[0]
-            if not isinstance(date_value, datetime.datetime):
-                try:
-                    df = df.with_columns(
-                        nw.col("date").str.to_datetime(format=None),
-                    )
-                except Exception:
-                    raise TypeError(f"Column '{date_original_name}' cannot be converted to datetime (got {type(date_value).__name__})")
-            # normalize to naive UTC — Panel/Bokeh widgets don't handle tz-aware datetimes consistently
-            date_dtype = df.collect_schema()["date"]
-            if hasattr(date_dtype, 'time_zone') and date_dtype.time_zone is not None:  # pyright: ignore[reportAttributeAccessIssue]
-                df = df.with_columns(
-                    nw.col("date").dt.convert_time_zone("UTC").dt.replace_time_zone(None)
-                )
+        
         if self.REQUIRED_COLS:
             missing_cols = [col for col in self.REQUIRED_COLS if col not in df.columns]
             if missing_cols:
                 raise ValueError(f"Missing required columns: {missing_cols}")
+
+        # find a date-like column (case-insensitive) and ensure it's a proper datetime type
+        col_lookup = {col.lower(): col for col in df.columns}
+        date_col: str | None = None
+        for alias in ("date", "datetime", "timestamp"):
+            if alias in col_lookup:
+                date_col = col_lookup[alias]
+                break
+        if date_col is not None and df.shape[0] > 0:
+            date_value = df.select(date_col).row(0)[0]
+            if not isinstance(date_value, datetime.datetime):
+                try:
+                    df = df.with_columns(
+                        nw.col(date_col).str.to_datetime(format=None),
+                    )
+                except Exception:
+                    raise TypeError(f"Column '{date_col}' cannot be converted to datetime (got {type(date_value).__name__})")
+            # normalize to naive UTC — Panel/Bokeh widgets don't handle tz-aware datetimes consistently
+            date_dtype = df.collect_schema()[date_col]
+            if hasattr(date_dtype, 'time_zone') and date_dtype.time_zone is not None:
+                df = df.with_columns(
+                    nw.col(date_col).dt.convert_time_zone("UTC").dt.replace_time_zone(None)
+                )
         return df
 
     def _create_msg_key(self, msg: StreamingMessage) -> MessageKey:
@@ -585,7 +608,6 @@ class BasePlot(ABC):
     
     def _setup(self):
         from pfund_plot.utils import import_hvplot_df_module, match_df_with_data_tool
-        from pfeed import get_config
         from pfeed.feeds.streaming_feed_mixin import StreamingFeedMixin
 
         if self.REQUIRED_DATA:
@@ -603,9 +625,6 @@ class BasePlot(ABC):
             # set pipeline mode to True for streaming to standardize the run method to be feed.run()
             assert self._feed.is_pipeline(), f"{self._feed} must be in pipeline mode"
             assert self._feed._num_workers is None, f"Ray is not supported in streaming plot, {self._feed.__class__.__name__} 'num_workers' must be None"
-            pfeed_config = get_config()
-            data_tool = pfeed_config.data_tool
-            import_hvplot_df_module(data_tool)
         
         if self._reactive_params:
             assert self._reactive_callback is not None, "callback is required when reactive_params are provided"

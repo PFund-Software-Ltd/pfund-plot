@@ -1,4 +1,4 @@
-# pyright: reportUnusedParameter=false, reportArgumentType=false
+# pyright: reportUnusedParameter=false
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 import narwhals as nw
 
 from pfund_plot.enums import PlottingBackend
-    
+
 
 __all__ = ["plot", "style", "control"]
 
@@ -22,6 +22,9 @@ def style(
     xlabel: str = "",
     ylabel: str = "",
     color: str = DEFAULT_COLOR,
+    alpha: float = 0.5,
+    marker: Literal['circle', 'square', 'triangle_up', 'triangle_down', 'diamond', 'cross', 'x', 'star'] | None = None,
+    stacked: bool = True,
     bg_color: str = '',  # empty string by default because Panel will automatically use the theme color
     grid: bool = False,
     total_height: int | None = None,
@@ -33,7 +36,12 @@ def style(
         title: the title of the plot
         xlabel: the label of the x-axis
         ylabel: the label of the y-axis
-        color: the color of the plot, hex code is supported, only used when there is only one line
+        color: the color of the plot, hex code is supported, only used when there is only one area chart
+        alpha: the alpha of the plot, 0.0 to 1.0
+        marker: marker shape for data points. None hides markers, any value shows them.
+            Default is None (hidden). Options: 'circle', 'square', 'triangle_up',
+            'triangle_down', 'diamond', 'cross', 'x', 'star'.
+        stacked: Whether to stack multiple areas. Default is True.
         bg_color: the background color of the plot, hex code is supported
         total_height: the height of the component (including the figure + widgets)
             Default is None, when it is None, Panel will automatically adjust its height
@@ -82,39 +90,33 @@ def plot(
 ) -> NdOverlay:
     import hvplot
     from bokeh.models import CrosshairTool
-    from pfund_plot.utils.bokeh import create_bundled_hover_tool, create_vline_hover_opts
-    from pfund_plot.plots.line import Line
+    from pfund_plot.plots.area import Area
 
     _ = hvplot.extension(PlottingBackend.bokeh)
 
     # resolve y column names
     x_col = x
-    y_cols = Line._derive_y_cols(df, x, y)
+    y_cols = Area._derive_y_cols(df, x, y)
     datetime_precision = control["datetime_precision"]
 
-    is_single = len(y_cols) == 1
     crosshair_tool = CrosshairTool(dimensions="height", line_color="gray", line_alpha=0.3)
-    if is_single:
-        tools = [
-            create_bundled_hover_tool(df, x_col, y_cols, datetime_precision),
-            crosshair_tool
-        ]
-    else:
-        tools = [crosshair_tool]
 
-    if is_single:
+    if len(y_cols) == 1:
         kwargs["color"] = style["color"]
-    else:
-        kwargs["hover_cols"] = y_cols
 
-    plot = (
-        df.to_native().hvplot.line(
+    area_plot = (
+        df.to_native().hvplot.area(
             x=x,
             y=y,
-            tools=tools,
+            tools=[crosshair_tool],
             grid=style["grid"],
             bgcolor=style["bg_color"],
+            stacked=style["stacked"],
+            alpha=style["alpha"],
             responsive=True,
+            # Disable hvplot's built-in hover (shows "???") because hvplot converts
+            # area to Patch polygons, destroying original column data in ColumnDataSource
+            hover=False,
             **kwargs,
         )
         .opts(
@@ -124,7 +126,9 @@ def plot(
             height=style["height"],
         )
     )
-    if not is_single:
-        plot = plot.opts(create_vline_hover_opts(df, x_col, y_cols, datetime_precision))
 
-    return plot
+    # NOTE: this is not needed if hvplot has fixed the tooltip issue in area plot
+    # Overlay invisible scatter points that carry the real data for hover tooltips
+    from pfund_plot.utils.bokeh import create_hover_scatter
+    hover_scatter = create_hover_scatter(df, x_col, y_cols, datetime_precision, marker=style.get("marker"))
+    return area_plot * hover_scatter

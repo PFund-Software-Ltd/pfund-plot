@@ -74,47 +74,18 @@ def control(
     return locals()
 
 
-def plot(df: nw.DataFrame[Any], style: dict[str, Any], control: dict[str, Any], **kwargs: Any) -> Overlay:
-    '''
-    Args:
-        df: the dataframe to plot
-        style: the style of the plot
-        kwargs: additional keyword arguments (not used in this plot) to be compatible with other plots
-            - x: the column name of the x-axis
-            - y: the column name of the y-axis
-            - control: the control of the plot
-    '''
+def plot(
+    df: nw.DataFrame[Any],
+    style: dict[str, Any],
+    control: dict[str, Any],
+    x: str | None = None,
+    y: str | list[str] | None = None,
+    **kwargs: Any,
+) -> Overlay:
     import hvplot
-    from bokeh.models import HoverTool, CrosshairTool
+    from bokeh.models import CrosshairTool
     from pfund_plot.plots.candlestick import Candlestick
-    from pfund_plot.utils.bokeh import create_number_formatter_for_hover_tool, get_datetime_hover_format
-
-    def _create_hover_tool() -> HoverTool:
-        date_format = get_datetime_hover_format(control["datetime_precision"])
-        num_formatter = create_number_formatter_for_hover_tool()
-        return HoverTool(
-            tooltips=[
-                ("date", f"@date{{{date_format}}}"),
-                ("open", "@open{custom}"),
-                ("high", "@high{custom}"),
-                ("low", "@low{custom}"),
-                ("close", "@close{custom}"),
-                ("volume", "@volume{custom}"),
-            ],
-            formatters={
-                "@date": "datetime",
-                "@open": num_formatter,
-                "@high": num_formatter,
-                "@low": num_formatter,
-                "@close": num_formatter,
-                "@volume": num_formatter,
-            },
-            mode="vline",
-        )
-
-
-    def _create_crosshair_tool():
-        return CrosshairTool(dimensions="height", line_color="gray", line_alpha=0.3)
+    from pfund_plot.utils.bokeh import create_bundled_hover_tool
 
     _ = hvplot.extension(PlottingBackend.bokeh)
 
@@ -126,14 +97,15 @@ def plot(df: nw.DataFrame[Any], style: dict[str, Any], control: dict[str, Any], 
             REQUIRED_COLS[1:-1],
             hover_cols=REQUIRED_COLS,
             tools=[
-                _create_hover_tool(),
-                _create_crosshair_tool(),
+                create_bundled_hover_tool(df, REQUIRED_COLS[0], REQUIRED_COLS[1:], control["datetime_precision"]),
+                CrosshairTool(dimensions="height", line_color="gray", line_alpha=0.3),
             ],
             responsive=True,
             grid=style["grid"],
             pos_color=style["pos_color"],
             neg_color=style["neg_color"],
             bgcolor=style["bg_color"],
+            **kwargs,
         )
         .opts(
             title=style["title"],

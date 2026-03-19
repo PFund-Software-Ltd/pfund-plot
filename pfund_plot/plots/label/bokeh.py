@@ -59,10 +59,10 @@ def control(
 
 def plot(
     df: nw.DataFrame[Any],
-    x: str | None,
-    y: str | list[str] | None,
-    text: str,
     style: dict[str, Any],
+    control: dict[str, Any],
+    x: str | None = None,
+    y: str | list[str] | None = None,
     **kwargs: Any,
 ) -> Overlay:
     import hvplot
@@ -73,8 +73,8 @@ def plot(
         df.to_native().hvplot.labels(
             x=x,
             y=y,
-            text=text,
             responsive=True,
+            **kwargs,
         )
         .opts(
             title=style['title'],
