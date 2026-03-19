@@ -196,7 +196,7 @@ def _():
 @app.cell(column=1, hide_code=True)
 def _():
     mo.md(r"""
-    # Operations: "+" and "|"
+    # Operators: "+" and "|"
     """)
     return
 
