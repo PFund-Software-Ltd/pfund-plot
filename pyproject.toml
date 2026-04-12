@@ -27,15 +27,15 @@ dependencies = [
     "pfeed>=0.0.5",
     "panel>=1.8.10",
     "hvplot>=0.12.2",
-    "anywidget>=0.9.21",
+    "anywidget>=0.10.0",
     "ipywidgets-bokeh>=1.7.0",
-    "pywebview>=6.1",
-    "datashader>=0.18.2",
+    "pywebview>=6.1 ; sys_platform != 'emscripten'",
+    "datashader>=0.19.0 ; sys_platform != 'emscripten'",
 ]
 
 [project.optional-dependencies]
 marimo = [
-    "marimo[recommended,lsp]>=0.21.0",
+    "marimo[recommended,lsp]>=0.23.1",
 ]
 jupyter = [
     "jupyter-bokeh>=4.0.5",
@@ -48,10 +48,10 @@ matplotlib = [
     "matplotlib>=3.10.8", 
     # "mplcursors>=0.7.0",
 ]
-plotly = ["plotly>=6.6.0"]
+plotly = ["plotly>=6.7.0"]
 altair = [
     "altair>=6.0.0",
-    "vegafusion>=2.0.3",
+    # "vegafusion>=2.0.3",
 ]
 
 [dependency-groups]
@@ -71,7 +71,7 @@ repository = "https://github.com/PFund-Software-Ltd/pfund-plot"
 documentation = "https://pfund-plot-docs.pfund.ai"
 
 [build-system]
-requires = ["uv_build>=0.10.10,<0.11.0"]
+requires = ["uv_build>=0.11.2,<0.12.0"]
 build-backend = "uv_build"
 
 [tool.pyright]

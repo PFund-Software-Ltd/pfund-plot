@@ -242,14 +242,6 @@ class BasePlot(ABC):
                 )
         return df
 
-    def _create_msg_key(self, msg: StreamingMessage) -> MessageKey:
-        '''Create a message key for streaming'''
-        msg_key = (msg.product, msg.resolution)
-        # set the first product as active by default
-        if self._active_msg_key is None:
-            self._active_msg_key = msg_key
-        return msg_key
-
     def _create_widgets(self) -> None:
         def _has_required_cols(WidgetClass: type[BaseWidget]) -> bool:
             """Check if the df has the columns required by the widget."""

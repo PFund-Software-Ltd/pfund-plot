@@ -17,28 +17,26 @@ depends-on = [
 
 [dependencies]
 python = ">=3.11.14"
-uv = ">=0.10.10"
+uv = ">=0.11.2"
 gh = ">=2.87.2"
 
 [pypi-dependencies]
 # TEMP
-pfund-plot = { path = ".", editable = true }
 pfeed = { path = "../pfeed", editable = true }
 pfund = { path = "../pfund", editable = true }
-pfund-kit = { path = "../pfund-kit", editable = true }
 # pfeed = ">=0.0.5"
 panel = ">=1.8.10"
 hvplot = ">=0.12.2"
-anywidget = ">=0.9.21"
+anywidget = ">=0.10.0"
 ipywidgets-bokeh = ">=1.7.0"
 pywebview = ">=6.1"
-datashader = ">=0.18.2"
+datashader = ">=0.19.0"
 
-# TEMP
 [pypi-options.dependency-overrides]
-pfund = { path = "../pfund", editable = true }
+pfund-plot = { path = ".", editable = true }
+# TEMP
 pfeed = { path = "../pfeed", editable = true }
-pfund-kit = { path = "../pfund-kit", editable = true }
+pfund = { path = "../pfund", editable = true }
 
 [environments]
 default = ["py311", "dev", "optional"]
@@ -47,14 +45,13 @@ py312 = ["py312", "test", "optional"]
 py313 = ["py313", "test", "optional"]
 
 [feature.optional.pypi-dependencies]
-marimo = { version = ">=0.21.0", extras = ["recommended", "lsp"] }
+marimo = { version = ">=0.23.1", extras = ["recommended", "lsp"] }
 jupyter-bokeh = ">=4.0.5"
 notebook = ">=7.5.5"
 papermill = ">=2.7.0"
 voila = ">=0.5.11"
 matplotlib = ">=3.10.8"
-plotly = ">=6.6.0"
-vegafusion = ">=2.0.3"
+plotly = ">=6.7.0"
 altair = ">=6.0.0"
 
 [feature.dev.dependencies]

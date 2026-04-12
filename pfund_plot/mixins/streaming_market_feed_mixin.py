@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
-    from pfeed.streaming.streaming_message import StreamingMessage
+    from pfeed.streaming.market_data_message import MarketDataMessage
     from pfund_plot.plots.plot import MessageKey
 
 import narwhals as nw
@@ -40,7 +40,7 @@ class StreamingMarketFeedMixin:
 
         super()._start_streaming()
     
-    def _create_streaming_row(self, msg: StreamingMessage) -> nw.DataFrame[Any]:
+    def _create_streaming_row(self, msg: MarketDataMessage) -> nw.DataFrame[Any]:
         import polars as pl
         from pfund_kit.utils.temporal import convert_ts_to_dt
 
@@ -72,7 +72,7 @@ class StreamingMarketFeedMixin:
         else:
             raise ValueError(f"Unsupported streaming message type: {type(msg)}")
     
-    def _create_streaming_df(self, msg_key: MessageKey, msg: StreamingMessage) -> nw.DataFrame[Any]:
+    def _create_streaming_df(self, msg_key: MessageKey, msg: MarketDataMessage) -> nw.DataFrame[Any]:
         new_row = self._create_streaming_row(msg)
 
         if msg_key not in self._streaming_dfs:
@@ -113,9 +113,17 @@ class StreamingMarketFeedMixin:
             else:
                 raise ValueError(f"New date {new_date} is before last date {last_date}, something is wrong with the streaming data")
         return df
+    
+    def _create_msg_key(self, msg: MarketDataMessage) -> MessageKey:
+        '''Create a message key for streaming'''
+        msg_key = (msg.product, msg.resolution)
+        # set the first product as active by default
+        if self._active_msg_key is None:
+            self._active_msg_key = msg_key
+        return msg_key
         
     # NOTE: this is added to streaming feed as a custom transformation
-    def _on_streaming_callback(self, msg: StreamingMessage) -> StreamingMessage:
+    def _on_streaming_callback(self, msg: MarketDataMessage) -> MarketDataMessage:
         # for bar data, skip incremental updates unless incremental_update is enabled
         if msg.is_bar() and not self._control['incremental_update'] and msg.is_incremental:  # pyright: ignore[reportAttributeAccessIssue]
             return msg
