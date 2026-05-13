@@ -24,7 +24,7 @@ classifiers = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-    "pfeed>=0.0.5",
+    "pfund-kit>=0.1.6",
     "panel>=1.8.10",
     "hvplot>=0.12.2",
     "anywidget>=0.10.0",
@@ -34,29 +34,25 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+pfeed = ['pfeed>=0.0.5']
 marimo = [
-    "marimo[recommended,lsp]>=0.23.1",
+    "marimo[recommended,lsp]>=0.23.4",
 ]
 jupyter = [
     "jupyter-bokeh>=4.0.5",
     "notebook>=7.5.5",
     "papermill>=2.7.0",
-    "voila>=0.5.11",
+    "voila>=0.5.12",
     # "jupytext>=1.17.2",
 ]
 matplotlib = [
-    "matplotlib>=3.10.8", 
+    "matplotlib>=3.10.9", 
     # "mplcursors>=0.7.0",
 ]
 plotly = ["plotly>=6.7.0"]
 altair = [
-    "altair>=6.0.0",
+    "altair>=6.1.0",
     # "vegafusion>=2.0.3",
-]
-
-[dependency-groups]
-dev = [
-    "afterpython>=0.2.1",
 ]
 
 [project.scripts]
