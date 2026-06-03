@@ -49,8 +49,6 @@ if TYPE_CHECKING:
         Bar as bar,
     )
 
-from importlib.metadata import version
-
 import panel as pn
 
 from pfund_plot.config import get_config, configure
@@ -63,13 +61,16 @@ pn.extension("plotly", "vega", 'ipywidgets')
 pn.config.throttled = True  # If panel sliders and inputs should be throttled until release of mouse.
 # NOTE: /assets can only be recognized when setting pn.serve(static_dirs=pfund_plot.config.static_dirs)
 # see static_dirs in config.py
-pn.config.js_files = {
-    "widgets_amd_config": "/assets/widgets-amd-config.js",
-}
+# pn.config.js_files = {
+#     "your_custom_js_file": "/assets/your_custom_js_file.js",
+# }
 
 
 def __getattr__(name: str):
-    if name == 'plotly':
+    if name == '__version__':
+        from importlib.metadata import version
+        return version("pfund_plot")
+    elif name == 'plotly':
         from pfund_plot.plots.plotly import Plotly
         return Plotly
     elif name in ('candlestick', 'ohlc', 'kline'):
@@ -115,9 +116,7 @@ def __getattr__(name: str):
         raise AttributeError(f"'{__name__}' has no attribute '{name}'")
 
 
-__version__ = version("pfund_plot")
 __all__ = (
-    "__version__",
     "get_config", "configure",
     "plotly", "altair", "vega", "matplotlib", "mpl", "bokeh", "holoviews", "hv",
     "candlestick", "ohlc", "kline",

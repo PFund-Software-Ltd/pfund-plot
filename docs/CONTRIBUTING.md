@@ -140,13 +140,13 @@ pnpm build:widget           # Production widget builds
 Your function will look something like this:
 ```python
 # GenericFrame is just a type alias for pandas, polars and dask dataframes
-from pfeed.typing import GenericFrame
+from narwhals.typing import IntoFrame
 from typing import Literal
 from pfund_plot.renderer import render
 
 
 def your_plot(
-    data: GenericFrame,
+    data: IntoFrame,
     streaming: bool = False,
     display_mode: Literal['notebook', 'browser', 'desktop'] = "notebook",
     raw_figure: bool = False,  # add this if your function uses hvplot

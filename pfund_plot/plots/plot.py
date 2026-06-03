@@ -71,7 +71,7 @@ class BasePlot(ABC):
         return LazyPlot(instance)
 
     @staticmethod
-    def _check_if_inject_streaming_mixin(cls: type[BasePlot], data: Any) -> type[BasePlot]:
+    def _check_if_inject_streaming_mixin(cls: type[BasePlot], data: Any) -> type[BasePlot]:  # pyright: ignore[reportSelfClsParameterName]
         """Dynamically inject streaming mixin based on feed type if not already in MRO."""
         if not cls.SUPPORT_STREAMING:
             return cls
@@ -201,18 +201,18 @@ class BasePlot(ABC):
     def _is_hvplot(plot: Plot) -> bool:
         from holoviews.core import Dimensioned
         return isinstance(plot, Dimensioned)
-    
+
     @property
     def _class_name(self) -> str:
         return self.__class__.__name__.lower()
-    
+
     def _standardize_df(self, df: IntoFrame) -> nw.DataFrame[Any]:
         import datetime
 
         df = nw.from_native(df)
         if isinstance(df, nw.LazyFrame):
             df = df.collect()
-        
+
         if self.REQUIRED_COLS:
             missing_cols = [col for col in self.REQUIRED_COLS if col not in df.columns]
             if missing_cols:
@@ -249,7 +249,7 @@ class BasePlot(ABC):
             if not required:
                 return True
             return all(col in self._df.columns for col in required)
-        
+
         from pfund_plot.config import get_config
         if get_config().disable_widgets or self._control is None or not self._control.get('widgets', True):
             return
@@ -546,35 +546,35 @@ class BasePlot(ABC):
     @classmethod
     def get_supported_backends(cls) -> list[PlottingBackend]:
         return cast(list[PlottingBackend], cls.SUPPORTED_BACKENDS)
-    
+
     @classmethod
     def get_required_cols(cls) -> list[str]:
         if cls.REQUIRED_COLS is None:
             return []
         return cls.REQUIRED_COLS
-    
+
     @classmethod
     def get_supported_widgets(cls) -> list[type[BaseWidget]]:
         if cls.SUPPORTED_WIDGETS is None:
             return []
         return cls.SUPPORTED_WIDGETS
-    
+
     @classmethod
     def get_supported_streaming_widgets(cls) -> list[type[BaseStreamingWidget]]:
         if cls.SUPPORTED_STREAMING_WIDGETS is None:
             return []
         return cls.SUPPORTED_STREAMING_WIDGETS
-    
+
     @classmethod
     def is_support_streaming(cls) -> bool:
         return cls.SUPPORT_STREAMING
-    
+
     def is_streaming(self):
         return self.is_support_streaming() and self._feed is not None
-    
+
     def is_in_notebook_mode(self) -> bool:
         return self._mode == DisplayMode.notebook
-    
+
     @staticmethod
     def _derive_y_cols(df: nw.DataFrame[Any], x: str | None, y: str | list[str] | None) -> list[str]:
         if y is None:
@@ -584,7 +584,7 @@ class BasePlot(ABC):
         else:
             y_cols = y
         return y_cols
-    
+
     @staticmethod
     def _derive_x_col(df: nw.DataFrame[Any], x: str | None) -> str | None:
         x_col = x
@@ -597,7 +597,7 @@ class BasePlot(ABC):
             elif hasattr(native_df, 'index') and native_df.index.name is not None:
                 x_col = native_df.index.name
         return x_col
-    
+
     def _setup(self):
         from pfund_plot.utils import import_hvplot_df_module, match_df_with_data_tool
         from pfeed.feeds.streaming_feed_mixin import StreamingFeedMixin
@@ -617,7 +617,7 @@ class BasePlot(ABC):
             # set pipeline mode to True for streaming to standardize the run method to be feed.run()
             assert self._feed.is_pipeline(), f"{self._feed} must be in pipeline mode"
             assert self._feed._num_workers is None, f"Ray is not supported in streaming plot, {self._feed.__class__.__name__} 'num_workers' must be None"
-        
+
         if self._reactive_params:
             assert self._reactive_callback is not None, "callback is required when reactive_params are provided"
             assert self._feed is None, "reactive params are not supported with streaming feed"
@@ -642,37 +642,37 @@ class BasePlot(ABC):
                 it is created by `panel.state.add_periodic_callback`.
         '''
         periodic_callback = pn.state.add_periodic_callback(
-            callback, 
+            callback,
             period=self._control['update_interval'],  # in ms
             start=False,
         )
         self._renderer.add_periodic_callback(periodic_callback)
-    
+
     def _on_streaming_callback(self, msg: StreamingMessage) -> StreamingMessage:
         raise NotImplementedError(f"{self._class_name} does not support streaming")
-    
+
     def _is_streaming_ready(self) -> bool:
         return bool(self._streaming_dfs)
-    
+
     def _create_streaming_row(self, msg: StreamingMessage) -> nw.DataFrame[Any]:
         raise NotImplementedError(f"{self._class_name} does not support streaming")
-    
+
     def _create_streaming_df(self, msg_key: MessageKey, msg: StreamingMessage) -> nw.DataFrame[Any]:
         raise NotImplementedError(f"{self._class_name} does not support streaming")
-    
+
     def _truncate_streaming_df(self, df: nw.DataFrame[Any]) -> nw.DataFrame[Any]:
         assert self._control is not None, "control is not set"
         max_data = self._control['max_data']
         if max_data and df.shape[0] > max_data:
             df = df.tail(max_data)
         return df
-        
+
     def _start_streaming(self):
         from pfeed.requests.market_feed_stream_request import MarketFeedStreamRequest
 
         if not self.is_streaming():
             return
-        
+
         assert self._feed is not None, "feed is not set"
         requests = cast(list[MarketFeedStreamRequest], self._feed._requests)
         assert all(request.is_streaming() for request in requests), "Not all requests in the streaming feed are for streaming"
@@ -700,13 +700,13 @@ class BasePlot(ABC):
         for overlay in self._overlays:
             if overlay.is_streaming():
                 overlay._start_streaming()
-    
+
     def _refresh_streaming_ui(self):
         '''during streaming, update pane and widgets accordingly using the newly updated data (updated in _on_streaming_callback)'''
         if self._df is not None and self._is_streaming_ready():
             self._update_pane(self._df)
             self._update_widgets(self._df)
-            
+
     def _wait_for_streaming_ready(self):
         if not self.is_streaming():
             return
@@ -723,11 +723,11 @@ class BasePlot(ABC):
             while not self._is_streaming_ready():
                 cprint("Not enough data to plot, waiting for streaming data...", style=TextStyle.BOLD + RichColor.YELLOW)
                 await asyncio.sleep(1)
-    
+
     def _render(self) -> RenderedResult:
         self._create()
         return self._renderer.render(self._component)
-    
+
     def _render_sync(self) -> RenderedResult:
         if self.is_streaming():
             self._start_streaming()
@@ -836,7 +836,7 @@ class BasePlot(ABC):
         )
         self._mode = DisplayMode[mode.lower()]
         self._set_renderer()
-    
+
     @classmethod
     def remove_widgets(cls, *WidgetClasses: type[BaseWidget | BaseStreamingWidget]) -> None:
         for WidgetClass in WidgetClasses:
@@ -844,7 +844,7 @@ class BasePlot(ABC):
                 cls._ChosenWidgetClasses.remove(WidgetClass)
             if WidgetClass in cls._ChosenStreamingWidgetClasses:
                 cls._ChosenStreamingWidgetClasses.remove(WidgetClass)
-                
+
     def _remove_widgets(self, *WidgetClasses: type[BaseWidget | BaseStreamingWidget]) -> None:
         for WidgetClass in WidgetClasses:
             if WidgetClass in self._ChosenWidgetClasses:
@@ -916,7 +916,7 @@ class BasePlot(ABC):
             return "stretch_width"
         else:
             return None
-    
+
     def _build_plot(self, df: nw.DataFrame[Any] | None = None) -> Plot:
         """Returns a plot object for the given data, composing overlays and opts if any."""
         df = df if df is not None else self._df
@@ -959,9 +959,9 @@ class BasePlot(ABC):
         elif backend == PlottingBackend.holoviews:
             self._pane = pn.pane.HoloViews(self._plot, **self._pane_kwargs)
         elif backend in [
-            PlottingBackend.bokeh, 
-            PlottingBackend.plotly, 
-            PlottingBackend.matplotlib, 
+            PlottingBackend.bokeh,
+            PlottingBackend.plotly,
+            PlottingBackend.matplotlib,
             PlottingBackend.altair,
         ]:
             if self._is_hvplot(self._plot):
@@ -986,16 +986,11 @@ class BasePlot(ABC):
                 elif backend == PlottingBackend.altair:
                     self._pane = pn.pane.Vega(self._plot, **self._pane_kwargs)
         elif backend == PlottingBackend.svelte:
-            if pn.extension._loaded_extensions:
-                warnings.warn(
-                    "Svelte backend may not work correctly with existing panel extensions. Restart kernel to fix if issues arise.",
-                    stacklevel=1,
-                )
             self._anywidget: AnyWidget = self._plot_func(df, self._style, self._control)
             self._pane = pn.pane.IPyWidget(self._anywidget)
         else:
             raise ValueError(f"Unsupported backend: {backend}")
-    
+
     def _is_overlay(self) -> bool:
         return self._parent_plot is not None
 

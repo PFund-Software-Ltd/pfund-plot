@@ -1,11 +1,12 @@
 # PFund-Plot: Financial Charts in One Line of Code
 
-[![Twitter Follow](https://img.shields.io/twitter/follow/pfund_ai?style=social)](https://x.com/pfund_ai)
+[![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?logo=discord&logoColor=white)](https://discord.gg/vqpS94tpdp)
+[![X](https://img.shields.io/twitter/follow/pfund_ai?style=social)](https://x.com/pfund_ai)
 [![Downloads](https://static.pepy.tech/badge/pfund-plot/month)](https://pepy.tech/project/pfund-plot)
 [![PyPI](https://img.shields.io/pypi/v/pfund-plot.svg?cacheSeconds=300)](https://pypi.org/project/pfund-plot)
 ![PyPI - Support Python Versions](https://img.shields.io/pypi/pyversions/pfund-plot?cacheSeconds=300)
-[![Discussions](https://img.shields.io/badge/Discussions-Let's%20Chat-green)](https://github.com/PFund-Software-Ltd/pfund-plot/discussions)
 [![afterpython](https://afterpython.org/shield.svg)](https://afterpython.org)
+[![Discussions](https://img.shields.io/badge/Discussions-Let's%20Chat-green)](https://github.com/PFund-Software-Ltd/pfund-plot/discussions)
 [![Jupyter Notebook](https://img.shields.io/badge/jupyter-notebook-orange?logo=jupyter)](https://jupyter.org)
 [![Marimo](https://marimo.io/shield.svg)](https://marimo.io)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/PFund-Software-Ltd/pfund-plot)
@@ -20,30 +21,24 @@
 
 ## Problem
 Traders often need to quickly visualize their data without investing time in learning new tools.
-For example, plotting an orderbook should be as simple as writing a single line of code.
+For example, plotting a candlestick should be as simple as writing a single line of code.
 
 ## Solution
-We created a high-level plotting library that combines the best features from existing plotting and dashboarding libraries into an easy-to-use interface.
+We created a high-level financial visualization layer that combines the best features from existing plotting and dashboarding libraries into an easy-to-use interface.
 
 ---
 <img src="docs/assets/candlestick.gif" alt="pfund-plot candlestick streaming example" width="450">
 
-<!-- <div style="display: flex; justify-content: space-around; align-items: center;">
-    <img src="docs/assets/candlestick.gif" alt="pfund-plot streaming example" width="450">
-    <img src="docs/assets/orderbook.gif" alt="pfund-plot streaming example" width="450">
-</div> -->
-
 ---
 
-`pfund-plot` is a super high-level, out-of-the-box, domain-specific plotting library designed for traders, supporting **financial data visualization**, **dashboard creation**, and **template sharing**.
-
+`pfund-plot` is a financial visualization layer on top of existing plotting libraries, giving traders a simple, domain-specific interface for charts, dashboards, and streaming market data.
 
 ## Core Features
 - [x] Multi-Display Mode: support displaying plots in a *Jupyter notebook*, *Marimo notebook*, *browser* and *desktop window*
 - [x] Streaming Data: support streaming data in real-time by just setting `streaming=True`
 - [x] DataFrame Agnostic: support pandas, polars, and dask
 - [x] Big Data Plotting: support plotting large datasets
-- [x] Financial Plots: plot financial data by just one function call, e.g. candlestick, orderbook, trades etc.
+- [x] Financial Plots: plot financial data by just one function call
 - [x] Combine multiple plots into a dashboard quickly for visualization
 
 

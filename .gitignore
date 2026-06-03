@@ -192,6 +192,11 @@ tests/data/
 .pixi
 *.egg-info
 
-.python-version
-
 !ui/src/lib/
+
+.claude/
+
+# Built first-party JS (components/ now, dashboards/ later), copied from
+# js-tap/dist by `pixi run js-package` and shipped in the wheel. Generated
+# artifacts — CI builds them before `uv build`, so they are never committed.
+pfund_plot/js_tap/

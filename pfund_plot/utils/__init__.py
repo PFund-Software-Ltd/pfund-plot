@@ -1,3 +1,4 @@
+# pyright: reportUnknownMemberType=false, reportUnusedImport=false, reportMissingImports=false
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
@@ -43,7 +44,7 @@ def convert_to_datetime(date: str | datetime.datetime | pd.Timestamp) -> datetim
         dt = dt.astimezone(datetime.timezone.utc).replace(tzinfo=None)
     return dt
 
-    
+
 def is_daily_data(df: nw.DataFrame[Any]) -> bool:
     '''Checks if the 'resolution' column is '1d' and the "ts" column by comparing the first two rows to see if the data is daily data.'''
     if df.is_empty():
@@ -60,7 +61,7 @@ def is_daily_data(df: nw.DataFrame[Any]) -> bool:
     return False
 
 
-def load_panel_extensions(extensions: list[str] = None):
+def load_panel_extensions(extensions: list[str] | None = None):
     import panel as pn
 
     extensions = extensions or []
@@ -72,9 +73,15 @@ def load_panel_extensions(extensions: list[str] = None):
 
 def match_df_with_data_tool(df: IntoFrame) -> DataTool:
     import pandas as pd
-    import polars as pl
-    from pfeed.utils.dataframe import dd
-    
+    try:
+        import polars as pl
+    except ImportError:
+        pl = None
+    try:
+        import dask.dataframe as dd
+    except ImportError:
+        dd = None
+
     if isinstance(df, pd.DataFrame):
         return DataTool.pandas
     elif pl and isinstance(df, (pl.DataFrame, pl.LazyFrame)):
@@ -82,7 +89,10 @@ def match_df_with_data_tool(df: IntoFrame) -> DataTool:
     elif dd and isinstance(df, dd.DataFrame):
         return DataTool.dask
     else:
-        raise ValueError(f"Unsupported dataframe type: {type(df)}, make sure you have installed the required libraries")
+        raise ValueError(
+            f"Unsupported dataframe type: {type(df)!r}. " +
+            "Expected a pandas.DataFrame, polars.DataFrame/LazyFrame, or dask.dataframe.DataFrame."
+        )
 
 
 def import_hvplot_df_module(data_tool: DataTool | str) -> None:
@@ -93,7 +103,7 @@ def import_hvplot_df_module(data_tool: DataTool | str) -> None:
     elif data_tool == DataTool.polars:
         import hvplot.polars
     elif data_tool == DataTool.dask:
-        import hvplot.dask
+        import hvplot.dask  # noqa: F401
     else:
         raise ValueError(f"Unsupported data tool: {data_tool}, must be one of ['pandas', 'polars', 'dask']")
 

@@ -48,7 +48,7 @@ def configure(
     config = get_config()
     config_dict = config.to_dict()
     config_dict.pop('__version__')
-    
+
     static_dirs = static_dirs or {}
     assert isinstance(static_dirs, dict), "static_dirs must be a dict"
     assert 'assets' not in static_dirs, "'assets' is a reserved key in static_dirs"
@@ -64,26 +64,26 @@ def configure(
             elif k == 'design':
                 v = PanelDesign[v.lower()]
             setattr(config, k, v)
-    
+
     config.ensure_dirs()
-    
+
     if persist:
         config.save()
-        
+
     return config
 
 
 class PFundPlotConfig(Configuration):
-    DEFAULT_FILES: ClassVar[list[str]] = []
-    
+    DEFAULT_FILES: ClassVar[dict[str, bool]] = {}
+
     def __init__(self):
         from pfund_kit.utils import load_env_file
         _ = load_env_file(verbose=False)
         super().__init__(project_name=project_name, source_file=__file__)
-    
+
     def _initialize_from_data(self):
         assert isinstance(self._data, dict), "self._data is not a dict"
-        
+
         self.disable_widgets: bool = self._data.get('disable_widgets', False)
         self.theme = self._data.get('theme', PanelTheme.default)
         self.design = self._data.get('design', PanelDesign.native)
@@ -93,8 +93,8 @@ class PFundPlotConfig(Configuration):
         self.static_dirs = self._data.get('static_dirs', {})
         project_root = self._paths.project_root
         assert project_root is not None, "project_root is not set"
-        self.static_dirs['assets'] = str((project_root / "ui" / "static"))
-    
+        self.static_dirs['assets'] = str((project_root / "js-tap" / "static"))
+
     def to_dict(self) -> dict[str, Any]:
         return {
             **super().to_dict(),
@@ -103,7 +103,7 @@ class PFundPlotConfig(Configuration):
             'design': self.design,
             'static_dirs': self.static_dirs,
         }
-        
+
     def prepare_docker_context(self):
         '''Prepare docker context (e.g. env variables) before running compose.yml'''
         pass

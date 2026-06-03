@@ -22,11 +22,11 @@ class CandlestickStyle:
     bokeh = bokeh_style
     svelte = svelte_style
 
-    
+
 class CandlestickControl:
     from pfund_plot.plots.candlestick.bokeh import control as bokeh_control
     from pfund_plot.plots.candlestick.svelte import control as svelte_control
-    
+
     bokeh = bokeh_control
     svelte = svelte_control
 
@@ -34,9 +34,8 @@ class CandlestickControl:
 class Candlestick(StreamingMarketFeedMixin, BasePlot):
     REQUIRED_COLS: ClassVar[list[str]] = ["date", "open", "high", "low", "close", "volume"]
     SUPPORTED_BACKENDS: ClassVar[list[PlottingBackend]] = [
-        PlottingBackend.bokeh, 
-        # TODO: add back svelte
-        # PlottingBackend.svelte,
+        PlottingBackend.bokeh,
+        PlottingBackend.svelte,
     ]
     SUPPORT_STREAMING: ClassVar[bool] = True
     SUPPORTED_WIDGETS: ClassVar[list[type[BaseWidget]]] = [DatetimeRangeWidget]
@@ -48,13 +47,21 @@ class Candlestick(StreamingMarketFeedMixin, BasePlot):
         # NOTE: somehow data update on anywidget (svelte) in marimo notebook doesn't work using Panel
         # (probably need a refresh of the marimo cell to reflect the changes), so use mo.vstack() as a workaround
         if self._is_using_marimo_svelte_combo():
+            from pfund_kit.style import cprint, RichColor, TextStyle
             import marimo as mo
 
-            # NOTE: self._style is NOT applied in this case
+            # NOTE: self._style (a Panel-layer concern) is NOT applied in this case,
+            # since we bypass pn.Column. total_height is the only style with a visible
+            # effect here, so warn if it was set and is being silently dropped.
+            if self._style and self._style.get("total_height") is not None:
+                cprint(
+                    "total_height is not supported in the marimo + svelte combo and will be ignored.",
+                    style=TextStyle.BOLD + RichColor.YELLOW,
+                )
             self._component = mo.vstack([self._anywidget])
         else:
             super()._create_component()
-    
+
     def _start_streaming(self):
         from pfeed.requests.market_feed_stream_request import MarketFeedStreamRequest
         from pfund.datas.resolution import Resolution

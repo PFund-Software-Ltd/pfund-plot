@@ -3,10 +3,23 @@ authors = ["softwareentrepreneer <softwareentrepreneer+pfund-plot@gmail.com>"]
 channels = ["conda-forge"]
 name = "pfund-plot"
 platforms = ["osx-arm64", "linux-64"]
-# updating this needs to also update the version in the ci.yml and templates/ci-workflow-template.yml files
-requires-pixi = ">=0.63.2"  # command: pixi workspace requires-pixi set ">=0.63.2
+# NOTE: this depends on the lock version used in setup-pixi in ci.yml
+# currently the max lock-version supported is 6
+requires-pixi = "<=0.67.2"  # command: pixi workspace requires-pixi set "<=0.67.2"
 
 [tasks]
+# Rebuild the component bundles on every save (development: unminified +
+# sourcemap). Components are auto-discovered from src/components/*/index.ts.
+# Combined with ANYWIDGET_HMR=1 in the notebook, anywidget watches the built
+# file and live-reloads the component.
+js-watch = { cmd = "node scripts/build-components.js --watch", cwd = "js-tap" }
+# One-shot production build of all discovered component bundles.
+js-build = { cmd = "node scripts/build-components.js", cwd = "js-tap" }
+# Build the production bundles and copy them into pfund_plot/js_tap/components/
+# as package data, so the wheel ships them. uv_build has no build hooks, so this
+# MUST run before `uv build` (CI does). End users then get the components with
+# no Node/build.
+js-package = { cmd = "node js-tap/scripts/copy-components.js", depends-on = ["js-build"] }
 
 [tasks.test-all]
 depends-on = [
@@ -16,21 +29,17 @@ depends-on = [
 ]
 
 [dependencies]
-python = ">=3.11.14"
-uv = ">=0.11.2"
-gh = ">=2.87.2"
+python = ">=3.11.15"
+uv = ">=0.11.18"
+gh = ">=2.92.0"
+pnpm = ">=10.33.2,<11"
+nodejs = ">=24.16.0,<25"
 
 [pypi-dependencies]
-pfund-kit = ">=0.1.6"
-panel = ">=1.8.10"
+pfund-kit = ">=0.1.11"
+narwhals = ">=2.22.0"
+panel = ">=1.9.3"
 hvplot = ">=0.12.2"
-anywidget = ">=0.10.0"
-ipywidgets-bokeh = ">=1.7.0"
-pywebview = ">=6.1"
-datashader = ">=0.19.0"
-
-[pypi-options.dependency-overrides]
-pfund-plot = { path = ".", editable = true }
 
 [environments]
 default = ["py311", "dev", "optional"]
@@ -39,35 +48,40 @@ py312 = ["py312", "test", "optional"]
 py313 = ["py313", "test", "optional"]
 
 [feature.optional.pypi-dependencies]
-# TEMP
-# pfeed = ">=0.0.5"
-pfeed = { path = "../pfeed", editable = true }
-pfund = { path = "../pfund", editable = true }
-marimo = { version = ">=0.23.4", extras = ["recommended", "lsp"] }
+pfeed = ">=0.0.13"
+anywidget = ">=0.11.0"
+ipywidgets-bokeh = ">=1.7.0"
+pywebview = ">=6.2.1"
+datashader = ">=0.19.1"
+dayplot = ">=0.5.1"
+marimo = { version = ">=0.23.8", extras = ["recommended", "lsp"] }
 jupyter-bokeh = ">=4.0.5"
-notebook = ">=7.5.5"
+notebook = ">=7.5.6"
 papermill = ">=2.7.0"
 voila = ">=0.5.12"
 matplotlib = ">=3.10.9"
 plotly = ">=6.7.0"
 altair = ">=6.1.0"
+vegafusion = ">=2.0.3"
+vl-convert-python = ">=1.9.0.post1"
 
-[feature.dev.dependencies]
-ta-lib = ">=0.6.4"
+[feature.dev.activation.env]
+ANYWIDGET_HMR="1"
 
 [feature.dev.pypi-dependencies]
 pfund-plot = { path = ".", editable = true }
-afterpython = ">=0.3.2"
-basedpyright = ">=1.39.3"
-watchfiles = ">=1.1.1"  # "panel serve myfile.py --dev" requires watchfiles installed to autoreload
+afterpython = ">=0.3.15"
+basedpyright = ">=1.39.6"
+watchfiles = ">=1.2.0"  # "panel serve myfile.py --dev" requires watchfiles installed to autoreload
 selenium = ">=4.39.0"  # saving bokeh images requires selenium
 bokeh-sampledata = ">=2025.0"
-hvsampledata = ">=0.1.4"
+hvsampledata = ">=0.1.5"
 vega-datasets = ">=0.9.0"
 
 [feature.test.pypi-dependencies]
-pytest = ">=9.0.2"
-pytest-cov = ">=7.0.0"
+pfund-plot = { path = ".", editable = true }
+pytest = ">=9.0.3"
+pytest-cov = ">=7.1.0"
 pytest-mock = ">=3.15.1"
 pytest-xdist = ">=3.8.0"
 [feature.test.tasks]

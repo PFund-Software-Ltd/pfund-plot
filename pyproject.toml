@@ -24,35 +24,35 @@ classifiers = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-    "pfund-kit>=0.1.6",
-    "panel>=1.8.10",
+    "pfund-kit>=0.1.11",
+    "narwhals>=2.22.0",
+    "panel>=1.9.3",
     "hvplot>=0.12.2",
-    "anywidget>=0.10.0",
-    "ipywidgets-bokeh>=1.7.0",
-    "pywebview>=6.1 ; sys_platform != 'emscripten'",
-    "datashader>=0.19.0 ; sys_platform != 'emscripten'",
 ]
 
 [project.optional-dependencies]
-pfeed = ['pfeed>=0.0.5']
-marimo = [
-    "marimo[recommended,lsp]>=0.23.4",
+core = [
+    # must be included for pn.extension('ipywidgets')
+    "ipywidgets-bokeh>=1.7.0 ; sys_platform != 'emscripten'",
+    "pfeed>=0.0.13 ; sys_platform != 'emscripten'",  # used for streaming only
+    "anywidget>=0.11.0 ; sys_platform != 'emscripten'",
+    "pywebview>=6.2.1 ; sys_platform != 'emscripten'",
+    "datashader>=0.19.1 ; sys_platform != 'emscripten'",
+    "dayplot>=0.5.1",
 ]
+marimo = ["marimo[recommended,lsp]>=0.23.8"]
 jupyter = [
     "jupyter-bokeh>=4.0.5",
-    "notebook>=7.5.5",
+    "notebook>=7.5.6",
     "papermill>=2.7.0",
     "voila>=0.5.12",
-    # "jupytext>=1.17.2",
 ]
-matplotlib = [
-    "matplotlib>=3.10.9", 
-    # "mplcursors>=0.7.0",
-]
+matplotlib = ["matplotlib>=3.10.9"]
 plotly = ["plotly>=6.7.0"]
 altair = [
     "altair>=6.1.0",
-    # "vegafusion>=2.0.3",
+    "vegafusion>=2.0.3",
+    "vl-convert-python>=1.9.0.post1",
 ]
 
 [project.scripts]
@@ -62,12 +62,12 @@ plt = "pfund_plot.__main__:run_cli"
 plt = "pfund_plot.cli:pfund_plot_group"
 
 [project.urls]
-homepage = "https://pfund.ai"
+homepage = "https://pfund-plot.pfund.ai"
 repository = "https://github.com/PFund-Software-Ltd/pfund-plot"
-documentation = "https://pfund-plot-docs.pfund.ai"
+documentation = "https://pfund-plot.pfund.ai/doc"
 
 [build-system]
-requires = ["uv_build>=0.11.2,<0.12.0"]
+requires = ["uv_build>=0.11.18,<0.12.0"]
 build-backend = "uv_build"
 
 [tool.pyright]
@@ -88,7 +88,3 @@ reportImplicitOverride = false
 [tool.uv.build-backend]
 module-name = "pfund_plot"
 module-root = ""
-
-[tool.uv.sources]
-pfeed = { path = "../pfeed", editable = true }
-pfund-kit = { path = "../pfund-kit", editable = true }

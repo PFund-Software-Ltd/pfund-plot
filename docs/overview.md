@@ -12,5 +12,5 @@ You should use `pfund-plot` if you need these features:
 - Streaming Data: support streaming data in real-time by just setting `streaming=True`
 - DataFrame Agnostic: support pandas, polars, and dask
 - Big Data Plotting: support plotting large datasets
-- Financial Plots: plot financial data by just one function call, e.g. candlestick, orderbook, trades etc.
+- Financial Plots: plot financial data by just one function call
 - Combine multiple plots into a dashboard quickly for visualization
