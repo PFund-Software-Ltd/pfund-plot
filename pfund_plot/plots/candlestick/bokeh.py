@@ -89,15 +89,18 @@ def plot(
 
     _ = hvplot.extension(PlottingBackend.bokeh)
 
-    REQUIRED_COLS = Candlestick.REQUIRED_COLS[:]
+    date_col = Candlestick.REQUIRED_COLS[0]
+    ohlc_cols = Candlestick.REQUIRED_COLS[1:]
+    # include optional cols (e.g. volume) only when present in the df
+    value_cols = ohlc_cols + [col for col in Candlestick.OPTIONAL_COLS if col in df.columns]
     return (
         df.to_native()
         .hvplot.ohlc(
-            REQUIRED_COLS[0],
-            REQUIRED_COLS[1:-1],
-            hover_cols=REQUIRED_COLS,
+            date_col,
+            ohlc_cols,
+            hover_cols=[date_col] + value_cols,
             tools=[
-                create_bundled_hover_tool(df, REQUIRED_COLS[0], REQUIRED_COLS[1:], control["datetime_precision"]),
+                create_bundled_hover_tool(df, date_col, value_cols, control["datetime_precision"]),
                 CrosshairTool(dimensions="height", line_color="gray", line_alpha=0.3),
             ],
             responsive=True,

@@ -32,7 +32,8 @@ class CandlestickControl:
 
 
 class Candlestick(StreamingMarketFeedMixin, BasePlot):
-    REQUIRED_COLS: ClassVar[list[str]] = ["date", "open", "high", "low", "close", "volume"]
+    REQUIRED_COLS: ClassVar[list[str]] = ["date", "open", "high", "low", "close"]
+    OPTIONAL_COLS: ClassVar[list[str]] = ["volume"]
     SUPPORTED_BACKENDS: ClassVar[list[PlottingBackend]] = [
         PlottingBackend.bokeh,
         PlottingBackend.svelte,

@@ -27,7 +27,6 @@ if TYPE_CHECKING:
 
 import asyncio
 import time
-import warnings
 import importlib
 from threading import Thread
 from abc import ABC
@@ -42,6 +41,8 @@ from pfund_plot.widgets.base import BaseWidget, BaseStreamingWidget
 
 class BasePlot(ABC):
     REQUIRED_COLS: ClassVar[list[str] | None] = None
+    # Columns that are used when present but not required; missing ones are silently skipped.
+    OPTIONAL_COLS: ClassVar[list[str]] = []
     REQUIRED_DATA: ClassVar[bool] = True
     SUPPORTED_BACKENDS: ClassVar[list[PlottingBackend] | None] = None
     SUPPORT_STREAMING: ClassVar[bool] = False
