@@ -8,12 +8,14 @@
     DeepPartial,
     IChartApi,
     ISeriesApi,
+    MouseEventParams,
+    Time,
   } from "lightweight-charts";
 
   let {
     data = [],
     height = 280,
-    width = 680,
+    width = 670,
     title = "Candlestick",
     xlabel = "date",
     ylabel = "price",
@@ -39,6 +41,84 @@
   let chartContainer: HTMLDivElement;
   let chart: IChartApi | undefined;
   let series: ISeriesApi<"Candlestick"> | undefined;
+
+  // lightweight-charts has no native tooltip, so we render our own: a floating
+  // HTML element driven by the crosshair-move subscription (set up in the create
+  // effect). `tooltip` is null when the crosshair is off the chart / off a bar.
+  // Prices are pre-formatted strings (via the series' own price formatter) so the
+  // markup stays dumb and the values match the axis exactly.
+  type Tooltip = {
+    open: string;
+    high: string;
+    low: string;
+    close: string;
+    volume?: string;
+    x: number;
+    y: number;
+  };
+  let tooltip = $state<Tooltip | null>(null);
+
+  // Volume rides along on the data dicts from Python but isn't part of the
+  // candlestick series (OHLC only), so the crosshair payload can't surface it.
+  // Index it by time here so the handler can look it up O(1). Optional: absent
+  // when the df had no volume column (see OPTIONAL_COLS), in which case the
+  // tooltip simply omits the V row.
+  const volumeByTime = $derived(
+    new Map<Time, number>(
+      (data as Array<CandlestickData & { volume?: number }>)
+        .filter((d) => d.volume != null)
+        .map((d) => [d.time, d.volume as number]),
+    ),
+  );
+
+  // Decimal precision for price display, inferred from the data so it suits the
+  // instrument: 2 for stocks/indices, more for sub-dollar crypto. Driven off the
+  // smallest non-zero low (the most demanding value): `leading zeros after the
+  // decimal point + 4` ⇒ ~4 significant figures, clamped to lightweight-charts'
+  // max of 8. `ceil(-log10) - 1` is the leading-zero count (correct even at exact
+  // powers of ten, where floor would over-count by one: 0.1 has 0 leading zeros,
+  // not 1), so precision = ceil(-log10) + 3. Applied to the series' priceFormat
+  // (below) so the AXIS uses it too, and reused by the tooltip via
+  // series.priceFormatter() — axis and tooltip stay identical by construction. To
+  // make this exact rather than inferred, pass the instrument's tick size from
+  // Python instead.
+  const pricePrecision = $derived.by(() => {
+    let min = Infinity;
+    for (const d of data) if (d.low > 0 && d.low < min) min = d.low;
+    if (!isFinite(min) || min >= 1) return 2;
+    return Math.min(8, Math.ceil(-Math.log10(min)) + 3);
+  });
+
+  function handleCrosshairMove(param: MouseEventParams) {
+    if (
+      !series ||
+      param.point === undefined ||
+      param.time === undefined ||
+      param.point.x < 0 ||
+      param.point.y < 0
+    ) {
+      tooltip = null;
+      return;
+    }
+    const bar = param.seriesData.get(series) as CandlestickData | undefined;
+    if (!bar) {
+      tooltip = null;
+      return;
+    }
+    // Keep .format on its formatter object — it relies on `this`, so detaching it
+    // into a bare variable (`const fmt = ...format`) throws when called.
+    const formatter = series.priceFormatter();
+    const volume = volumeByTime.get(param.time);
+    tooltip = {
+      open: formatter.format(bar.open),
+      high: formatter.format(bar.high),
+      low: formatter.format(bar.low),
+      close: formatter.format(bar.close),
+      volume: volume != null ? volume.toLocaleString() : undefined,
+      x: param.point.x,
+      y: param.point.y,
+    };
+  }
 
   // Single source of truth for chart-level options. Recomputes when width/height
   // change; the static layout stays put. Used both to create the chart and to
@@ -82,6 +162,14 @@
     borderVisible: false,
     wickUpColor: posColor,
     wickDownColor: negColor,
+    // Drives the price-axis label precision; the tooltip reuses the resulting
+    // formatter so the two never disagree. minMove is the smallest tick the
+    // scale steps by, = 10^-precision.
+    priceFormat: {
+      type: "price",
+      precision: pricePrecision,
+      minMove: Math.pow(10, -pricePrecision),
+    },
   });
 
   // Create the chart + series once, on mount. chartOptions is read untracked so
@@ -91,11 +179,14 @@
   $effect(() => {
     chart = createChart(chartContainer, untrack(() => chartOptions));
     series = chart.addSeries(CandlestickSeries, untrack(() => seriesOptions));
+    chart.subscribeCrosshairMove(handleCrosshairMove);
 
     return () => {
+      // chart.remove() also drops its subscriptions, so no explicit unsubscribe.
       chart?.remove();
       chart = undefined;
       series = undefined;
+      tooltip = null;
     };
   });
 
@@ -109,6 +200,7 @@
   $effect(() => {
     if (!series) return;
     series.setData(data);
+    tooltip = null; // any visible tooltip refers to the old bars; drop it
     if (data.length) chart?.timeScale().fitContent();
   });
 
@@ -134,7 +226,28 @@
   <div class="plot-row">
     {#if ylabel}<div class="ylabel">{ylabel}</div>{/if}
     <div class="plot-col">
-      <div bind:this={chartContainer}></div>
+      <!-- position:relative anchor so the absolutely-positioned tooltip tracks
+           the crosshair within the chart canvas. -->
+      <div class="chart-wrap">
+        <div bind:this={chartContainer}></div>
+        {#if tooltip}
+          <!-- Flip the tooltip to the left of the cursor past the chart midpoint
+               so it never spills off the right edge. -->
+          <div
+            class="tooltip"
+            class:flip={tooltip.x > width / 2}
+            style="left: {tooltip.x}px; top: {tooltip.y}px;"
+          >
+            <div><span>O</span>{tooltip.open}</div>
+            <div><span>H</span>{tooltip.high}</div>
+            <div><span>L</span>{tooltip.low}</div>
+            <div><span>C</span>{tooltip.close}</div>
+            {#if tooltip.volume != null}
+              <div><span>V</span>{tooltip.volume}</div>
+            {/if}
+          </div>
+        {/if}
+      </div>
       {#if xlabel}<div class="xlabel">{xlabel}</div>{/if}
     </div>
   </div>
@@ -171,5 +284,35 @@
     text-align: center;
     margin-top: 4px;
     font-style: italic;
+  }
+  .chart-wrap {
+    position: relative;
+  }
+  /* Floating OHLC(V) readout. pointer-events:none so it never eats crosshair
+     moves (which would make it flicker). Offset from the cursor; .flip moves it
+     to the left side past the chart midpoint to stay on-canvas. */
+  .tooltip {
+    position: absolute;
+    pointer-events: none;
+    z-index: 2;
+    transform: translate(12px, 12px);
+    padding: 4px 8px;
+    font-size: 11px;
+    line-height: 1.4;
+    white-space: nowrap;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  }
+  .tooltip.flip {
+    transform: translate(-100%, 12px) translateX(-12px);
+  }
+  /* Fixed-width label gutter so the OHLC numbers line up in a column. */
+  .tooltip span {
+    display: inline-block;
+    width: 1.1em;
+    color: #787b86;
+    font-weight: bold;
   }
 </style>

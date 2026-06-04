@@ -13,7 +13,7 @@ __all__ = ["CandlestickWidget", "plot", "style", "control"]
 
 
 DEFAULT_HEIGHT = 280
-DEFAULT_WIDTH = 680
+DEFAULT_WIDTH = 670
 DEFAULT_NUM_DATA = 150
 
 # Live build output in the repo, written by `pixi run js-watch`
