@@ -2,6 +2,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, cast
 if TYPE_CHECKING:
+    from panel.io.threads import StoppableThread
     from pfund_plot.typing import Component
 
 from threading import Thread
@@ -21,17 +22,15 @@ def _run_webview(title: str, port: int, window_ready: Event):
     )
     window_ready.set()
     wv.start()
-    
+
 
 class DesktopRenderer(BrowserRenderer):
     def render(self, component: Component):
-        from panel.io.threads import StoppableThread
-        
         port = self._get_free_port()
         title = getattr(component, 'name', "PFund Plot")
         window_ready = create_event()
         if self.is_in_notebook_env():
-            server = cast(StoppableThread, self.serve(component, show=False, threaded=True, port=port))
+            server = cast("StoppableThread", self.serve(component, show=False, threaded=True, port=port))
             def run_process():
                 try:
                     process = Process(target=_run_webview, name=title, args=(title, port, window_ready,), daemon=True)

@@ -40,6 +40,7 @@ pfund-kit = ">=0.1.11"
 narwhals = ">=2.22.0"
 panel = ">=1.9.3"
 hvplot = ">=0.12.2"
+ipywidgets-bokeh = ">=1.7.0"
 
 [environments]
 default = ["py311", "dev", "optional"]
@@ -48,9 +49,8 @@ py312 = ["py312", "test", "optional"]
 py313 = ["py313", "test", "optional"]
 
 [feature.optional.pypi-dependencies]
-pfeed = ">=0.0.13"
+pfeed = ">=0.0.15"
 anywidget = ">=0.11.0"
-ipywidgets-bokeh = ">=1.7.0"
 pywebview = ">=6.2.1"
 datashader = ">=0.19.1"
 dayplot = ">=0.5.1"
@@ -70,7 +70,7 @@ ANYWIDGET_HMR="1"
 
 [feature.dev.pypi-dependencies]
 pfund-plot = { path = ".", editable = true }
-afterpython = ">=0.3.15"
+afterpython = ">=0.3.16"
 basedpyright = ">=1.39.6"
 watchfiles = ">=1.2.0"  # "panel serve myfile.py --dev" requires watchfiles installed to autoreload
 selenium = ">=4.39.0"  # saving bokeh images requires selenium

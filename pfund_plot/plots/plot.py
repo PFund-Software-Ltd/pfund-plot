@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     from anywidget import AnyWidget
     from panel.pane import Pane
     from panel.widgets import Widget as PanelWidget
+    from pfeed.requests.market_feed_stream_request import MarketFeedStreamRequest
     from pfeed.streaming.streaming_message import StreamingMessage
     from pfeed.feeds.market_feed import MarketFeed
     from pfund_plot.renderers.base import BaseRenderer
@@ -669,24 +670,19 @@ class BasePlot(ABC):
         return df
 
     def _start_streaming(self):
-        from pfeed.requests.market_feed_stream_request import MarketFeedStreamRequest
-
         if not self.is_streaming():
             return
 
         assert self._feed is not None, "feed is not set"
-        requests = cast(list[MarketFeedStreamRequest], self._feed._requests)
+        requests = cast("list[MarketFeedStreamRequest]", self._feed._requests)
         assert all(request.is_streaming() for request in requests), "Not all requests in the streaming feed are for streaming"
 
         self._add_periodic_callback(self._refresh_streaming_ui)
 
-        # add on_callback to the first of the custom_transformations list
-        for request in self._feed._requests:
-            transformations = self._feed._custom_transformations[request]
-            self._feed._custom_transformations[request] = (
-                self._on_streaming_callback,
-                *transformations,
-            )
+        for dataflows in self._feed._dataflows.values():
+            for dataflow in dataflows:
+                dataflow.add_default_transformations([self._on_streaming_callback])
+                
         if not self._feed.is_running():
             if not self.is_in_notebook_mode():
                 self._streaming_thread = Thread(

@@ -56,7 +56,16 @@ from pfund_plot.config import get_config, configure
 
 # NOTE: data update in anywidget (backend=svelte) may have issues (especially in marimo) after loading panel extensions
 # if anywidget+svelte backend is not working, try to comment this out
-pn.extension("plotly", "vega", 'ipywidgets')
+#
+# plotly/vega resolve to panel.models.* (bundled with Panel) — they don't import the
+# plotly/altair libs, so they're safe even when those optional extras aren't installed.
+# "ipywidgets" pulls in panel.io.ipywidget -> ipywidgets_bokeh, which is absent in WASM
+# (and where the anywidget/svelte backend isn't available anyway), so guard only that one.
+import importlib.util
+_panel_extensions = ["plotly", "vega"]
+if importlib.util.find_spec("ipywidgets_bokeh") is not None:
+    _panel_extensions.append("ipywidgets")
+pn.extension(*_panel_extensions)
 # NOTE: this MUST be True, otherwise, some widgets won't work properly, e.g. candlestick widgets, slider and input will both trigger each other due to panel's async update, which leads to infinite loop.
 pn.config.throttled = True  # If panel sliders and inputs should be throttled until release of mouse.
 # NOTE: /assets can only be recognized when setting pn.serve(static_dirs=pfund_plot.config.static_dirs)

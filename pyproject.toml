@@ -28,13 +28,13 @@ dependencies = [
     "narwhals>=2.22.0",
     "panel>=1.9.3",
     "hvplot>=0.12.2",
+    # must be included for pn.extension('ipywidgets')
+    "ipywidgets-bokeh>=1.7.0 ; sys_platform != 'emscripten'",
 ]
 
 [project.optional-dependencies]
 core = [
-    # must be included for pn.extension('ipywidgets')
-    "ipywidgets-bokeh>=1.7.0 ; sys_platform != 'emscripten'",
-    "pfeed>=0.0.13 ; sys_platform != 'emscripten'",  # used for streaming only
+    "pfeed>=0.0.15 ; sys_platform != 'emscripten'",  # used for streaming only
     "anywidget>=0.11.0 ; sys_platform != 'emscripten'",
     "pywebview>=6.2.1 ; sys_platform != 'emscripten'",
     "datashader>=0.19.1 ; sys_platform != 'emscripten'",

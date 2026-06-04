@@ -1,6 +1,11 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, TypeAlias, Any
 
+# NOTE: these are kept under TYPE_CHECKING because the backend libs (plotly, altair,
+# matplotlib, marimo, ...) are OPTIONAL dependencies. Importing them at runtime would
+# make `import pfund_plot.typing` crash for users who didn't install that extra.
+# Guarding here (+ `from __future__ import annotations` in consumers) keeps the names
+# available to type-checkers/IDEs while never importing the optional libs at runtime.
 if TYPE_CHECKING:
     from marimo import Html as MarimoHtml
     from anywidget import AnyWidget

@@ -3,7 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, ClassVar, cast
 
 if TYPE_CHECKING:
+    from pfund.datas.resolution import Resolution
     from pfund_plot.widgets.base import BaseWidget, BaseStreamingWidget
+    from pfeed.requests.market_feed_stream_request import MarketFeedStreamRequest
 
 from pfund_plot.plots.plot import BasePlot
 from pfund_plot.enums import PlottingBackend
@@ -64,10 +66,6 @@ class Candlestick(StreamingMarketFeedMixin, BasePlot):
             super()._create_component()
 
     def _start_streaming(self):
-        from pfeed.requests.market_feed_stream_request import MarketFeedStreamRequest
-        from pfund.datas.resolution import Resolution
-
-        requests = cast(list[MarketFeedStreamRequest], self._feed._requests)
-        assert all(cast(Resolution, request.target_resolution).is_bar() for request in requests), "candlestick streaming only supports bar data"
-
+        requests = cast("list[MarketFeedStreamRequest]", self._feed._requests)
+        assert all(cast("Resolution", request.target_resolution).is_bar() for request in requests), "candlestick streaming only supports bar data"
         super()._start_streaming()

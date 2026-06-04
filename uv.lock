@@ -2893,7 +2893,7 @@ wheels = [
 
 [[package]]
 name = "pfeed"
-version = "0.0.13"
+version = "0.0.15"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "beautifulsoup4" },
@@ -2907,14 +2907,14 @@ dependencies = [
     { name = "pydantic", marker = "sys_platform != 'emscripten'" },
     { name = "zstandard" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ad/5f/495407387fff674c1db3446a0e2c759395fd093487333e5b4d615230f19c/pfeed-0.0.13.tar.gz", hash = "sha256:179ac99180159cd3c80a11d5ec6819c99f0852213434346dbd7e225fe30aee49", size = 136877, upload-time = "2026-06-02T13:53:41.129Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/30/47/a2283639926cafb2aee5c48e96605a29cd957b3be259c442429d54166b5f/pfeed-0.0.15.tar.gz", hash = "sha256:1a890d2bc234e3eb17d0245f0a03a2183222e1a3db22be118807591e89036fda", size = 140435, upload-time = "2026-06-04T23:16:00.603Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/94/f1/745cad235070fbc65e415c1b2cc52813635918b9f2bb96f04c82b9a838c5/pfeed-0.0.13-py3-none-any.whl", hash = "sha256:42a04630eb0dadcb09bd44f519024d868e3d492806caf2cd892a0862750ebf24", size = 206806, upload-time = "2026-06-02T13:53:41.958Z" },
+    { url = "https://files.pythonhosted.org/packages/33/4b/bc40657ddfcb6cdd7fb142c4de2b8c47ad86b5c9b66ceb41acdc810cbb83/pfeed-0.0.15-py3-none-any.whl", hash = "sha256:be63a9ab8c195a79914ec5555041f87b82d225760816b8451ffc9ba8219fdd9c", size = 211878, upload-time = "2026-06-04T23:16:01.751Z" },
 ]
 
 [[package]]
 name = "pfund"
-version = "0.0.17"
+version = "0.0.18"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
@@ -2922,9 +2922,9 @@ dependencies = [
     { name = "pfund-kit" },
     { name = "websockets", marker = "sys_platform != 'emscripten'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ec/7f/043979d69019f11deee45f48007533de3f09929abf72b9b749abcb097db6/pfund-0.0.17.tar.gz", hash = "sha256:9e2f8432c53c50d0fa2c5bf5cf551fc4b5f6e3c96e5951da04466ebaa6c5e729", size = 166235, upload-time = "2026-05-27T09:35:06.39Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/72/27/4ce35490ab4892e7de15c8be78fac2962524b2adea84638bb7c7d29044d1/pfund-0.0.18.tar.gz", hash = "sha256:ce8dc1192c3b7d3edb1894a254b34a2c1f7aee021e99046adc46a881d5f919b0", size = 166765, upload-time = "2026-06-04T23:01:12.625Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a4/21/8201ca560b2a67322801ce945adc37419d4c1fffebb072f3df00d65fb60b/pfund-0.0.17-py3-none-any.whl", hash = "sha256:9bfc86878226ebb9e50339f9d2af5dd692b11a07e1504ce942d4c06097dfdfcb", size = 241579, upload-time = "2026-05-27T09:35:04.798Z" },
+    { url = "https://files.pythonhosted.org/packages/72/3f/488e9e78cf60ac71174f055d84e30d55ec67f0805458e4c05cdb5e6e778d/pfund-0.0.18-py3-none-any.whl", hash = "sha256:0718a799300f681dcc481910a5267351f3dc988e5128c175b247152e7cb4d251", size = 242545, upload-time = "2026-06-04T23:01:11.406Z" },
 ]
 
 [[package]]
@@ -2953,6 +2953,7 @@ version = "0.0.1.dev3"
 source = { editable = "." }
 dependencies = [
     { name = "hvplot" },
+    { name = "ipywidgets-bokeh", marker = "sys_platform != 'emscripten'" },
     { name = "narwhals" },
     { name = "panel" },
     { name = "pfund-kit" },
@@ -2968,7 +2969,6 @@ core = [
     { name = "anywidget", marker = "sys_platform != 'emscripten'" },
     { name = "datashader", marker = "sys_platform != 'emscripten'" },
     { name = "dayplot" },
-    { name = "ipywidgets-bokeh", marker = "sys_platform != 'emscripten'" },
     { name = "pfeed", marker = "sys_platform != 'emscripten'" },
     { name = "pywebview", marker = "sys_platform != 'emscripten'" },
 ]
@@ -2995,7 +2995,7 @@ requires-dist = [
     { name = "datashader", marker = "sys_platform != 'emscripten' and extra == 'core'", specifier = ">=0.19.1" },
     { name = "dayplot", marker = "extra == 'core'", specifier = ">=0.5.1" },
     { name = "hvplot", specifier = ">=0.12.2" },
-    { name = "ipywidgets-bokeh", marker = "sys_platform != 'emscripten' and extra == 'core'", specifier = ">=1.7.0" },
+    { name = "ipywidgets-bokeh", marker = "sys_platform != 'emscripten'", specifier = ">=1.7.0" },
     { name = "jupyter-bokeh", marker = "extra == 'jupyter'", specifier = ">=4.0.5" },
     { name = "marimo", extras = ["recommended", "lsp"], marker = "extra == 'marimo'", specifier = ">=0.23.8" },
     { name = "matplotlib", marker = "extra == 'matplotlib'", specifier = ">=3.10.9" },
@@ -3003,7 +3003,7 @@ requires-dist = [
     { name = "notebook", marker = "extra == 'jupyter'", specifier = ">=7.5.6" },
     { name = "panel", specifier = ">=1.9.3" },
     { name = "papermill", marker = "extra == 'jupyter'", specifier = ">=2.7.0" },
-    { name = "pfeed", marker = "sys_platform != 'emscripten' and extra == 'core'", specifier = ">=0.0.13" },
+    { name = "pfeed", marker = "sys_platform != 'emscripten' and extra == 'core'", specifier = ">=0.0.15" },
     { name = "pfund-kit", specifier = ">=0.1.11" },
     { name = "plotly", marker = "extra == 'plotly'", specifier = ">=6.7.0" },
     { name = "pywebview", marker = "sys_platform != 'emscripten' and extra == 'core'", specifier = ">=6.2.1" },
@@ -3011,7 +3011,7 @@ requires-dist = [
     { name = "vl-convert-python", marker = "extra == 'altair'", specifier = ">=1.9.0.post1" },
     { name = "voila", marker = "extra == 'jupyter'", specifier = ">=0.5.12" },
 ]
-provides-extras = ["core", "marimo", "jupyter", "plotly", "altair", "matplotlib"]
+provides-extras = ["core", "marimo", "jupyter", "matplotlib", "plotly", "altair"]
 
 [[package]]
 name = "pillow"
