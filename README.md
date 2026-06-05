@@ -15,8 +15,6 @@
 <!-- ![GitHub stars](https://img.shields.io/github/stars/PFund-Software-Ltd/pfund-plot?style=social) -->
 
 
-> **This library is NOT ready for use, please wait for 0.1.0 release.**
-
 ## TL;DR: pfund-plot handles the plotting libraries, so traders just get charts that work
 
 ## Problem
