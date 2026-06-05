@@ -6765,8 +6765,8 @@ packages:
   requires_python: '>=3.11'
 - pypi: ./
   name: pfund-plot
-  version: 0.0.4
-  sha256: 15d7ff3039b3e7048b8b3d16f24dd078c77b6b63c58d59ea18a06adafe3c8543
+  version: 0.0.5
+  sha256: 787d0d379abfb58e8b05da06724573fcab994f4ad947f375409b7fcdf7bf8449
   requires_dist:
   - pfeed>=0.0.15
   - panel>=1.9.3
