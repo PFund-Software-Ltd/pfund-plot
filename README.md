@@ -49,7 +49,7 @@ pip install pfund-plot
 
 ## Quickstart
 ### 1. Plotting in a Jupyter or Marimo Notebook
-> To use data sources other than Bybit, install the corresponding [pfeed](https://github.com/PFund-Software-Ltd/pfeed) extras. For example: `pip install "pfeed[data_source1, data_source2]"`
+> To use data sources other than Bybit, please go to [pfeed](https://github.com/PFund-Software-Ltd/pfeed) and install the corresponding extras. For example: `pip install "pfeed[data_source1, data_source2]"`
 ```python
 import pfeed as pe
 import pfund_plot as plt
@@ -84,3 +84,16 @@ plt.ohlc(feed).control(update_interval=1000).mode('browser')  # or mode('desktop
 # In a notebook environment (not recommended to start streaming in a notebook):
 # await plt.ohlc(feed).control(update_interval=1000).show_async()
 ```
+
+---
+
+## Tapping into the JavaScript World
+Python developers sometimes envy the JavaScript visualization ecosystem for its rich set of interactive charts and dashboards. With `pfund-plot`, they can still enjoy the benefits of the JavaScript world while keeping the same Python-first API. For example:
+```python
+plt.ohlc(df).backend('svelte')
+```
+This renders the following chart using TradingView's [Lightweight Charts](https://github.com/tradingview/lightweight-charts):
+
+<img src="docs/assets/tradingview.png" alt="pfund-plot TradingView Lightweight Charts example" width="450">
+
+> This is meant as a showcase rather than a core direction: `pfund-plot` remains Python-first, and JavaScript-backed charts are supported where they fit naturally. If you want to bring more useful JavaScript visualizations into `pfund-plot`, contributions are welcome.
