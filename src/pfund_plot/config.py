@@ -31,7 +31,6 @@ def get_config() -> PFundPlotConfig:
 def configure(
     data_path: str | None = None,
     cache_path: str | None = None,
-    static_dirs: dict[str, str] | None = None,
     disable_widgets: bool | None = None,
     theme: PanelTheme | str | None = None,
     design: PanelDesign | str | None = None,
@@ -41,16 +40,11 @@ def configure(
     It will override the existing config values from the existing config file or the default values.
     Args:
         theme: the theme to use for the panel, equivalent to pn.config.theme. default is 'default'.
-        static_dirs: a dict of static directories to be used in pn.serve(static_dirs=...)
         write: If True, the config will be saved to the config file.
     """
     config = get_config()
     config_dict = config.to_dict()
     config_dict.pop("__version__")
-
-    static_dirs = static_dirs or {}
-    assert isinstance(static_dirs, dict), "static_dirs must be a dict"
-    assert "assets" not in static_dirs, "'assets' is a reserved key in static_dirs"
 
     # Apply updates for non-None values
     for k in config_dict:
@@ -90,18 +84,12 @@ class PFundPlotConfig(Configuration):
         pn.extension(theme=self.theme)
         pn.extension(design=self.design)
 
-        self.static_dirs = self._data.get("static_dirs", {})
-        project_root = self._paths.project_root
-        assert project_root is not None, "project_root is not set"
-        self.static_dirs["assets"] = str(project_root / "js-tap" / "static")
-
     def to_dict(self) -> dict[str, Any]:
         return {
             **super().to_dict(),
             "disable_widgets": self.disable_widgets,
             "theme": self.theme,
             "design": self.design,
-            "static_dirs": self.static_dirs,
         }
 
     def prepare_docker_context(self):

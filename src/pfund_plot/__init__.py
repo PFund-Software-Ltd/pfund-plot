@@ -82,11 +82,6 @@ pn.extension(*_panel_extensions)
 pn.config.throttled = (
     True  # If panel sliders and inputs should be throttled until release of mouse.
 )
-# NOTE: /assets can only be recognized when setting pn.serve(static_dirs=pfund_plot.config.static_dirs)
-# see static_dirs in config.py
-# pn.config.js_files = {
-#     "your_custom_js_file": "/assets/your_custom_js_file.js",
-# }
 
 
 def __getattr__(name: str):

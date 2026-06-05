@@ -66,19 +66,21 @@ class BaseRenderer(ABC):
         threaded: bool = True,
         port: int | None = None,
     ) -> StoppableThread | Server:
-        from pfund_plot.config import get_config
-
         if port is None:
             port = self._get_free_port()
         if self._server is not None:
             raise ValueError("Server is already running")
-        config = get_config()
         self.set_port_in_use(port)
         self._server = pn.serve(  # pyright: ignore[reportUnknownMemberType]
             renderable,  # pyright: ignore[reportArgumentType]
             show=show,
             threaded=threaded,
             port=port,
-            static_dirs=config.static_dirs,
+            # NOTE: Panel can serve local static files via
+            # pn.serve(static_dirs={...}). To expose files as /assets/<file>,
+            # config.static_dirs must include {"assets": "/path/to/assets"}.
+            # Then register JS with:
+            # pn.config.js_files = {"filename": "/assets/file.js"}
+            # static_dirs=pfunt_plot_config.static_dirs,
         )
         return self._server
