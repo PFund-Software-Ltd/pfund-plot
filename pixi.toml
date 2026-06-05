@@ -30,17 +30,20 @@ depends-on = [
 
 [dependencies]
 python = ">=3.11.15"
-uv = ">=0.11.18"
+uv = ">=0.11.19"
 gh = ">=2.92.0"
 pnpm = ">=10.33.2,<11"
 nodejs = ">=24.16.0,<25"
 
 [pypi-dependencies]
-pfund-kit = ">=0.1.11"
-narwhals = ">=2.22.0"
+pfeed = ">=0.0.15"  # used for streaming only
 panel = ">=1.9.3"
 hvplot = ">=0.12.2"
-ipywidgets-bokeh = ">=1.7.0"
+dayplot = ">=0.5.1"
+anywidget = ">=0.11.0"
+ipywidgets-bokeh = ">=1.7.0"  # must be included for pn.extension('ipywidgets')
+pywebview = ">=6.2.1"
+datashader = ">=0.19.1"
 
 [environments]
 default = ["py311", "dev", "optional"]
@@ -49,18 +52,13 @@ py312 = ["py312", "test", "optional"]
 py313 = ["py313", "test", "optional"]
 
 [feature.optional.pypi-dependencies]
-pfeed = ">=0.0.15"
-anywidget = ">=0.11.0"
-pywebview = ">=6.2.1"
-datashader = ">=0.19.1"
-dayplot = ">=0.5.1"
-marimo = { version = ">=0.23.8", extras = ["recommended", "lsp"] }
+marimo = { version = ">=0.23.9", extras = ["recommended", "lsp"] }
 jupyter-bokeh = ">=4.0.5"
-notebook = ">=7.5.6"
+notebook = ">=7.5.7"
 papermill = ">=2.7.0"
 voila = ">=0.5.12"
 matplotlib = ">=3.10.9"
-plotly = ">=6.7.0"
+plotly = ">=6.8.0"
 altair = ">=6.1.0"
 vegafusion = ">=2.0.3"
 vl-convert-python = ">=1.9.0.post1"

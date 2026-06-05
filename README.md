@@ -37,7 +37,6 @@ We created a high-level financial visualization layer that combines the best fea
 - [x] Multi-Display Mode: support displaying plots in a *Jupyter notebook*, *Marimo notebook*, *browser* and *desktop window*
 - [x] Streaming Data: support streaming data in real-time by just setting `streaming=True`
 - [x] DataFrame Agnostic: support pandas, polars, and dask
-- [x] Big Data Plotting: support plotting large datasets
 - [x] Financial Plots: plot financial data by just one function call
 - [x] Combine multiple plots into a dashboard quickly for visualization
 
@@ -47,14 +46,40 @@ We created a high-level financial visualization layer that combines the best fea
 pip install pfund-plot
 ```
 
-
-## Usage
+## Quickstart
+### 1. Plotting in a Jupyter or Marimo Notebook
+> To use data sources other than Bybit, install the corresponding [pfeed](https://github.com/PFund-Software-Ltd/pfeed) extras. For example: `pip install "pfeed[data_source1, data_source2]"`
 ```python
 import pfeed as pe
 import pfund_plot as plt
 
-feed = pe.YahooFinanceFeed()
-df = feed.get_historical_data(product='AAPL_USD_STK', resolution='1d', rollback_period='1y')
+feed = pe.Bybit().market_feed
+result = feed.download(product='BTC_USDT_PERP', resolution='1h', rollback_period='1d')
+df = result.data.collect()
 
-fig = plt.ohlc(df, mode='browser', streaming=False)
+# Notebook mode:
+plt.ohlc(df)
+```
+
+### 2. Plotting in a Python Script
+```python
+# Browser mode:
+plt.ohlc(df).mode('browser').show()
+
+# Desktop mode:
+if __name__ == "__main__":  # Required because desktop mode uses multiprocessing.
+    plt.ohlc(df).mode('desktop').show()
+```
+
+### 3. Streaming a Plot
+```python
+# Streaming requires pipeline_mode=True.
+feed = pe.Bybit(pipeline_mode=True).market_feed
+feed.stream(product='BTC_USDT_PERP', resolution='1s')
+
+# In a Python script:
+plt.ohlc(feed).control(update_interval=1000).mode('browser')  # or mode('desktop') under if __name__ == "__main__"
+
+# In a notebook environment (not recommended to start streaming in a notebook):
+# await plt.ohlc(feed).control(update_interval=1000).show_async()
 ```
