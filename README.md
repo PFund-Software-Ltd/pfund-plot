@@ -35,7 +35,8 @@ We created a high-level financial visualization layer that combines the best fea
 
 ## Core Features
 - [x] Multi-Display Mode: support displaying plots in a *Jupyter notebook*, *Marimo notebook*, *browser* and *desktop window*
-- [x] Streaming Data: support streaming data in real-time by just setting `streaming=True`
+- [x] Intuitive & Chainable API: `plt.ohlc(df).style(...).control(...).mode(...).show()`
+- [x] Streaming Plots: support streaming data in real-time
 - [x] DataFrame Agnostic: support pandas, polars, and dask
 - [x] Financial Plots: plot financial data by just one function call
 - [x] Combine multiple plots into a dashboard quickly for visualization
