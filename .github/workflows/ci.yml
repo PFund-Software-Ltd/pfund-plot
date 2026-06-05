@@ -184,10 +184,10 @@ jobs:
         with:
           pixi-version: v0.67.2
           cache: true
-
-      - name: Install dependencies
-        # Provisions the conda toolchain from pixi.toml (nodejs, pnpm, uv, ...).
-        run: pixi install
+          # Install from the committed lock as-is rather than --locked (setup-pixi's
+          # default), which fails when the lock is momentarily stale vs pyproject
+          # (e.g. right after a version bump). We only need the build toolchain here.
+          frozen: true
 
       - name: Install js-tap dependencies
         run: pixi run pnpm install --frozen-lockfile

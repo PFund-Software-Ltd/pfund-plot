@@ -21,10 +21,12 @@ jobs:
         with:
           pixi-version: v0.67.2
           cache: true
-
-      - name: Install dependencies
-        # Provisions the conda toolchain from pixi.toml (nodejs, pnpm, uv, ...).
-        run: pixi install
+          # Install the conda toolchain (nodejs, pnpm, uv, ...) from the committed
+          # lock as-is. Do NOT use --locked (setup-pixi's default): a release tag
+          # points at the version-bump commit, whose pixi.lock still records the
+          # PRE-bump version — afterpython refreshes the lock in a SEPARATE commit
+          # made *after* tagging, so the up-to-date lock is never in the tag.
+          frozen: true
 
       - name: Install js-tap dependencies
         run: pixi run pnpm install --frozen-lockfile
