@@ -82,4 +82,4 @@ reportImplicitOverride = false
 
 [tool.uv.build-backend]
 module-name = "pfund_plot"
-module-root = ""
+module-root = "src"
