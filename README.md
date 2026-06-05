@@ -24,14 +24,14 @@ Traders often need to quickly visualize their data without investing time in lea
 For example, plotting a candlestick should be as simple as writing a single line of code.
 
 ## Solution
-We created a high-level financial visualization layer that combines the best features from existing plotting and dashboarding libraries into an easy-to-use interface.
+We created a high-level financial visualization layer that combines the best features from existing plotting libraries into an easy-to-use interface.
 
 ---
 <img src="docs/assets/candlestick.gif" alt="pfund-plot candlestick streaming example" width="450">
 
 ---
 
-`pfund-plot` is a financial visualization layer on top of existing plotting libraries, giving traders a simple, domain-specific interface for charts, dashboards, and streaming market data.
+`pfund-plot` is a financial visualization layer on top of existing plotting libraries, giving traders a simple, domain-specific interface for plotting and streaming market data.
 
 ## Core Features
 - [x] Multi-Display Mode: support displaying plots in a *Jupyter notebook*, *Marimo notebook*, *browser* and *desktop window*
