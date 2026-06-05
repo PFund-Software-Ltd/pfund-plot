@@ -1,6 +1,6 @@
 [project]
 name = "pfund-plot"
-version = "0.0.1.dev3"
+version = "0.0.1"
 description = "A library for financial data visualization, dashboard creation, and template sharing."
 license = "Apache-2.0"
 authors = [
