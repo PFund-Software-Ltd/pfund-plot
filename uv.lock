@@ -2949,7 +2949,7 @@ wheels = [
 
 [[package]]
 name = "pfund-plot"
-version = "0.0.4"
+version = "0.0.5"
 source = { editable = "." }
 dependencies = [
     { name = "anywidget", marker = "sys_platform != 'emscripten'" },
