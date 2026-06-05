@@ -179,7 +179,38 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Set up Python
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@v0.9.6
+        with:
+          pixi-version: v0.67.2
+          cache: true
+
+      - name: Install dependencies
+        # Provisions the conda toolchain from pixi.toml (nodejs, pnpm, uv, ...).
+        run: pixi install
+
+      - name: Install js-tap dependencies
+        run: pixi run pnpm install --frozen-lockfile
+        working-directory: ./js-tap
+
+      - name: Build & package JS components
+        # MUST run before `uv build`: uv_build has no build hooks, so js-package
+        # builds the bundles and copies them into pfund_plot/js_tap/components/
+        # first, then the wheel ships them as package data.
+        run: pixi run js-package
+
+      - name: Build package
+        run: pixi run uv build
+
+      - name: List build artifacts
+        # Show what was built (wheel + sdist)
+        # Useful for debugging build issues
+        run: ls -lh dist/
+
+      # Verify the wheel in a CLEAN Python (not the pixi env, which already has
+      # pfund-plot installed editable — that would make the import pass even for
+      # a broken wheel). This is what actually catches missing JS bundles.
+      - name: Set up clean Python
         uses: actions/setup-python@v6
         with:
           python-version: '3.11'
@@ -188,14 +219,6 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           version: "latest"
-
-      - name: Build package
-        run: uv build
-
-      - name: List build artifacts
-        # Show what was built (wheel + sdist)
-        # Useful for debugging build issues
-        run: ls -lh dist/
 
       - name: Install built package
         # Test that the built wheel can be installed

@@ -16,21 +16,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@v0.9.6
         with:
-          python-version: '3.11'
+          pixi-version: v0.67.2
+          cache: true
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          version: "latest"
+      - name: Install dependencies
+        # Provisions the conda toolchain from pixi.toml (nodejs, pnpm, uv, ...).
+        run: pixi install
+
+      - name: Install js-tap dependencies
+        run: pixi run pnpm install --frozen-lockfile
+        working-directory: ./js-tap
+
+      - name: Build & package JS components
+        # MUST run before `uv build`: uv_build has no build hooks, so js-package
+        # builds the bundles and copies them into pfund_plot/js_tap/components/
+        # first, then the wheel ships them as package data.
+        run: pixi run js-package
 
       - name: Build package
-        run: uv build
+        run: pixi run uv build
 
       - name: Publish to PyPI
-        run: uv publish
+        run: pixi run uv publish
 
       - name: Determine if pre-release
         id: check_prerelease
