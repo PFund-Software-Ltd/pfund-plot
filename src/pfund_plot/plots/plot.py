@@ -272,6 +272,16 @@ class BasePlot:
                 )
         return df
 
+    def _widgets_enabled(self) -> bool:
+        """Whether interactive widgets are active for this plot."""
+        from pfund_plot.config import get_config
+
+        return not (
+            get_config().disable_widgets
+            or self._control is None
+            or not self._control.get("widgets", True)
+        )
+
     def _create_widgets(self) -> None:
         def _has_required_cols(WidgetClass: type[BaseWidget]) -> bool:
             """Check if the df has the columns required by the widget."""
@@ -280,13 +290,7 @@ class BasePlot:
                 return True
             return all(col in self._df.columns for col in required)
 
-        from pfund_plot.config import get_config
-
-        if (
-            get_config().disable_widgets
-            or self._control is None
-            or not self._control.get("widgets", True)
-        ):
+        if not self._widgets_enabled():
             return
 
         for WidgetClass in self._ChosenWidgetClasses:
@@ -1055,10 +1059,14 @@ class BasePlot:
         self._plot = self._build_plot(df=self._df)
 
     def _create_pane(self):
+        # num_data is the initial value of the DatetimeRangeWidget slider, so it
+        # only applies when widgets are active. With widgets disabled there is no
+        # slider to reveal the rest of the data, so show the full df instead.
         if (
             self._df is not None
             and self._control
             and self._control.get("num_data") is not None
+            and self._widgets_enabled()
         ):
             df = self._df.tail(self._control["num_data"])
         else:
