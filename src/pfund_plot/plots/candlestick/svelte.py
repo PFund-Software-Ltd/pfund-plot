@@ -17,8 +17,10 @@ DEFAULT_NUM_DATA = 150
 
 # Live build output in the repo, written by `pixi run js-watch`
 # (vite build --watch). Present only in a source checkout.
+# parents[4] == the repo root (src/ layout: .../src/pfund_plot/plots/candlestick/
+# svelte.py), where js-tap/ lives alongside src/.
 _DEV_BUNDLE = (
-    Path(__file__).parents[3] / "js-tap" / "dist" / "components" / "candlestick.js"
+    Path(__file__).parents[4] / "js-tap" / "dist" / "components" / "candlestick.js"
 )
 # Packaged copy shipped inside the wheel (`pixi run js-package` copies dist ->
 # pfund_plot/js_tap/components/ before build; `dashboards/` will sit alongside).

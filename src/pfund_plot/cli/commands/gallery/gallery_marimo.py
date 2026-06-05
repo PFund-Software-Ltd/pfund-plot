@@ -2,7 +2,7 @@
 
 import marimo
 
-__generated_with = "0.23.4"
+__generated_with = "0.23.9"
 app = marimo.App(width="columns")
 
 with app.setup:
@@ -47,7 +47,7 @@ with app.setup:
     # FIXME: use pfund-sampledata when its ready
     for product in products:
         for func in [feed.retrieve, feed.download]:
-            df = func(
+            result = func(
                 product=product,
                 resolution=resolution,
                 start_date=date,
@@ -56,6 +56,7 @@ with app.setup:
                     storage=storage,
                 ),
             ).run()
+            df = result.data
             if df is not None:
                 break
 
@@ -352,7 +353,7 @@ def _():
 @app.cell
 def _():
     def get_df(product, resolution):
-        return feed.retrieve(
+        result = feed.retrieve(
             product=product,
             resolution=resolution,
             start_date=date,
@@ -361,6 +362,7 @@ def _():
                 storage=storage,
             ),
         ).run()
+        return result.data
 
     reactive_candlestick = plt.ohlc(
         get_df(products[0], resolution),
@@ -399,12 +401,24 @@ def _():
     mo.md(r"""
     # Layout + Streaming
     > put streaming plot inside layout so that we can stop them both at the same time
+
+    These spawn background threads (streaming feeds / browser / desktop windows) that
+    auto-run on load and slow the notebook down. Click a button below to run them on demand.
     """)
     return
 
 
 @app.cell
-def _(altair_fig, plotly_fig, tabs):
+def _():
+    run_browser_streaming = mo.ui.run_button(label="▶ Run browser layout + streaming")
+    run_desktop_streaming = mo.ui.run_button(label="▶ Run desktop plot")
+    mo.hstack([run_browser_streaming, run_desktop_streaming])
+    return run_browser_streaming, run_desktop_streaming
+
+
+@app.cell
+def _(altair_fig, plotly_fig, run_browser_streaming, tabs):
+    mo.stop(not run_browser_streaming.value)
     browser_thread = (
         plt.layout(
             plt.ohlc(prepare_streaming_feed())
@@ -435,7 +449,8 @@ def _(altair_fig, plotly_fig, tabs):
 
 
 @app.cell
-def _():
+def _(run_desktop_streaming):
+    mo.stop(not run_desktop_streaming.value)
     desktop_thread = (
         plt.line(df, x="date", y="close")
         .style(color="orange")

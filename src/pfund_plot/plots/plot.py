@@ -611,7 +611,11 @@ class BasePlot:
         if self._style:
             height = self._style.get("total_height")
             width = self._style.get("width")
-            name = self._style.get("title", self.name)
+            # `title` is always present in the style dict (defaults to ""), so
+            # `.get("title", self.name)` would never fall back. Treat an empty
+            # title as "no title" so the component name (used as the tab label
+            # in plt.tabs) falls back to the plot's name, e.g. "line".
+            name = self._style.get("title") or self.name
         else:
             height = None
             width = None

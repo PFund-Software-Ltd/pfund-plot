@@ -15,7 +15,7 @@ requires-pixi = "<=0.67.2"  # command: pixi workspace requires-pixi set "<=0.67.
 js-watch = { cmd = "node scripts/build-components.js --watch", cwd = "js-tap" }
 # One-shot production build of all discovered component bundles.
 js-build = { cmd = "node scripts/build-components.js", cwd = "js-tap" }
-# Build the production bundles and copy them into pfund_plot/js_tap/components/
+# Build the production bundles and copy them into src/pfund_plot/js_tap/components/
 # as package data, so the wheel ships them. uv_build has no build hooks, so this
 # MUST run before `uv build` (CI does). End users then get the components with
 # no Node/build.
