@@ -1,5 +1,7 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Callable
+
+from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from panel import Tabs as PanelTabs
@@ -31,4 +33,4 @@ class Tabs(BaseLayout):
         """Runs the plot function for the current backend."""
         module_path: str = f"pfund_plot.plots.layout.{self._class_name}.{self._backend}"
         module = importlib.import_module(module_path)
-        return getattr(module, "plot")
+        return module.plot

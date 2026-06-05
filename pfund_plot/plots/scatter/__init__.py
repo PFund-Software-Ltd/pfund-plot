@@ -1,15 +1,16 @@
 # pyright: reportArgumentType=false, reportOptionalMemberAccess=false, reportOptionalSubscript=false, reportCallIssue=false, reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false
 from __future__ import annotations
-from typing import TYPE_CHECKING, ClassVar, Any
+
+from typing import TYPE_CHECKING, Any, ClassVar
 
 if TYPE_CHECKING:
     from narwhals.typing import IntoFrame
+
     from pfund_plot.widgets.base import BaseWidget
 
-from pfund_plot.plots.plot import BasePlot
 from pfund_plot.enums import PlottingBackend
+from pfund_plot.plots.plot import BasePlot
 from pfund_plot.widgets.datetime_widget import DatetimeRangeWidget
-
 
 __all__ = ["Scatter"]
 
@@ -41,6 +42,7 @@ class Scatter(BasePlot):
         plt.scatter(df, x='x', y='y')
         plt.ohlc(ohlc_df) * plt.scatter(df, x='date', y='price')
     """
+
     SUPPORTED_BACKENDS: ClassVar[list[PlottingBackend]] = [PlottingBackend.bokeh]
     # TODO: support other streaming feeds like EngineFeed etc.
     # SUPPORT_STREAMING: ClassVar[bool] = True
@@ -50,9 +52,9 @@ class Scatter(BasePlot):
 
     # TODO: add "by" parameter to group by, see https://hvplot.holoviz.org/en/docs/latest/ref/api/manual/hvplot.hvPlot.scatter.html
     def __init__(
-        self, 
-        data: IntoFrame, 
-        x: str | None = None, 
+        self,
+        data: IntoFrame,
+        x: str | None = None,
         y: str | list[str] | None = None,
         name: str | None = None,
         **reactive_params: Any,

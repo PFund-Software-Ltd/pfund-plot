@@ -1,15 +1,14 @@
 # pyright: reportUnusedParameter=false
 from __future__ import annotations
-from typing import Any, Literal
 
 from pathlib import Path
+from typing import Any, Literal
 
-from anywidget import AnyWidget
 import narwhals as nw
 import traitlets
+from anywidget import AnyWidget
 
-
-__all__ = ["CandlestickWidget", "plot", "style", "control"]
+__all__ = ["CandlestickWidget", "control", "plot", "style"]
 
 
 DEFAULT_HEIGHT = 280
@@ -18,7 +17,9 @@ DEFAULT_NUM_DATA = 150
 
 # Live build output in the repo, written by `pixi run js-watch`
 # (vite build --watch). Present only in a source checkout.
-_DEV_BUNDLE = Path(__file__).parents[3] / "js-tap" / "dist" / "components" / "candlestick.js"
+_DEV_BUNDLE = (
+    Path(__file__).parents[3] / "js-tap" / "dist" / "components" / "candlestick.js"
+)
 # Packaged copy shipped inside the wheel (`pixi run js-package` copies dist ->
 # pfund_plot/js_tap/components/ before build; `dashboards/` will sit alongside).
 # parents[2] == the pfund_plot package root.
@@ -79,9 +80,9 @@ class CandlestickWidget(AnyWidget):
         """
         if "date" in df.columns:
             # narwhals' dt.timestamp only goes down to milliseconds; floor to seconds.
-            df = df.with_columns(
-                time=nw.col("date").dt.timestamp("ms") // 1_000
-            ).drop("date")
+            df = df.with_columns(time=nw.col("date").dt.timestamp("ms") // 1_000).drop(
+                "date"
+            )
         return df.rows(named=True)
 
     def update_data(self, df: nw.DataFrame[Any]):

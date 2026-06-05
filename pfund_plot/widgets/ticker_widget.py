@@ -1,7 +1,9 @@
 # VIBE-CODED
 # pyright: reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false
 from __future__ import annotations
-from typing import TYPE_CHECKING, Callable, Any
+
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from pfund_plot.plots.plot import MessageKey, StreamingDfs
@@ -29,11 +31,11 @@ class TickerSelectWidget(BaseStreamingWidget):
         super().__init__(streaming_dfs, active_key, update_callback)
         msg_keys = list(streaming_dfs.keys())
         self._select = pn.widgets.Select(
-            name='Ticker',
+            name="Ticker",
             options=self._build_options(msg_keys),
             value=active_key,
         )
-        self._watcher = self._select.param.watch(self._on_select, 'value')
+        self._watcher = self._select.param.watch(self._on_select, "value")
 
     @staticmethod
     def _build_options(msg_keys: list[MessageKey]) -> dict[str, MessageKey]:
@@ -60,7 +62,11 @@ class TickerSelectWidget(BaseStreamingWidget):
     def update_streaming_state(self, streaming_dfs: StreamingDfs) -> None:
         """Update dropdown options when new products start streaming."""
         msg_keys = list(streaming_dfs.keys())
-        current_keys = set(self._select.options.values()) if isinstance(self._select.options, dict) else set()
+        current_keys = (
+            set(self._select.options.values())
+            if isinstance(self._select.options, dict)
+            else set()
+        )
         if set(msg_keys) == current_keys:
             return
         current_value = self._select.value
@@ -70,7 +76,7 @@ class TickerSelectWidget(BaseStreamingWidget):
             if current_value in self._select.options.values():
                 self._select.value = current_value
         finally:
-            self._watcher = self._select.param.watch(self._on_select, 'value')
+            self._watcher = self._select.param.watch(self._on_select, "value")
 
     def get_panel_objects(self) -> list[pn.widgets.Widget]:
         return [self._select]

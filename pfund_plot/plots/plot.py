@@ -1,46 +1,49 @@
 # pyright: reportAttributeAccessIssue=false, reportOptionalMemberAccess=false, reportConstantRedefinition=false, reportUnusedParameter=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportUnknownArgumentType=false
 from __future__ import annotations
-from typing import Callable, TYPE_CHECKING, ClassVar, Any, Literal, cast, TypeAlias
+
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, ClassVar, Literal, TypeAlias, cast
 
 if TYPE_CHECKING:
-    from narwhals.typing import IntoFrame
-    from holoviews.streams import Pipe
     from anywidget import AnyWidget
+    from holoviews.streams import Pipe
+    from narwhals.typing import IntoFrame
     from panel.pane import Pane
     from panel.widgets import Widget as PanelWidget
+    from pfeed.feeds.market_feed import MarketFeed
     from pfeed.requests.market_feed_stream_request import MarketFeedStreamRequest
     from pfeed.streaming.streaming_message import StreamingMessage
-    from pfeed.feeds.market_feed import MarketFeed
-    from pfund_plot.renderers.base import BaseRenderer
-    from pfund_plot.plots.lazy import LazyPlot
     from pfund.typing import ProductName, ResolutionRepr
+
+    from pfund_plot.plots.lazy import LazyPlot
+    from pfund_plot.renderers.base import BaseRenderer
     from pfund_plot.typing import (
-        RenderedResult,
-        Figure,
         Component,
+        Control,
+        Figure,
         Plot,
         RawFigure,
+        RenderedResult,
         Style,
-        Control,
     )
+
     MessageKey: TypeAlias = tuple[ProductName, ResolutionRepr]
     StreamingDfs: TypeAlias = dict[MessageKey, Any]  # MessageKey -> nw.DataFrame
 
 import asyncio
-import time
 import importlib
+import time
 from threading import Thread
-from abc import ABC
 
 import narwhals as nw
 import panel as pn
+from pfund_kit.style import RichColor, TextStyle, cprint
 
-from pfund_kit.style import cprint, RichColor, TextStyle
-from pfund_plot.enums import PlottingBackend, DisplayMode, NotebookType
-from pfund_plot.widgets.base import BaseWidget, BaseStreamingWidget
+from pfund_plot.enums import DisplayMode, NotebookType, PlottingBackend
+from pfund_plot.widgets.base import BaseStreamingWidget, BaseWidget
 
 
-class BasePlot(ABC):
+class BasePlot:
     REQUIRED_COLS: ClassVar[list[str] | None] = None
     # Columns that are used when present but not required; missing ones are silently skipped.
     OPTIONAL_COLS: ClassVar[list[str]] = []
@@ -64,7 +67,7 @@ class BasePlot(ABC):
         from pfund_plot.plots.lazy import LazyPlot
 
         # Dynamically inject streaming mixin based on feed type
-        data = args[0] if args else kwargs.get('data')
+        data = args[0] if args else kwargs.get("data")
         cls = cls._check_if_inject_streaming_mixin(cls, data)
 
         instance: BasePlot = object.__new__(cls)
@@ -73,23 +76,35 @@ class BasePlot(ABC):
         return LazyPlot(instance)
 
     @staticmethod
-    def _check_if_inject_streaming_mixin(cls: type[BasePlot], data: Any) -> type[BasePlot]:  # pyright: ignore[reportSelfClsParameterName]
+    def _check_if_inject_streaming_mixin(
+        cls: type[BasePlot], data: Any
+    ) -> type[BasePlot]:  # pyright: ignore[reportSelfClsParameterName]
         """Dynamically inject streaming mixin based on feed type if not already in MRO."""
         if not cls.SUPPORT_STREAMING:
             return cls
         from pfeed.feeds.base_feed import BaseFeed
+
         if isinstance(data, BaseFeed):
             from pfeed.feeds.market_feed import MarketFeed
+
             if isinstance(data, MarketFeed):
-                from pfund_plot.mixins.streaming_market_feed_mixin import StreamingMarketFeedMixin
+                from pfund_plot.mixins.streaming_market_feed_mixin import (
+                    StreamingMarketFeedMixin,
+                )
+
                 if StreamingMarketFeedMixin not in cls.__mro__:
-                    return type(cls.__name__, (StreamingMarketFeedMixin, cls), {'__module__': cls.__module__})
+                    return type(
+                        cls.__name__,
+                        (StreamingMarketFeedMixin, cls),
+                        {"__module__": cls.__module__},
+                    )
             else:
                 raise ValueError(f"Unsupported feed type for streaming: {type(data)}")
         return cls
 
     def __deepcopy__(self, memo: dict) -> BasePlot:
         from copy import deepcopy
+
         cls = type(self)
         # bypass __new__ which would call __init__ and wrap in LazyPlot
         new = object.__new__(cls)
@@ -128,7 +143,7 @@ class BasePlot(ABC):
         plot_kwargs: dict[str, Any] | None = None,
         **reactive_params: Any,
     ):
-        '''
+        """
         Args:
             data: The dataframe for static plot or pfeed's feed object for streaming plot
             x: the column name of the x-axis, if None, will use the index or the first column of the dataframe
@@ -141,7 +156,7 @@ class BasePlot(ABC):
                 e.g. if the plot function is hvplot.line, plot_kwargs will be passed to hvplot.line(**plot_kwargs)
             **reactive_params: name=value pairs for reactive widgets (e.g. ticker=["BTC", "ETH"]).
                                Requires callback to be set.
-        '''
+        """
         from pfeed.feeds.base_feed import BaseFeed
         from pfund_kit.utils import get_notebook_type
 
@@ -172,11 +187,15 @@ class BasePlot(ABC):
         self._streaming_dfs: dict[MessageKey, nw.DataFrame[Any]] = {}
         self._streaming_pipe: Pipe | None = None
         self._streaming_thread: Thread | None = None
-        self._streaming_widgets: dict[type[BaseStreamingWidget], BaseStreamingWidget] = {}
+        self._streaming_widgets: dict[
+            type[BaseStreamingWidget], BaseStreamingWidget
+        ] = {}
         self._component: Component | None = None
         self._overlays: list[BasePlot] = []
         self._holoviews_opts: list[tuple[tuple[Any, ...], dict[str, Any]]] = []
-        self._parent_plot: BasePlot | None = None  # set when this plot is used as an overlay
+        self._parent_plot: BasePlot | None = (
+            None  # set when this plot is used as an overlay
+        )
 
         self._notebook_type: NotebookType | None = get_notebook_type()
 
@@ -194,14 +213,19 @@ class BasePlot(ABC):
         self._renderer: BaseRenderer | None = None
         self._style: Style | None = None
         self._control: Control | None = None
-        self._ChosenWidgetClasses: list[type[BaseWidget]] = list(cls._ChosenWidgetClasses)
-        self._ChosenStreamingWidgetClasses: list[type[BaseStreamingWidget]] = list(cls._ChosenStreamingWidgetClasses)
+        self._ChosenWidgetClasses: list[type[BaseWidget]] = list(
+            cls._ChosenWidgetClasses
+        )
+        self._ChosenStreamingWidgetClasses: list[type[BaseStreamingWidget]] = list(
+            cls._ChosenStreamingWidgetClasses
+        )
         self._set_backend(cls._backend)
         self._set_mode(cls._mode)
 
     @staticmethod
     def _is_hvplot(plot: Plot) -> bool:
         from holoviews.core import Dimensioned
+
         return isinstance(plot, Dimensioned)
 
     @property
@@ -234,13 +258,17 @@ class BasePlot(ABC):
                     df = df.with_columns(
                         nw.col(date_col).str.to_datetime(format=None),
                     )
-                except Exception:
-                    raise TypeError(f"Column '{date_col}' cannot be converted to datetime (got {type(date_value).__name__})")
+                except Exception as err:
+                    raise TypeError(
+                        f"Column '{date_col}' cannot be converted to datetime (got {type(date_value).__name__})"
+                    ) from err
             # normalize to naive UTC — Panel/Bokeh widgets don't handle tz-aware datetimes consistently
             date_dtype = df.collect_schema()[date_col]
-            if hasattr(date_dtype, 'time_zone') and date_dtype.time_zone is not None:
+            if hasattr(date_dtype, "time_zone") and date_dtype.time_zone is not None:
                 df = df.with_columns(
-                    nw.col(date_col).dt.convert_time_zone("UTC").dt.replace_time_zone(None)
+                    nw.col(date_col)
+                    .dt.convert_time_zone("UTC")
+                    .dt.replace_time_zone(None)
                 )
         return df
 
@@ -253,18 +281,27 @@ class BasePlot(ABC):
             return all(col in self._df.columns for col in required)
 
         from pfund_plot.config import get_config
-        if get_config().disable_widgets or self._control is None or not self._control.get('widgets', True):
+
+        if (
+            get_config().disable_widgets
+            or self._control is None
+            or not self._control.get("widgets", True)
+        ):
             return
 
         for WidgetClass in self._ChosenWidgetClasses:
             if WidgetClass not in self._widgets and _has_required_cols(WidgetClass):
-                self._widgets[WidgetClass] = WidgetClass(self._df, self._control, self._update_pane)
+                self._widgets[WidgetClass] = WidgetClass(
+                    self._df, self._control, self._update_pane
+                )
 
         if self.is_streaming():
             for WidgetClass in self._ChosenStreamingWidgetClasses:
                 if WidgetClass not in self._streaming_widgets:
                     self._streaming_widgets[WidgetClass] = WidgetClass(
-                        self._streaming_dfs, self._active_msg_key, self._update_active_stream,
+                        self._streaming_dfs,
+                        self._active_msg_key,
+                        self._update_active_stream,
                     )
 
     def _update_widgets(self, df: nw.DataFrame[Any]) -> None:
@@ -275,7 +312,12 @@ class BasePlot(ABC):
         for widget in self._streaming_widgets.values():
             widget.update_streaming_state(self._streaming_dfs)
 
-    def _append_toolbox(self, widget_objects: list[PanelWidget], label: str = "", position: Literal["top", "bottom"] = "bottom") -> None:
+    def _append_toolbox(
+        self,
+        widget_objects: list[PanelWidget],
+        label: str = "",
+        position: Literal["top", "bottom"] = "bottom",
+    ) -> None:
         """Add a group of widget objects to the component, optionally with a label header.
 
         Args:
@@ -320,7 +362,9 @@ class BasePlot(ABC):
         for WidgetClass, widget in parent_widgets.items():
             for overlay in self._overlays:
                 overlay_widgets = getattr(overlay, overlay_widgets_attr)
-                if WidgetClass in overlay_widgets and widget.can_merge_with(overlay_widgets[WidgetClass]):
+                if WidgetClass in overlay_widgets and widget.can_merge_with(
+                    overlay_widgets[WidgetClass]
+                ):
                     widget.add_overlay(overlay_widgets[WidgetClass])
                     merged.add(WidgetClass)
         return merged
@@ -366,12 +410,12 @@ class BasePlot(ABC):
                 overlay._create_widgets()
 
         # Merge + collect parent widgets
-        merged = self._resolve_widget_merging(self._widgets, '_widgets')
+        merged = self._resolve_widget_merging(self._widgets, "_widgets")
         widget_objects: list[PanelWidget] = []
         for widget in self._widgets.values():
             widget_objects.extend(widget.get_panel_objects())
         # Unmerged overlay widgets
-        has_unmerged = self._collect_unmerged_overlay_widgets('_widgets', merged)
+        has_unmerged = self._collect_unmerged_overlay_widgets("_widgets", merged)
         label = self.name if has_unmerged else ""
         self._append_toolbox(widget_objects, label=label)
 
@@ -392,19 +436,35 @@ class BasePlot(ABC):
         if isinstance(value, pn.widgets.Widget):
             return value
         if isinstance(value, list):
-            return pn.widgets.Select(name=name.replace('_', ' ').title(), options=value, value=value[0])
+            return pn.widgets.Select(
+                name=name.replace("_", " ").title(), options=value, value=value[0]
+            )
         if isinstance(value, tuple) and len(value) == 3:
             min_val, max_val, default = value
             if isinstance(default, float):
-                return pn.widgets.FloatSlider(name=name.replace('_', ' ').title(), start=min_val, end=max_val, value=default)
-            return pn.widgets.IntSlider(name=name.replace('_', ' ').title(), start=min_val, end=max_val, value=default)
+                return pn.widgets.FloatSlider(
+                    name=name.replace("_", " ").title(),
+                    start=min_val,
+                    end=max_val,
+                    value=default,
+                )
+            return pn.widgets.IntSlider(
+                name=name.replace("_", " ").title(),
+                start=min_val,
+                end=max_val,
+                value=default,
+            )
         # NOTE: bool check must come before any future int check, since bool is a subclass of int
         if isinstance(value, bool):
-            return pn.widgets.Toggle(name=name.replace('_', ' ').title(), value=value)
+            return pn.widgets.Toggle(name=name.replace("_", " ").title(), value=value)
         if isinstance(value, str):
-            return pn.widgets.TextInput(name=name.replace('_', ' ').title(), value=value)
-        raise ValueError(f"Cannot create widget from {type(value).__name__} for param '{name}'. " +
-                         "Pass a list, tuple (min, max, default), bool, str, or a Panel widget.")
+            return pn.widgets.TextInput(
+                name=name.replace("_", " ").title(), value=value
+            )
+        raise ValueError(
+            f"Cannot create widget from {type(value).__name__} for param '{name}'. "
+            + "Pass a list, tuple (min, max, default), bool, str, or a Panel widget."
+        )
 
     def _create_reactive_widgets(self) -> None:
         """Create Panel widgets from reactive params. Binding is deferred to _attach_reactive_widgets."""
@@ -415,7 +475,9 @@ class BasePlot(ABC):
 
     def _setup_reactive_binding(self, merged_params: set[str] | None = None) -> None:
         callback = self._reactive_callback
-        assert callback is not None, "callback is required when reactive_params are provided"
+        assert callback is not None, (
+            "callback is required when reactive_params are provided"
+        )
         widgets = self._reactive_widgets
         overlays = self._overlays
 
@@ -429,7 +491,9 @@ class BasePlot(ABC):
             if merged_params:
                 for overlay in overlays:
                     if overlay._reactive_callback is not None:
-                        overlay_kwargs = {n: w.value for n, w in overlay._reactive_widgets.items()}
+                        overlay_kwargs = {
+                            n: w.value for n, w in overlay._reactive_widgets.items()
+                        }
                         # Override merged params with parent's current values
                         for p in merged_params:
                             if p in overlay_kwargs:
@@ -441,7 +505,7 @@ class BasePlot(ABC):
             self._update_pane(df)
 
         for widget in widgets.values():
-            _ = widget.param.watch(on_change, 'value')
+            _ = widget.param.watch(on_change, "value")
 
     def _attach_reactive_widgets(self) -> None:
         """Insert reactive widgets at the top of the component.
@@ -464,12 +528,17 @@ class BasePlot(ABC):
         # Determine which overlays can be fully merged (all params match by name AND value)
         mergeable_overlays: set[int] = set()
         for i, overlay in enumerate(self._overlays):
-            if overlay._reactive_params and self._reactive_params == overlay._reactive_params:
+            if (
+                overlay._reactive_params
+                and self._reactive_params == overlay._reactive_params
+            ):
                 mergeable_overlays.add(i)
 
         # Set up parent binding with fan-out to mergeable overlays
         if self._reactive_widgets:
-            merged_params = set(self._reactive_params.keys()) if mergeable_overlays else None
+            merged_params = (
+                set(self._reactive_params.keys()) if mergeable_overlays else None
+            )
             self._setup_reactive_binding(merged_params)
 
         # Show parent reactive widgets (with label when overlays have separate widgets)
@@ -479,24 +548,34 @@ class BasePlot(ABC):
                 for i, overlay in enumerate(self._overlays)
             )
             label = self.name if has_unmerged_overlays else ""
-            self._append_toolbox(list(self._reactive_widgets.values()), label=label, position="top")
+            self._append_toolbox(
+                list(self._reactive_widgets.values()), label=label, position="top"
+            )
 
         # Show non-mergeable overlay reactive widgets separately
         for i, overlay in enumerate(self._overlays):
             if i in mergeable_overlays or not overlay._reactive_widgets:
                 continue
             overlay._setup_reactive_binding()
-            self._append_toolbox(list(overlay._reactive_widgets.values()), label=overlay.name, position="top")
+            self._append_toolbox(
+                list(overlay._reactive_widgets.values()),
+                label=overlay.name,
+                position="top",
+            )
 
     def _attach_streaming_widgets(self) -> None:
         """Insert streaming widgets at the top of the component."""
         # Merge + collect parent streaming widgets
-        merged = self._resolve_widget_merging(self._streaming_widgets, '_streaming_widgets')
+        merged = self._resolve_widget_merging(
+            self._streaming_widgets, "_streaming_widgets"
+        )
         streaming_objects: list[PanelWidget] = []
         for widget in self._streaming_widgets.values():
             streaming_objects.extend(widget.get_panel_objects())
         # Unmerged overlay streaming widgets (insert first so they end up below parent's)
-        has_unmerged = self._collect_unmerged_overlay_widgets('_streaming_widgets', merged, position="top")
+        has_unmerged = self._collect_unmerged_overlay_widgets(
+            "_streaming_widgets", merged, position="top"
+        )
         label = self.name if has_unmerged else ""
         self._append_toolbox(streaming_objects, label=label, position="top")
 
@@ -578,7 +657,9 @@ class BasePlot(ABC):
         return self._mode == DisplayMode.notebook
 
     @staticmethod
-    def _derive_y_cols(df: nw.DataFrame[Any], x: str | None, y: str | list[str] | None) -> list[str]:
+    def _derive_y_cols(
+        df: nw.DataFrame[Any], x: str | None, y: str | list[str] | None
+    ) -> list[str]:
         if y is None:
             y_cols = [c for c in df.columns if c != x]
         elif isinstance(y, str):
@@ -592,17 +673,18 @@ class BasePlot(ABC):
         x_col = x
         native_df = df.to_native()
         if x is None:
-            if 'date' in df.columns:
+            if "date" in df.columns:
                 # auto-resolve x to 'date' column when not specified,
                 # ensures consistent axis dimensions across overlays
-                x_col = 'date'
-            elif hasattr(native_df, 'index') and native_df.index.name is not None:
+                x_col = "date"
+            elif hasattr(native_df, "index") and native_df.index.name is not None:
                 x_col = native_df.index.name
         return x_col
 
     def _setup(self):
-        from pfund_plot.utils import import_hvplot_df_module, match_df_with_data_tool
         from pfeed.feeds.streaming_feed_mixin import StreamingFeedMixin
+
+        from pfund_plot.utils import import_hvplot_df_module, match_df_with_data_tool
 
         if self.REQUIRED_DATA:
             assert self._df is not None or self._feed is not None, (
@@ -613,16 +695,26 @@ class BasePlot(ABC):
             import_hvplot_df_module(match_df_with_data_tool(self._df))
 
         if self.is_streaming() and self.REQUIRED_DATA:
-            assert self.SUPPORT_STREAMING, f"{self._class_name} does not support streaming"
+            assert self.SUPPORT_STREAMING, (
+                f"{self._class_name} does not support streaming"
+            )
             if not isinstance(self._feed, StreamingFeedMixin):
-                raise ValueError("feed must be a pfeed's Feed object that supports streaming")
+                raise ValueError(
+                    "feed must be a pfeed's Feed object that supports streaming"
+                )
             # set pipeline mode to True for streaming to standardize the run method to be feed.run()
             assert self._feed.is_pipeline(), f"{self._feed} must be in pipeline mode"
-            assert self._feed._num_workers is None, f"Ray is not supported in streaming plot, {self._feed.__class__.__name__} 'num_workers' must be None"
+            assert self._feed._num_workers is None, (
+                f"Ray is not supported in streaming plot, {self._feed.__class__.__name__} 'num_workers' must be None"
+            )
 
         if self._reactive_params:
-            assert self._reactive_callback is not None, "callback is required when reactive_params are provided"
-            assert self._feed is None, "reactive params are not supported with streaming feed"
+            assert self._reactive_callback is not None, (
+                "callback is required when reactive_params are provided"
+            )
+            assert self._feed is None, (
+                "reactive params are not supported with streaming feed"
+            )
 
     def _create(self):
         if self._pane is None:
@@ -638,14 +730,14 @@ class BasePlot(ABC):
             self._attach_reactive_widgets()
 
     def _add_periodic_callback(self, callback: Callable[..., Any]):
-        '''Add a periodic callback to the renderer.
+        """Add a periodic callback to the renderer.
         Args:
             periodic_callback: The periodic callback to add.
                 it is created by `panel.state.add_periodic_callback`.
-        '''
+        """
         periodic_callback = pn.state.add_periodic_callback(
             callback,
-            period=self._control['update_interval'],  # in ms
+            period=self._control["update_interval"],  # in ms
             start=False,
         )
         self._renderer.add_periodic_callback(periodic_callback)
@@ -659,12 +751,14 @@ class BasePlot(ABC):
     def _create_streaming_row(self, msg: StreamingMessage) -> nw.DataFrame[Any]:
         raise NotImplementedError(f"{self._class_name} does not support streaming")
 
-    def _create_streaming_df(self, msg_key: MessageKey, msg: StreamingMessage) -> nw.DataFrame[Any]:
+    def _create_streaming_df(
+        self, msg_key: MessageKey, msg: StreamingMessage
+    ) -> nw.DataFrame[Any]:
         raise NotImplementedError(f"{self._class_name} does not support streaming")
 
     def _truncate_streaming_df(self, df: nw.DataFrame[Any]) -> nw.DataFrame[Any]:
         assert self._control is not None, "control is not set"
-        max_data = self._control['max_data']
+        max_data = self._control["max_data"]
         if max_data and df.shape[0] > max_data:
             df = df.tail(max_data)
         return df
@@ -675,14 +769,16 @@ class BasePlot(ABC):
 
         assert self._feed is not None, "feed is not set"
         requests = cast("list[MarketFeedStreamRequest]", self._feed._requests)
-        assert all(request.is_streaming() for request in requests), "Not all requests in the streaming feed are for streaming"
+        assert all(request.is_streaming() for request in requests), (
+            "Not all requests in the streaming feed are for streaming"
+        )
 
         self._add_periodic_callback(self._refresh_streaming_ui)
 
         for dataflows in self._feed._dataflows.values():
             for dataflow in dataflows:
                 dataflow.add_default_transformations([self._on_streaming_callback])
-                
+
         if not self._feed.is_running():
             if not self.is_in_notebook_mode():
                 self._streaming_thread = Thread(
@@ -699,7 +795,7 @@ class BasePlot(ABC):
                 overlay._start_streaming()
 
     def _refresh_streaming_ui(self):
-        '''during streaming, update pane and widgets accordingly using the newly updated data (updated in _on_streaming_callback)'''
+        """during streaming, update pane and widgets accordingly using the newly updated data (updated in _on_streaming_callback)"""
         if self._df is not None and self._is_streaming_ready():
             self._update_pane(self._df)
             self._update_widgets(self._df)
@@ -709,7 +805,10 @@ class BasePlot(ABC):
             return
         if self.is_streaming() and self._df is None:
             while not self._is_streaming_ready():
-                cprint("Not enough data to plot, waiting for streaming data...", style=TextStyle.BOLD + RichColor.YELLOW)
+                cprint(
+                    "Not enough data to plot, waiting for streaming data...",
+                    style=TextStyle.BOLD + RichColor.YELLOW,
+                )
                 time.sleep(1)
         for overlay in self._overlays:
             if overlay.is_streaming():
@@ -718,7 +817,10 @@ class BasePlot(ABC):
     async def _wait_for_streaming_ready_async(self):
         if self.is_streaming() and self._df is None:
             while not self._is_streaming_ready():
-                cprint("Not enough data to plot, waiting for streaming data...", style=TextStyle.BOLD + RichColor.YELLOW)
+                cprint(
+                    "Not enough data to plot, waiting for streaming data...",
+                    style=TextStyle.BOLD + RichColor.YELLOW,
+                )
                 await asyncio.sleep(1)
 
     def _render(self) -> RenderedResult:
@@ -835,14 +937,18 @@ class BasePlot(ABC):
         self._set_renderer()
 
     @classmethod
-    def remove_widgets(cls, *WidgetClasses: type[BaseWidget | BaseStreamingWidget]) -> None:
+    def remove_widgets(
+        cls, *WidgetClasses: type[BaseWidget | BaseStreamingWidget]
+    ) -> None:
         for WidgetClass in WidgetClasses:
             if WidgetClass in cls._ChosenWidgetClasses:
                 cls._ChosenWidgetClasses.remove(WidgetClass)
             if WidgetClass in cls._ChosenStreamingWidgetClasses:
                 cls._ChosenStreamingWidgetClasses.remove(WidgetClass)
 
-    def _remove_widgets(self, *WidgetClasses: type[BaseWidget | BaseStreamingWidget]) -> None:
+    def _remove_widgets(
+        self, *WidgetClasses: type[BaseWidget | BaseStreamingWidget]
+    ) -> None:
         for WidgetClass in WidgetClasses:
             if WidgetClass in self._ChosenWidgetClasses:
                 self._ChosenWidgetClasses.remove(WidgetClass)
@@ -868,7 +974,7 @@ class BasePlot(ABC):
         """Runs the plot function for the current backend."""
         module_path = f"pfund_plot.plots.{self._class_name}.{self._backend}"
         module = importlib.import_module(module_path)
-        return getattr(module, "plot")
+        return module.plot
 
     @property
     def figure(self) -> Figure:
@@ -882,12 +988,17 @@ class BasePlot(ABC):
 
         if backend == PlottingBackend.panel:
             raise ValueError("Panel backend does not support figure property")
-        elif backend in [PlottingBackend.bokeh, PlottingBackend.plotly, PlottingBackend.matplotlib]:
+        elif backend in [
+            PlottingBackend.bokeh,
+            PlottingBackend.plotly,
+            PlottingBackend.matplotlib,
+        ]:
             if self._is_hvplot(self._plot):
                 # use hvplot to convert holoviews Overlay to the underlying plotting library's figure
                 fig: dict = hvplot.render(plot, backend=backend)
                 if backend == PlottingBackend.plotly:
                     import plotly.graph_objects as go
+
                     # hvplot.render() returns a dict, convert it to a plotly Figure
                     fig = go.Figure(fig)
             else:  # plot is from plt.bokeh(), plt.plotly() or plt.matplotlib()
@@ -940,7 +1051,11 @@ class BasePlot(ABC):
         self._plot = self._build_plot(df=self._df)
 
     def _create_pane(self):
-        if self._df is not None and self._control and self._control.get("num_data") is not None:
+        if (
+            self._df is not None
+            and self._control
+            and self._control.get("num_data") is not None
+        ):
             df = self._df.tail(self._control["num_data"])
         else:
             df = self._df
@@ -962,8 +1077,8 @@ class BasePlot(ABC):
             PlottingBackend.altair,
         ]:
             if self._is_hvplot(self._plot):
-                from holoviews.streams import Pipe
                 from holoviews import DynamicMap
+                from holoviews.streams import Pipe
 
                 self._streaming_pipe = Pipe(data=df)
                 dmap = DynamicMap(
@@ -1001,7 +1116,9 @@ class BasePlot(ABC):
             # Re-send the parent's current pipe data to trigger a DynamicMap re-render,
             # which will call _build_plot → overlay._build_plot() with the updated overlay._df.
             # This is not passing new data; it's just a re-render trigger.
-            self._parent_plot._streaming_pipe.send(self._parent_plot._streaming_pipe.data)
+            self._parent_plot._streaming_pipe.send(
+                self._parent_plot._streaming_pipe.data
+            )
             return
         if self._pane is None:
             self._create_pane()

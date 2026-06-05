@@ -1,22 +1,24 @@
 # pyright: reportUnknownMemberType=false, reportAttributeAccessIssue=false
 from __future__ import annotations
+
 from typing import TYPE_CHECKING, Any, Literal
 
 if TYPE_CHECKING:
+    from narwhals.typing import IntoFrame
+    from panel.io.server import Server
     from panel.pane import Pane
     from panel.viewable import Viewable
-    from panel.io.server import Server
-    from narwhals.typing import IntoFrame
     from pfeed.feeds.market_feed import MarketFeed
-    from pfund_plot.widgets.base import BaseWidget
-    from pfund_plot.typing import (
-        RenderedResult,
-        Component,
-        Plot,
-        Figure,
-    )
-    from pfund_plot.enums import PlottingBackend, DisplayMode
+
+    from pfund_plot.enums import DisplayMode, PlottingBackend
     from pfund_plot.plots.plot import BasePlot
+    from pfund_plot.typing import (
+        Component,
+        Figure,
+        Plot,
+        RenderedResult,
+    )
+    from pfund_plot.widgets.base import BaseWidget
 
 import panel as pn
 
@@ -76,14 +78,24 @@ class LazyPlot:
             plt.layout(plot1[0:1, 0:2], plot2[0:1, 2:4])
         """
         if not isinstance(key, tuple) or len(key) != 2:
-            raise TypeError("Grid spec must be a tuple of two elements, e.g., [1, 3] or [1:2, 3:4]")
+            raise TypeError(
+                "Grid spec must be a tuple of two elements, e.g., [1, 3] or [1:2, 3:4]"
+            )
         row_spec, col_spec = key
-        if not isinstance(row_spec, (int, slice)) or not isinstance(col_spec, (int, slice)):
-            raise TypeError("Grid spec elements must be int or slice, e.g., [1, 3] or [1:2, 3:4]")
+        if not isinstance(row_spec, (int, slice)) or not isinstance(
+            col_spec, (int, slice)
+        ):
+            raise TypeError(
+                "Grid spec elements must be int or slice, e.g., [1, 3] or [1:2, 3:4]"
+            )
 
         # Convert ints to slices for consistency
-        row_slice = slice(row_spec, row_spec + 1) if isinstance(row_spec, int) else row_spec
-        col_slice = slice(col_spec, col_spec + 1) if isinstance(col_spec, int) else col_spec
+        row_slice = (
+            slice(row_spec, row_spec + 1) if isinstance(row_spec, int) else row_spec
+        )
+        col_slice = (
+            slice(col_spec, col_spec + 1) if isinstance(col_spec, int) else col_spec
+        )
 
         self._grid_spec = (row_slice, col_slice)
         return self
@@ -91,7 +103,7 @@ class LazyPlot:
     @property
     def name(self) -> str:
         return self._plot.name
-    
+
     @property
     def figure(self) -> Figure:
         return self._plot.figure
@@ -101,29 +113,29 @@ class LazyPlot:
         if self._plot._plot is None:
             self._plot._create_plot()
         return self._plot._plot
-    
+
     @property
     def is_streaming(self) -> bool:
         return self._plot.is_streaming()
-    
+
     @property
     def widgets(self) -> Any:
         if not self._plot._widgets:
             self._plot._create_widgets()
         return self._plot._widgets
-    
+
     @property
     def streaming_widgets(self) -> Any:
         if self._plot.is_streaming() and not self._plot._streaming_widgets:
             self._plot._create_widgets()
         return self._plot._streaming_widgets
-    
+
     @property
     def reactive_widgets(self) -> Any:
         if self._plot._reactive_params and not self._plot._reactive_widgets:
             self._plot._create_reactive_widgets()
         return self._plot._reactive_widgets
-    
+
     def opts(self, *args: Any, **kwargs: Any) -> LazyPlot:
         """Pass holoviews opts to the underlying plot.
 
@@ -133,7 +145,7 @@ class LazyPlot:
         """
         self._plot._add_opts(args, kwargs)
         return self
-    
+
     @property
     def pane(self) -> Pane:
         if self._plot._pane is None:
@@ -144,17 +156,17 @@ class LazyPlot:
     def component(self) -> Component | None:
         self._plot._create()  # create pane+widgets+component
         return self._plot._component
-    
+
     @property
     def df(self) -> IntoFrame | None:
         if self._plot._df is None:
             return None
         return self._plot._df.to_native()
-    
+
     @property
     def feed(self) -> MarketFeed | None:
         return self._plot._feed
-    
+
     def style(self, **kwargs) -> LazyPlot:
         """Configure style options.
 
@@ -169,10 +181,10 @@ class LazyPlot:
         """
         self._plot._set_style(kwargs)
         return self
-    
+
     def get_style(self) -> dict:
         return self._plot._style
-    
+
     def control(self, **kwargs) -> LazyPlot:
         """Configure control options.
 
@@ -187,7 +199,7 @@ class LazyPlot:
         """
         self._plot._set_control(kwargs)
         return self
-    
+
     def get_control(self) -> dict:
         return self._plot._control
 
@@ -209,7 +221,9 @@ class LazyPlot:
     def get_backend(self) -> PlottingBackend:
         return self._plot._backend
 
-    def mode(self, mode: DisplayMode | Literal['notebook', 'browser', 'desktop']) -> LazyPlot:
+    def mode(
+        self, mode: DisplayMode | Literal["notebook", "browser", "desktop"]
+    ) -> LazyPlot:
         """Override display mode for this plot only.
 
         Args:
@@ -226,16 +240,6 @@ class LazyPlot:
 
     def get_mode(self) -> DisplayMode:
         return self._plot._mode
-    
-    @property
-    def reactive_widgets(self) -> dict[str, Any]:
-        """Access the auto-created Panel widgets for customization.
-
-        Returns:
-            dict mapping parameter names to Panel widget instances.
-            Empty dict if reactive params weren't provided or component not yet created.
-        """
-        return self._plot._reactive_widgets
 
     def remove_widgets(self, *WidgetClasses: type[BaseWidget]) -> LazyPlot:
         """Remove widgets from the plot.
@@ -248,7 +252,7 @@ class LazyPlot:
         """
         self._plot._remove_widgets(*WidgetClasses)
         return self
-    
+
     def _get_existing_server(self) -> Server | None:
         renderer = self._plot._renderer
         server = renderer.server
@@ -266,7 +270,9 @@ class LazyPlot:
             The rendered plot output
         """
         if self._plot.is_streaming() and self._plot.is_in_notebook_mode():
-            raise RuntimeError("Cannot render streaming plot in synchronous mode, use show_async() instead.")
+            raise RuntimeError(
+                "Cannot render streaming plot in synchronous mode, use show_async() instead."
+            )
         if server := self._get_existing_server():
             return server
         return self._plot._render_sync()
@@ -350,13 +356,16 @@ class LazyPlot:
             candlestick * volume_bars  # overlay volume on candlestick
         """
         from copy import deepcopy
+
         if not isinstance(other, LazyPlot):
             raise TypeError(f"Cannot overlay {type(other).__name__} onto a plot.")
 
         other_plot = other._plot
         current_plot = self._plot
         if other_plot.is_streaming() != current_plot.is_streaming():
-            raise RuntimeError("Cannot overlay a streaming plot with a non-streaming plot.")
+            raise RuntimeError(
+                "Cannot overlay a streaming plot with a non-streaming plot."
+            )
         if other_plot._backend != current_plot._backend:
             raise RuntimeError("Cannot overlay plots with different backends.")
         if other_plot._mode != current_plot._mode:

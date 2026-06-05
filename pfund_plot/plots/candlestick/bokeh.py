@@ -1,5 +1,6 @@
 # pyright: reportUnusedParameter=false
 from __future__ import annotations
+
 from typing import TYPE_CHECKING, Any, Literal
 
 if TYPE_CHECKING:
@@ -9,8 +10,7 @@ import narwhals as nw
 
 from pfund_plot.enums import PlottingBackend
 
-
-__all__ = ["plot", "style", "control"]
+__all__ = ["control", "plot", "style"]
 
 
 DEFAULT_HEIGHT = 280
@@ -23,7 +23,7 @@ def style(
     ylabel: str = "price",
     pos_color: str = "green",
     neg_color: str = "red",
-    bg_color: str = '',  # empty string by default because Panel will automatically use the theme color
+    bg_color: str = "",  # empty string by default because Panel will automatically use the theme color
     grid: bool = True,
     total_height: int | None = None,
     height: int = DEFAULT_HEIGHT,
@@ -84,6 +84,7 @@ def plot(
 ) -> Overlay:
     import hvplot
     from bokeh.models import CrosshairTool
+
     from pfund_plot.plots.candlestick import Candlestick
     from pfund_plot.utils.bokeh import create_bundled_hover_tool
 
@@ -92,15 +93,19 @@ def plot(
     date_col = Candlestick.REQUIRED_COLS[0]
     ohlc_cols = Candlestick.REQUIRED_COLS[1:]
     # include optional cols (e.g. volume) only when present in the df
-    value_cols = ohlc_cols + [col for col in Candlestick.OPTIONAL_COLS if col in df.columns]
+    value_cols = ohlc_cols + [
+        col for col in Candlestick.OPTIONAL_COLS if col in df.columns
+    ]
     return (
         df.to_native()
         .hvplot.ohlc(
             date_col,
             ohlc_cols,
-            hover_cols=[date_col] + value_cols,
+            hover_cols=[date_col, *value_cols],
             tools=[
-                create_bundled_hover_tool(df, date_col, value_cols, control["datetime_precision"]),
+                create_bundled_hover_tool(
+                    df, date_col, value_cols, control["datetime_precision"]
+                ),
                 CrosshairTool(dimensions="height", line_color="gray", line_alpha=0.3),
             ],
             responsive=True,

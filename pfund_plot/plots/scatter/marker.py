@@ -1,15 +1,17 @@
 # pyright: reportArgumentType=false, reportOptionalMemberAccess=false, reportOptionalSubscript=false, reportCallIssue=false, reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, Literal, Callable
+
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, Literal
 
 if TYPE_CHECKING:
     from narwhals.typing import IntoFrame
-    from pfund_plot.typing import Style, Control, Plot
+
+    from pfund_plot.typing import Control, Plot, Style
 
 import narwhals as nw
 
 from pfund_plot.plots.scatter import Scatter
-
 
 __all__ = ["Marker"]
 
@@ -41,10 +43,28 @@ class Marker(Scatter):
         x: str | None = None,
         y: str | list[str] | None = None,
         signal: str | None = None,
-        pos_color: str='green',
-        neg_color: str='red',
-        pos_marker: Literal['circle', 'square', 'triangle_up', 'triangle_down', 'diamond', 'cross', 'x', 'star']='triangle_up',
-        neg_marker: Literal['circle', 'square', 'triangle_up', 'triangle_down', 'diamond', 'cross', 'x', 'star']='triangle_down',
+        pos_color: str = "green",
+        neg_color: str = "red",
+        pos_marker: Literal[
+            "circle",
+            "square",
+            "triangle_up",
+            "triangle_down",
+            "diamond",
+            "cross",
+            "x",
+            "star",
+        ] = "triangle_up",
+        neg_marker: Literal[
+            "circle",
+            "square",
+            "triangle_up",
+            "triangle_down",
+            "diamond",
+            "cross",
+            "x",
+            "star",
+        ] = "triangle_down",
         name: str | None = None,
         **reactive_params: Any,
     ):
@@ -54,14 +74,15 @@ class Marker(Scatter):
         self._pos_marker = pos_marker
         self._neg_marker = neg_marker
         super().__init__(data=data, x=x, y=y, name=name, **reactive_params)
-    
+
     @property
     def _plot_func(self) -> Callable[[nw.DataFrame[Any], Style, Control], Plot]:
         """Runs the plot function for the current backend."""
         import importlib
+
         module_path = f"pfund_plot.plots.scatter.{self._backend}"
         module = importlib.import_module(module_path)
-        return getattr(module, "plot")
+        return module.plot
 
     def _standardize_df(self, df: IntoFrame) -> nw.DataFrame[Any]:
         df: nw.DataFrame[Any] = super()._standardize_df(df)
@@ -71,16 +92,16 @@ class Marker(Scatter):
             nw.when(is_positive)
             .then(nw.lit(self._pos_color))
             .otherwise(nw.lit(self._neg_color))
-            .alias('_color'),
+            .alias("_color"),
             nw.when(is_positive)
             .then(nw.lit(self._pos_marker))
             .otherwise(nw.lit(self._neg_marker))
-            .alias('_marker'),
+            .alias("_marker"),
         )
         return df
 
     def _set_style(self, style: dict[str, Any] | None = None):
         super()._set_style(style)
         if self._style is not None:
-            self._style['color'] = '_color'
-            self._style['marker'] = '_marker'
+            self._style["color"] = "_color"
+            self._style["marker"] = "_marker"

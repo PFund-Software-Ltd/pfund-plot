@@ -1,3 +1,5 @@
+# ruff: noqa
+
 import marimo
 
 __generated_with = "0.23.4"
@@ -6,27 +8,29 @@ app = marimo.App(width="columns")
 with app.setup:
     from threading import Thread
 
-    import marimo as mo
-    import holoviews as hv
-    import matplotlib.pyplot as mpl
-    import plotly.graph_objects as go
     import altair as alt
-    from bokeh.plotting import figure
+    import holoviews as hv
+    import marimo as mo
+    import matplotlib.pyplot as mpl
     import numpy as np
-    import polars as pl
     import pfeed as pe
+    import plotly.graph_objects as go
+    import polars as pl
+    from bokeh.plotting import figure
+
     import pfund_plot as plt
 
     def stop_later(thread, delay):
         import time
+
         time.sleep(delay)
         thread.stop()
-        print('Stopped the streaming thread')
+        print("Stopped the streaming thread")
 
     def prepare_streaming_feed():
         # separate this streaming feed from the non-streaming one on purpose
         streaming_feed = pe.Bybit(pipeline_mode=True).market_feed
-        streaming_resolution = '1s'
+        streaming_resolution = "1s"
         for streaming_product in products:
             streaming_feed.stream(
                 product=streaming_product,
@@ -35,10 +39,10 @@ with app.setup:
         return streaming_feed
 
     feed = pe.Bybit(pipeline_mode=True).market_feed
-    products = ['ETH_USDT_PERP', 'BTC_USDT_PERP']
-    date = '2026-03-01'
-    resolution = '1h'
-    storage = 'local'
+    products = ["ETH_USDT_PERP", "BTC_USDT_PERP"]
+    date = "2026-03-01"
+    resolution = "1h"
+    storage = "local"
 
     # FIXME: use pfund-sampledata when its ready
     for product in products:
@@ -50,7 +54,7 @@ with app.setup:
                 end_date=date,
                 storage_config=pe.StorageConfig(
                     storage=storage,
-                )
+                ),
             ).run()
             if df is not None:
                 break
@@ -58,9 +62,12 @@ with app.setup:
     # create some fake columns for plt.marker and plt.label
     df = df.collect()
     df = df.with_columns(
-        pl.Series('trade', np.random.choice([1, -1], size=len(df))),
+        pl.Series("trade", np.random.choice([1, -1], size=len(df))),
     ).with_columns(
-        pl.when(pl.col('trade') == 1).then(pl.lit('buy')).otherwise(pl.lit('sell')).alias('label')
+        pl.when(pl.col("trade") == 1)
+        .then(pl.lit("buy"))
+        .otherwise(pl.lit("sell"))
+        .alias("label")
     )
 
 
@@ -98,7 +105,7 @@ def _():
 
 @app.cell
 def _():
-    candlestick = plt.ohlc(df).backend('bokeh')
+    candlestick = plt.ohlc(df).backend("bokeh")
     candlestick
     return (candlestick,)
 
@@ -113,7 +120,9 @@ def _():
 
 @app.cell
 def _():
-    line = plt.line(df, x='date', y='close').style(color='orange').control(widgets=False)
+    line = (
+        plt.line(df, x="date", y="close").style(color="orange").control(widgets=False)
+    )
     line
     return (line,)
 
@@ -128,7 +137,7 @@ def _():
 
 @app.cell
 def _():
-    scatter = plt.scatter(df, x='open', y='close').control(widgets=False)
+    scatter = plt.scatter(df, x="open", y="close").control(widgets=False)
     scatter
     return (scatter,)
 
@@ -143,7 +152,7 @@ def _():
 
 @app.cell
 def _():
-    marker = plt.marker(df, x='date', y='close', signal='trade')
+    marker = plt.marker(df, x="date", y="close", signal="trade")
     marker
     return
 
@@ -158,7 +167,7 @@ def _():
 
 @app.cell
 def _():
-    label = plt.label(df, x='date', y='close', text='label')
+    label = plt.label(df, x="date", y="close", text="label")
     label
     return
 
@@ -173,7 +182,7 @@ def _():
 
 @app.cell
 def _():
-    area = plt.area(df, x='date', y='close').style(marker='x')
+    area = plt.area(df, x="date", y="close").style(marker="x")
     area
     return (area,)
 
@@ -188,7 +197,7 @@ def _():
 
 @app.cell
 def _():
-    bar = plt.bar(df, x='date', y=['high', 'low']).style(color=['steelblue', 'coral'])
+    bar = plt.bar(df, x="date", y=["high", "low"]).style(color=["steelblue", "coral"])
     bar
     return (bar,)
 
@@ -217,7 +226,9 @@ def _():
 
 @app.cell
 def _():
-    plt.ohlc(df).backend('bokeh') * plt.label(df, x='date', y='close', text='label') * plt.marker(df, x='date', y='close', signal='trade')
+    plt.ohlc(df).backend("bokeh") * plt.label(
+        df, x="date", y="close", text="label"
+    ) * plt.marker(df, x="date", y="close", signal="trade")
     return
 
 
@@ -234,7 +245,7 @@ def _():
     plotly_fig = go.Figure()
     plotly_fig.add_trace(go.Scatter(x=df["date"], y=df["close"], mode="lines"))
     plotly_fig.update_layout(title="Price", xaxis_title="date", yaxis_title="close")
-    plotly_fig = plt.plotly(plotly_fig, sizing_mode='stretch_width')
+    plotly_fig = plt.plotly(plotly_fig, sizing_mode="stretch_width")
     plotly_fig
     return (plotly_fig,)
 
@@ -250,16 +261,19 @@ def _():
 @app.cell
 def _():
     altair_fig = plt.altair(
-        alt.Chart(df).mark_line().encode(
+        alt.Chart(df)
+        .mark_line()
+        .encode(
             x="date:T",
             y=alt.Y("close:Q").scale(zero=False),
             tooltip=["date:T", "close:Q"],
-        ).properties(
+        )
+        .properties(
             title="Price",
             width=600,
             height=400,
         ),
-        sizing_mode='stretch_width'
+        sizing_mode="stretch_width",
     )
     altair_fig
     return (altair_fig,)
@@ -280,7 +294,9 @@ def _():
     ax.set_title("Price")
     ax.set_xlabel("date")
     ax.set_ylabel("close")
-    matplotlib_fig = plt.matplotlib(matplotlib_fig, height=500, sizing_mode='stretch_width')
+    matplotlib_fig = plt.matplotlib(
+        matplotlib_fig, height=500, sizing_mode="stretch_width"
+    )
     matplotlib_fig
     return
 
@@ -295,9 +311,16 @@ def _():
 
 @app.cell
 def _():
-    bokeh_fig = figure(title="Price", x_axis_label="date", y_axis_label="close", x_axis_type="datetime", height=400, width=700)
+    bokeh_fig = figure(
+        title="Price",
+        x_axis_label="date",
+        y_axis_label="close",
+        x_axis_type="datetime",
+        height=400,
+        width=700,
+    )
     bokeh_fig.line(df["date"], df["close"])
-    bokeh_fig = plt.bokeh(bokeh_fig, sizing_mode='stretch_width')
+    bokeh_fig = plt.bokeh(bokeh_fig, sizing_mode="stretch_width")
     bokeh_fig
     return
 
@@ -313,7 +336,7 @@ def _():
 @app.cell
 def _():
     holoviews_fig = hv.Curve(df, kdims="date", vdims="close").opts(title="Price")
-    holoviews_fig = plt.holoviews(holoviews_fig, sizing_mode='stretch_width')
+    holoviews_fig = plt.holoviews(holoviews_fig, sizing_mode="stretch_width")
     holoviews_fig
     return
 
@@ -336,7 +359,7 @@ def _():
             end_date=date,
             storage_config=pe.StorageConfig(
                 storage=storage,
-            )
+            ),
         ).run()
 
     reactive_candlestick = plt.ohlc(
@@ -382,15 +405,29 @@ def _():
 
 @app.cell
 def _(altair_fig, plotly_fig, tabs):
-    browser_thread = plt.layout(
-        plt.ohlc(prepare_streaming_feed()).control(update_interval=1000).mode('browser'),
-        tabs,
-        plt.line(prepare_streaming_feed(), x='date', y='close').control(update_interval=1000).mode('browser'),
-        plt.area(prepare_streaming_feed(), x='date', y='close').style(marker='x').control(update_interval=1000).mode('browser'),
-        plt.bar(prepare_streaming_feed(), x='date', y='close').control(update_interval=1000).mode('browser'),
-        plotly_fig,
-        altair_fig,
-    ).mode('browser').control(allow_drag=False, linked_axes=False).show()
+    browser_thread = (
+        plt.layout(
+            plt.ohlc(prepare_streaming_feed())
+            .control(update_interval=1000)
+            .mode("browser"),
+            tabs,
+            plt.line(prepare_streaming_feed(), x="date", y="close")
+            .control(update_interval=1000)
+            .mode("browser"),
+            plt.area(prepare_streaming_feed(), x="date", y="close")
+            .style(marker="x")
+            .control(update_interval=1000)
+            .mode("browser"),
+            plt.bar(prepare_streaming_feed(), x="date", y="close")
+            .control(update_interval=1000)
+            .mode("browser"),
+            plotly_fig,
+            altair_fig,
+        )
+        .mode("browser")
+        .control(allow_drag=False, linked_axes=False)
+        .show()
+    )
 
     # stop in background without blocking
     Thread(target=stop_later, args=(browser_thread, 20)).start()
@@ -399,7 +436,13 @@ def _(altair_fig, plotly_fig, tabs):
 
 @app.cell
 def _():
-    desktop_thread = plt.line(df, x='date', y='close').style(color='orange').control(widgets=False).mode('desktop').show()
+    desktop_thread = (
+        plt.line(df, x="date", y="close")
+        .style(color="orange")
+        .control(widgets=False)
+        .mode("desktop")
+        .show()
+    )
     # desktop_thread = plt.layout(
     #     plt.ohlc(prepare_streaming_feed()).control(update_interval=1000).mode('desktop'),
     #     tabs,

@@ -1,7 +1,8 @@
-from pfund_kit.style import cprint, RichColor, TextStyle
+from pfund_kit.style import RichColor, TextStyle, cprint
+
+from pfund_plot.enums import DisplayMode
 from pfund_plot.plots.layout.layout import BaseLayout
 from pfund_plot.plots.lazy import LazyPlot
-from pfund_plot.enums import DisplayMode
 
 
 class LayoutStyle:
@@ -26,12 +27,12 @@ class Layout(BaseLayout):
         super().__init__(*plots)
         default_mode = DisplayMode.browser
         self._set_mode(default_mode)
-    
+
     def _render(self):
         if self._mode == DisplayMode.desktop:
             cprint(
-                "There is a known issue in resizing when using plt.layout (GridStack) in desktop mode. Please consider switching to browser mode instead.", 
-                style=TextStyle.BOLD + RichColor.YELLOW
+                "There is a known issue in resizing when using plt.layout (GridStack) in desktop mode. Please consider switching to browser mode instead.",
+                style=TextStyle.BOLD + RichColor.YELLOW,
             )
         return super()._render()
 
@@ -56,7 +57,7 @@ class Layout(BaseLayout):
         assert self._control["num_cols"] <= self._MAX_COLS, (
             f"'num_cols' must be less than or equal to {self._MAX_COLS}"
         )
-    
+
     def _warn_if_widgets_with_drag(self):
         """Warn if child plots have widgets and GridStack drag is enabled.
 
@@ -68,10 +69,16 @@ class Layout(BaseLayout):
             return
         for lazyplot in self._plots:
             plot = lazyplot._plot
-            has_widgets = plot._widgets or plot._streaming_widgets or plot._reactive_widgets
+            has_widgets = (
+                plot._widgets or plot._streaming_widgets or plot._reactive_widgets
+            )
             if not has_widgets:
                 for overlay in plot._overlays:
-                    has_widgets = overlay._widgets or overlay._streaming_widgets or overlay._reactive_widgets
+                    has_widgets = (
+                        overlay._widgets
+                        or overlay._streaming_widgets
+                        or overlay._reactive_widgets
+                    )
                     if has_widgets:
                         break
             if has_widgets:

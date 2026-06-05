@@ -1,5 +1,5 @@
-import sys
 import subprocess
+import sys
 from pathlib import Path
 
 import click
@@ -11,5 +11,5 @@ GALLERY_DIR = Path(__file__).parent
 def gallery():
     """Open the gallery to visually verify all supported plots."""
     script = GALLERY_DIR / "gallery_marimo.py"
-    result = subprocess.run(['marimo', 'edit', str(script)], check=False)
+    result = subprocess.run(["marimo", "edit", str(script)], check=False)
     sys.exit(result.returncode)

@@ -1,10 +1,13 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Callable, ClassVar, Any
+
 from abc import ABC, abstractmethod
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, ClassVar
 
 if TYPE_CHECKING:
     import narwhals as nw
     import panel as pn
+
     from pfund_plot.plots.plot import MessageKey, StreamingDfs
 
 
@@ -12,15 +15,19 @@ class BaseWidget(ABC):
     # Columns this widget requires in the df (e.g. ["date"]).
     REQUIRED_COLS: ClassVar[list[str] | None] = None
 
-    def __init__(self, df: nw.DataFrame[Any], control: dict[str, Any], update_callback: Callable[[nw.DataFrame[Any]], None]):
+    def __init__(
+        self,
+        df: nw.DataFrame[Any],
+        control: dict[str, Any],
+        update_callback: Callable[[nw.DataFrame[Any]], None],
+    ):
         self._df = df
         self._control: dict[str, Any] = control
         self._update_callback = update_callback
         self._overlays: list[BaseWidget] = []
 
     @abstractmethod
-    def update_df(self, df: nw.DataFrame[Any]) -> None:
-        ...
+    def update_df(self, df: nw.DataFrame[Any]) -> None: ...
 
     @abstractmethod
     def get_panel_objects(self) -> list[pn.widgets.Widget]:
@@ -51,8 +58,7 @@ class BaseStreamingWidget(ABC):
         self._overlays: list[BaseStreamingWidget] = []
 
     @abstractmethod
-    def update_streaming_state(self, streaming_dfs: StreamingDfs) -> None:
-        ...
+    def update_streaming_state(self, streaming_dfs: StreamingDfs) -> None: ...
 
     @abstractmethod
     def get_panel_objects(self) -> list[pn.widgets.Widget]:

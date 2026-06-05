@@ -1,9 +1,11 @@
 # pyright: reportUnknownMemberType=false, reportOptionalMemberAccess=false, reportCallIssue=false, reportUnusedVariable=false, reportOperatorIssue=false, reportUnknownArgumentType=false
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from pfund_plot.typing import Component
-    
+
 try:
     import marimo as mo
 except ImportError:
@@ -31,8 +33,13 @@ class NotebookRenderer(BaseRenderer):
     #     for periodic_callback in self._periodic_callbacks:
     #         stream_thread = mo.Thread(target=stream_updates, args=(periodic_callback,), daemon=True)
     #         stream_thread.start()
-    
-    def render(self, component: Component, use_iframe: bool=False, iframe_style: str | None=None):
+
+    def render(
+        self,
+        component: Component,
+        use_iframe: bool = False,
+        iframe_style: str | None = None,
+    ):
         """
         Args:
             use_iframe: if True, use an iframe to display the plot in a notebook.
@@ -52,19 +59,19 @@ class NotebookRenderer(BaseRenderer):
             raise NotImplementedError("Iframe is not supported in notebook mode yet")
             # if iframe_style is None:
             #     cprint(
-            #         "No iframe_style is provided for iframe in notebook", 
+            #         "No iframe_style is provided for iframe in notebook",
             #         style=TextStyle.BOLD + RichColor.YELLOW
             #     )
             # port = self._get_free_port()
             # if self._notebook_type == NotebookType.jupyter:
             #     cprint(
-            #         f"If the plot can't be displayed, try to use 'from IPython.display import IFrame' and 'IFrame(src='http://localhost:{port}', width=..., height=...)'", 
+            #         f"If the plot can't be displayed, try to use 'from IPython.display import IFrame' and 'IFrame(src='http://localhost:{port}', width=..., height=...)'",
             #         style=TextStyle.BOLD + RichColor.YELLOW
             #     )
             # html_pane: Pane = pn.pane.HTML(
             #     f'''
-            #     <iframe 
-            #         src="http://localhost:{port}" 
+            #     <iframe
+            #         src="http://localhost:{port}"
             #         style="{iframe_style}"
             #     </iframe>
             #     ''',

@@ -1,5 +1,6 @@
 # pyright: reportUnusedParameter=false, reportArgumentType=false
 from __future__ import annotations
+
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -8,8 +9,7 @@ if TYPE_CHECKING:
 import panel as pn
 from panel.layout.gridstack import GridStack
 
-
-__all__ = ["plot", "style", "control"]
+__all__ = ["control", "plot", "style"]
 DEFAULT_NUM_COLS = 3
 
 
@@ -26,7 +26,9 @@ def control(
     return locals()
 
 
-def plot(*plots: LazyPlot, style: dict[str, Any], control: dict[str, Any], **kwargs: Any) -> GridStack:
+def plot(
+    *plots: LazyPlot, style: dict[str, Any], control: dict[str, Any], **kwargs: Any
+) -> GridStack:
     pn.extension("gridstack")
 
     gstack = GridStack(
@@ -37,7 +39,7 @@ def plot(*plots: LazyPlot, style: dict[str, Any], control: dict[str, Any], **kwa
 
     grid_specs = [plot._grid_spec for plot in plots]
     if all(grid_spec is not None for grid_spec in grid_specs):
-        for plot, grid_spec in zip(plots, grid_specs):
+        for plot, grid_spec in zip(plots, grid_specs, strict=True):
             row_slice, col_slice = grid_spec
             gstack[row_slice, col_slice] = plot.component
     else:

@@ -1,5 +1,6 @@
 # pyright: reportUnusedParameter=false
 from __future__ import annotations
+
 from typing import TYPE_CHECKING, Any, Literal
 
 if TYPE_CHECKING:
@@ -9,19 +10,18 @@ import narwhals as nw
 
 from pfund_plot.enums import PlottingBackend
 
-
-__all__ = ["plot", "style", "control"]
+__all__ = ["control", "plot", "style"]
 
 
 # Marker mapping from user-friendly names to Bokeh scatter types
 MARKER_MAP = {
-    'triangle_up': 'triangle',
-    'triangle_down': 'inverted_triangle',
+    "triangle_up": "triangle",
+    "triangle_down": "inverted_triangle",
 }
 
-DEFAULT_MARKER = 'circle'
+DEFAULT_MARKER = "circle"
 DEFAULT_SIZE = 100  # hvplot takes sqrt(size), so 100 -> rendered size of 10
-DEFAULT_COLOR = 'steelblue'
+DEFAULT_COLOR = "steelblue"
 DEFAULT_HEIGHT = 280
 
 
@@ -30,7 +30,17 @@ def style(
     xlabel: str = "",
     ylabel: str = "",
     color: str = DEFAULT_COLOR,
-    marker: Literal['circle', 'square', 'triangle_up', 'triangle_down', 'diamond', 'cross', 'x', 'star'] | str = DEFAULT_MARKER,
+    marker: Literal[
+        "circle",
+        "square",
+        "triangle_up",
+        "triangle_down",
+        "diamond",
+        "cross",
+        "x",
+        "star",
+    ]
+    | str = DEFAULT_MARKER,
     size: int | str = DEFAULT_SIZE,
     opacity: float = 0.8,
     grid: bool = False,
@@ -91,13 +101,13 @@ def plot(
 
     _ = hvplot.extension(PlottingBackend.bokeh)
 
-    color = style['color']
-    marker = style['marker']
-    size = style['size']
+    color = style["color"]
+    marker = style["marker"]
+    size = style["size"]
 
     columns = df.columns
 
-    if control['include_extra_cols']:
+    if control["include_extra_cols"]:
         exclude: set[str] = set()
         if x:
             exclude.add(x)
@@ -105,43 +115,44 @@ def plot(
             exclude.update(y)
         elif y:
             exclude.add(y)
-        kwargs['hover_cols'] = [c for c in columns if c not in exclude]
+        kwargs["hover_cols"] = [c for c in columns if c not in exclude]
 
     color_is_col = isinstance(color, str) and color in columns
     size_is_col = isinstance(size, str) and size in columns
     marker_is_col = isinstance(marker, str) and marker in columns
 
     if color_is_col:
-        kwargs['c'] = color
+        kwargs["c"] = color
     else:
-        kwargs['color'] = color
+        kwargs["color"] = color
 
     if size_is_col:
-        kwargs['s'] = size
+        kwargs["s"] = size
     else:
-        kwargs['size'] = size
-    
-    if marker_is_col:
-        df = df.with_columns(nw.col(marker).replace_strict(MARKER_MAP, default=nw.col(marker)))
-        kwargs['marker'] = marker
-    else:
-        kwargs['marker'] = MARKER_MAP.get(marker, marker)
+        kwargs["size"] = size
 
+    if marker_is_col:
+        df = df.with_columns(
+            nw.col(marker).replace_strict(MARKER_MAP, default=nw.col(marker))
+        )
+        kwargs["marker"] = marker
+    else:
+        kwargs["marker"] = MARKER_MAP.get(marker, marker)
 
     return (
-        df.to_native().hvplot.scatter(
+        df.to_native()
+        .hvplot.scatter(
             x=x,
             y=y,
             responsive=True,
-            alpha=style['opacity'],
-            grid=style['grid'],
+            alpha=style["opacity"],
+            grid=style["grid"],
             **kwargs,
         )
         .opts(
-            title=style['title'],
-            xlabel=style['xlabel'],
-            ylabel=style['ylabel'],
-            height=style['height'],
+            title=style["title"],
+            xlabel=style["xlabel"],
+            ylabel=style["ylabel"],
+            height=style["height"],
         )
     )
-

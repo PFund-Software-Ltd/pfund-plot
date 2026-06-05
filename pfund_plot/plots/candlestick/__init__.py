@@ -1,18 +1,19 @@
 # pyright: reportArgumentType=false, reportOptionalMemberAccess=false, reportOptionalSubscript=false, reportCallIssue=false, reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false
 from __future__ import annotations
+
 from typing import TYPE_CHECKING, ClassVar, cast
 
 if TYPE_CHECKING:
-    from pfund.datas.resolution import Resolution
-    from pfund_plot.widgets.base import BaseWidget, BaseStreamingWidget
     from pfeed.requests.market_feed_stream_request import MarketFeedStreamRequest
+    from pfund.datas.resolution import Resolution
 
-from pfund_plot.plots.plot import BasePlot
+    from pfund_plot.widgets.base import BaseStreamingWidget, BaseWidget
+
 from pfund_plot.enums import PlottingBackend
+from pfund_plot.mixins.streaming_market_feed_mixin import StreamingMarketFeedMixin
+from pfund_plot.plots.plot import BasePlot
 from pfund_plot.widgets.datetime_widget import DatetimeRangeWidget
 from pfund_plot.widgets.ticker_widget import TickerSelectWidget
-from pfund_plot.mixins.streaming_market_feed_mixin import StreamingMarketFeedMixin
-
 
 __all__ = ["Candlestick"]
 
@@ -42,7 +43,9 @@ class Candlestick(StreamingMarketFeedMixin, BasePlot):
     ]
     SUPPORT_STREAMING: ClassVar[bool] = True
     SUPPORTED_WIDGETS: ClassVar[list[type[BaseWidget]]] = [DatetimeRangeWidget]
-    SUPPORTED_STREAMING_WIDGETS: ClassVar[list[type[BaseStreamingWidget]]] = [TickerSelectWidget]
+    SUPPORTED_STREAMING_WIDGETS: ClassVar[list[type[BaseStreamingWidget]]] = [
+        TickerSelectWidget
+    ]
     style = CandlestickStyle
     control = CandlestickControl
 
@@ -50,8 +53,8 @@ class Candlestick(StreamingMarketFeedMixin, BasePlot):
         # NOTE: somehow data update on anywidget (svelte) in marimo notebook doesn't work using Panel
         # (probably need a refresh of the marimo cell to reflect the changes), so use mo.vstack() as a workaround
         if self._is_using_marimo_svelte_combo():
-            from pfund_kit.style import cprint, RichColor, TextStyle
             import marimo as mo
+            from pfund_kit.style import RichColor, TextStyle, cprint
 
             # NOTE: self._style (a Panel-layer concern) is NOT applied in this case,
             # since we bypass pn.Column. total_height is the only style with a visible
@@ -67,5 +70,8 @@ class Candlestick(StreamingMarketFeedMixin, BasePlot):
 
     def _start_streaming(self):
         requests = cast("list[MarketFeedStreamRequest]", self._feed._requests)
-        assert all(cast("Resolution", request.target_resolution).is_bar() for request in requests), "candlestick streaming only supports bar data"
+        assert all(
+            cast("Resolution", request.target_resolution).is_bar()
+            for request in requests
+        ), "candlestick streaming only supports bar data"
         super()._start_streaming()

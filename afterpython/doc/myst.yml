@@ -1,0 +1,47 @@
+# See docs at: https://mystmd.org/guide/frontmatter
+version: 1
+project:
+  id: 903d5a40-d8ad-4512-b0c4-1166e6e88bcb
+  # title:
+  # description:
+  # keywords: []
+  # authors: []
+  github: https://github.com/PFund-Software-Ltd/pfund-plot
+  # To autogenerate a Table of Contents, run "myst init --write-toc"
+  license: CC-BY-4.0
+  subject: Documentation
+  authors:
+  - stephen_yau
+  venue:
+    title: ''
+    url: ''
+  copyright: © pfund-plot 2026. All rights reserved.
+  title: Doc
+  description: A library for financial data visualization, dashboard creation, and template sharing.
+  keywords:
+  - financial data
+  - plotting
+  - dashboards
+  - charts
+  - data visualization
+  - graphs
+  - plots
+  thumbnail: ../static/thumbnail.png
+site:
+  template: book-theme
+  # options:
+  #   favicon: favicon.ico
+  #   logo: site_logo.png
+# See options at: https://mystmd.org/guide/website-templates#site-options
+  options:
+    analytics_google: '{{ GOOGLE_ANALYTICS_ID }}'
+    favicon: ../static/favicon.ico
+    logo: ../static/logo.svg
+    logo_dark: ../static/logo.svg
+    logo_text: pfund-plot
+    logo_url: ''
+  title: pfund-plot's Doc
+  actions:
+  - title: ⭐ Star
+    url: https://github.com/PFund-Software-Ltd/pfund-plot
+extends: ../authors.yml

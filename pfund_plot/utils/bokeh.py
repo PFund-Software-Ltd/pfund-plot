@@ -1,9 +1,11 @@
 # pyright: reportArgumentType=false, reportUnknownMemberType=false, reportUnknownVariableType=false
 from __future__ import annotations
-from typing import Any, Literal, TYPE_CHECKING
+
+from typing import TYPE_CHECKING, Any, Literal
+
 if TYPE_CHECKING:
-    from bokeh.models import CustomJSHover, HoverTool
     import narwhals as nw
+    from bokeh.models import CustomJSHover, HoverTool
 
 DatetimePrecision = Literal["d", "s", "ms"]
 
@@ -16,20 +18,26 @@ DATETIME_PRECISION_FORMATS: dict[DatetimePrecision, str] = {
 
 def get_datetime_hover_format(datetime_precision: DatetimePrecision) -> str:
     if datetime_precision not in DATETIME_PRECISION_FORMATS:
-        raise ValueError(f"Unsupported datetime_precision: {datetime_precision!r}, must be one of {list(DATETIME_PRECISION_FORMATS)}")
+        raise ValueError(
+            f"Unsupported datetime_precision: {datetime_precision!r}, must be one of {list(DATETIME_PRECISION_FORMATS)}"
+        )
     return DATETIME_PRECISION_FORMATS[datetime_precision]
 
 
-
-def create_number_formatter_for_hover_tool(significant_digits: int = 6) -> CustomJSHover:
-    '''Create a number formatter for bokeh hover tools.
+def create_number_formatter_for_hover_tool(
+    significant_digits: int = 6,
+) -> CustomJSHover:
+    """Create a number formatter for bokeh hover tools.
     Args:
         significant_digits: Number of significant digits to display
-    '''
+    """
     from bokeh.models import CustomJSHover
-    return CustomJSHover(code=f"""
+
+    return CustomJSHover(
+        code=f"""
         return value.toPrecision({significant_digits}).replace(/0+$/, '').replace(/\\.$/, '');
-    """)
+    """
+    )
 
 
 def create_hover_col_format(
@@ -47,7 +55,9 @@ def create_hover_col_format(
     num_formatter = create_number_formatter_for_hover_tool()
     schema = df.collect_schema()
     col_dtype = schema[col]
-    is_datetime = 'datetime' in str(col_dtype).lower() or 'date' in str(col_dtype).lower()
+    is_datetime = (
+        "datetime" in str(col_dtype).lower() or "date" in str(col_dtype).lower()
+    )
     if is_datetime:
         date_format = get_datetime_hover_format(datetime_precision)
         return (col, f"@{{{col}}}{{{date_format}}}"), (f"@{{{col}}}", "datetime")
@@ -94,6 +104,7 @@ def create_bundled_hover_tool(
     full dataframe). For multi-y overlays with separate renderers per y column
     """
     from bokeh.models import HoverTool
+
     tooltips, formatters = _bundle_hover_config(df, x_col, y_cols, datetime_precision)
     return HoverTool(tooltips=tooltips, formatters=formatters, mode="vline")
 
@@ -133,10 +144,14 @@ def create_hover_scatter(
     kdims = [x_col or "index"]
 
     if len(y_cols) == 1:
-        return hv.Scatter(native_df, kdims=kdims, vdims=[y_cols[0]]).opts(**scatter_opts)
+        return hv.Scatter(native_df, kdims=kdims, vdims=[y_cols[0]]).opts(
+            **scatter_opts
+        )
     else:
         scatters = {
-            y_col: hv.Scatter(native_df, kdims=kdims, vdims=[y_col]).opts(**scatter_opts)
+            y_col: hv.Scatter(native_df, kdims=kdims, vdims=[y_col]).opts(
+                **scatter_opts
+            )
             for y_col in y_cols
         }
         return hv.NdOverlay(scatters)
@@ -152,6 +167,7 @@ def create_vline_hover_opts(
     Useful in plots like plt.line() for multi-line plots where the tooltips are separated for each line
     """
     from holoviews import opts
+
     tooltips, formatters = _bundle_hover_config(df, x_col, y_cols, datetime_precision)
     return opts.Curve(
         tools=["hover"],

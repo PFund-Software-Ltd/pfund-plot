@@ -200,3 +200,8 @@ tests/data/
 # js-tap/dist by `pixi run js-package` and shipped in the wheel. Generated
 # artifacts — CI builds them before `uv build`, so they are never committed.
 pfund_plot/js_tap/
+
+# AfterPython website rules
+**/_build/
+!afterpython/_website/src/lib/
+afterpython/_website.backup/

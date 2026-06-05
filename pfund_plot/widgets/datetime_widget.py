@@ -1,6 +1,9 @@
 # pyright: reportUnknownMemberType=false, reportGeneralTypeIssues=false, reportUnusedParameter=false, reportUnknownVariableType=false, reportArgumentType=false, reportUnknownArgumentType=false, reportAttributeAccessIssue=false
 from __future__ import annotations
-from typing import TYPE_CHECKING, ClassVar, Callable, Any
+
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, ClassVar
+
 if TYPE_CHECKING:
     from narwhals.typing import Frame
     from param.parameterized import Event
@@ -14,7 +17,7 @@ from pfund_plot.utils import convert_to_datetime
 from pfund_plot.widgets.base import BaseWidget
 
 
-def round_date(dt: datetime.datetime, to: str = 'floor') -> datetime.datetime:
+def round_date(dt: datetime.datetime, to: str = "floor") -> datetime.datetime:
     """Round a datetime to the nearest second boundary.
 
     When a user drags the DatetimeRangeSlider, Bokeh snaps BOTH slider handles
@@ -32,9 +35,9 @@ def round_date(dt: datetime.datetime, to: str = 'floor') -> datetime.datetime:
         dt: the datetime to round
         to: 'floor' to round down (strip microseconds), 'ceil' to round up (next whole second)
     """
-    if to == 'floor':
+    if to == "floor":
         return dt.replace(microsecond=0)
-    elif to == 'ceil':
+    elif to == "ceil":
         return dt.replace(microsecond=0) + datetime.timedelta(seconds=1)
     else:
         raise ValueError(f"Invalid rounding direction: {to}, must be 'floor' or 'ceil'")
@@ -43,30 +46,46 @@ def round_date(dt: datetime.datetime, to: str = 'floor') -> datetime.datetime:
 class DatetimeRangeWidget(BaseWidget):
     REQUIRED_COLS: ClassVar[list[str] | None] = ["date"]
 
-    def __init__(self, df: nw.DataFrame[Any], control: dict[str, Any], update_callback: Callable[[nw.DataFrame[Any]], None]):
+    def __init__(
+        self,
+        df: nw.DataFrame[Any],
+        control: dict[str, Any],
+        update_callback: Callable[[nw.DataFrame[Any]], None],
+    ):
         super().__init__(df, control, update_callback)
-        date_col = self._df['date']
+        date_col = self._df["date"]
         num_data_shown = date_col.len()
-        if 'num_data' in control and control['num_data'] is not None:
-            num_data_shown = min(control['num_data'], num_data_shown)
-        start_date, end_date = convert_to_datetime(date_col[0]), convert_to_datetime(date_col[-1])
-        start_date = round_date(start_date, to='floor')
-        end_date = round_date(end_date, to='ceil')
-        data_shown_start_date = round_date(convert_to_datetime(date_col[-num_data_shown]), to='floor')
+        if "num_data" in control and control["num_data"] is not None:
+            num_data_shown = min(control["num_data"], num_data_shown)
+        start_date, end_date = (
+            convert_to_datetime(date_col[0]),
+            convert_to_datetime(date_col[-1]),
+        )
+        start_date = round_date(start_date, to="floor")
+        end_date = round_date(end_date, to="ceil")
+        data_shown_start_date = round_date(
+            convert_to_datetime(date_col[-num_data_shown]), to="floor"
+        )
         self._datetime_range_input = pn.widgets.DatetimeRangeInput(
-            name='Datetime Range Input',
-            start=start_date, end=end_date,
+            name="Datetime Range Input",
+            start=start_date,
+            end=end_date,
             value=(data_shown_start_date, end_date),
-            width=150
+            width=150,
         )
-        self._input_watcher = self._datetime_range_input.param.watch(self._update_datetime_range_input, 'value')
+        self._input_watcher = self._datetime_range_input.param.watch(
+            self._update_datetime_range_input, "value"
+        )
         self._datetime_range_slider = pn.widgets.DatetimeRangeSlider(
-            name='Period',
-            start=start_date, end=end_date,
+            name="Period",
+            start=start_date,
+            end=end_date,
             value=(data_shown_start_date, end_date),
-            step=control['slider_step'] or self._derive_slider_step()
+            step=control["slider_step"] or self._derive_slider_step(),
         )
-        self._slider_watcher = self._datetime_range_slider.param.watch(self._update_datetime_range_slider, 'value')
+        self._slider_watcher = self._datetime_range_slider.param.watch(
+            self._update_datetime_range_slider, "value"
+        )
         # self._max_data = pn.rx(df.shape[0])
         # self._data_slider = pn.widgets.IntSlider(
         #     name='Number of Most Recent Data Points',
@@ -91,12 +110,16 @@ class DatetimeRangeWidget(BaseWidget):
         return [self._datetime_range_input, self._datetime_range_slider]
 
     @staticmethod
-    def _filter_df(df: nw.DataFrame[Any], start_date: datetime.datetime, end_date: datetime.datetime) -> Frame:
-        return df.filter(
-            (nw.col("date") >= start_date) & (nw.col("date") <= end_date)
-        )
+    def _filter_df(
+        df: nw.DataFrame[Any],
+        start_date: datetime.datetime,
+        end_date: datetime.datetime,
+    ) -> Frame:
+        return df.filter((nw.col("date") >= start_date) & (nw.col("date") <= end_date))
 
-    def _fan_out_to_overlays(self, start_date: datetime.datetime, end_date: datetime.datetime) -> None:
+    def _fan_out_to_overlays(
+        self, start_date: datetime.datetime, end_date: datetime.datetime
+    ) -> None:
         """Filter each overlay widget's full df by the same date range and trigger its update.
         Must be called BEFORE the parent's _update_callback so the DynamicMap re-render
         picks up the updated overlay dfs.
@@ -106,7 +129,7 @@ class DatetimeRangeWidget(BaseWidget):
             overlay_widget._update_callback(filtered)
 
     def _derive_slider_step(self) -> int:
-        date_col = self._df['date']
+        date_col = self._df["date"]
         # infer resolution from data
         resolution_ms = (date_col[1] - date_col[0]).total_seconds() * 1000
         # use 5x resolution as step, so user can move meaningfully but not too coarsely
@@ -120,7 +143,9 @@ class DatetimeRangeWidget(BaseWidget):
         try:
             _ = self._datetime_range_slider.param.update(value=(start_date, end_date))
         finally:
-            self._slider_watcher = self._datetime_range_slider.param.watch(self._update_datetime_range_slider, 'value')
+            self._slider_watcher = self._datetime_range_slider.param.watch(
+                self._update_datetime_range_slider, "value"
+            )
         # update overlay dfs BEFORE parent re-render so DynamicMap picks them up
         self._fan_out_to_overlays(start_date, end_date)
         df_filtered = self._filter_df(self._df, start_date, end_date)
@@ -133,7 +158,9 @@ class DatetimeRangeWidget(BaseWidget):
         try:
             _ = self._datetime_range_input.param.update(value=(start_date, end_date))
         finally:
-            self._input_watcher = self._datetime_range_input.param.watch(self._update_datetime_range_input, 'value')
+            self._input_watcher = self._datetime_range_input.param.watch(
+                self._update_datetime_range_input, "value"
+            )
         # update overlay dfs BEFORE parent re-render so DynamicMap picks them up
         self._fan_out_to_overlays(start_date, end_date)
         df_filtered = self._filter_df(self._df, start_date, end_date)
@@ -144,8 +171,8 @@ class DatetimeRangeWidget(BaseWidget):
         self._df = df
         if self._df.shape[0] < 2:
             raise ValueError("df must have at least 2 rows")
-        date_col = df['date']
-        new_end = round_date(convert_to_datetime(date_col[-1]), to='ceil')
+        date_col = df["date"]
+        new_end = round_date(convert_to_datetime(date_col[-1]), to="ceil")
 
         self._datetime_range_input.param.unwatch(self._input_watcher)
         self._datetime_range_slider.param.unwatch(self._slider_watcher)
@@ -155,7 +182,9 @@ class DatetimeRangeWidget(BaseWidget):
             # tz-aware datetimes from .value after user interaction
             slider_start, slider_end = self._datetime_range_slider.value
 
-            was_at_end = convert_to_datetime(slider_end) >= convert_to_datetime(self._datetime_range_slider.end)
+            was_at_end = convert_to_datetime(slider_end) >= convert_to_datetime(
+                self._datetime_range_slider.end
+            )
 
             # expand bounds
             self._datetime_range_slider.end = new_end
@@ -163,11 +192,19 @@ class DatetimeRangeWidget(BaseWidget):
 
             # auto-extend value to include new data if slider was at the end
             if was_at_end:
-                _ = self._datetime_range_slider.param.update(value=(slider_start, new_end))
-                _ = self._datetime_range_input.param.update(value=(slider_start, new_end))
+                _ = self._datetime_range_slider.param.update(
+                    value=(slider_start, new_end)
+                )
+                _ = self._datetime_range_input.param.update(
+                    value=(slider_start, new_end)
+                )
         finally:
-            self._input_watcher = self._datetime_range_input.param.watch(self._update_datetime_range_input, 'value')
-            self._slider_watcher = self._datetime_range_slider.param.watch(self._update_datetime_range_slider, 'value')
+            self._input_watcher = self._datetime_range_input.param.watch(
+                self._update_datetime_range_input, "value"
+            )
+            self._slider_watcher = self._datetime_range_slider.param.watch(
+                self._update_datetime_range_slider, "value"
+            )
 
     # @property
     # def data_slider(self) -> pn.widgets.IntSlider:

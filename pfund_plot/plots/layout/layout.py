@@ -1,17 +1,21 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, ClassVar
+
+from typing import TYPE_CHECKING, ClassVar, Literal
 
 if TYPE_CHECKING:
     from pfund_plot.typing import RawFigure
 
-from pfund_kit.style import cprint, RichColor, TextStyle
+from pfund_kit.style import RichColor, TextStyle, cprint
+
+from pfund_plot.enums import PlottingBackend
 from pfund_plot.plots.lazy import LazyPlot
 from pfund_plot.plots.plot import BasePlot
-from pfund_plot.enums import PlottingBackend
 
 
 class BaseLayout(BasePlot):
-    SUPPORTED_BACKENDS = [PlottingBackend.panel]
+    SUPPORTED_BACKENDS: ClassVar[list[Literal[PlottingBackend.panel]]] = [
+        PlottingBackend.panel
+    ]
     SUPPORT_STREAMING: ClassVar[bool] = True
     REQUIRED_DATA: ClassVar[bool] = False
 
@@ -29,7 +33,7 @@ class BaseLayout(BasePlot):
     def __init__(self, *plots: LazyPlot):  # pyright: ignore[reportInconsistentConstructor]
         self._plots: tuple[LazyPlot, ...] = plots
         super().__init__(data=None)
-    
+
     def _add_plots_periodic_callbacks(self):
         """Transfer child plots' periodic callbacks to Layout's renderer.
 
@@ -43,16 +47,16 @@ class BaseLayout(BasePlot):
             assert plot._renderer is not None, f"{plot.name} renderer is not set"
             for cb in plot._renderer._periodic_callbacks:
                 self._renderer.add_periodic_callback(cb)
-    
+
     def is_streaming(self):
         return any(lazyplot.is_streaming for lazyplot in self._plots)
-    
+
     def _start_streaming(self):
         for lazyplot in self._plots:
             plot = lazyplot._plot
             if plot.is_streaming():
                 plot._start_streaming()
-                
+
     def _wait_for_streaming_ready(self):
         for lazyplot in self._plots:
             plot = lazyplot._plot
@@ -71,7 +75,7 @@ class BaseLayout(BasePlot):
             for overlay in plot._overlays:
                 if overlay._control is not None:
                     overlay._control["linked_axes"] = linked_axes
-    
+
     def _warn_if_linked_axes_with_streaming(self):
         """Warn if linked_axes is enabled when streaming and non-streaming plots coexist.
 
@@ -93,11 +97,11 @@ class BaseLayout(BasePlot):
     def _create(self):
         super()._create()
         self._warn_if_linked_axes_with_streaming()
-    
+
     # no plot needed
     def _create_plot(self):
         pass
-    
+
     # no pane needed
     def _create_pane(self):
         pass
@@ -105,6 +109,8 @@ class BaseLayout(BasePlot):
     def _create_component(self):
         self._apply_linked_axes()
         self._component = self._plot_func(
-            *self._plots, style=self._style, control=self._control  # pyright: ignore[reportCallIssue]
+            *self._plots,
+            style=self._style,
+            control=self._control,  # pyright: ignore[reportCallIssue]
         )
         self._add_plots_periodic_callbacks()

@@ -1,5 +1,6 @@
 # pyright: reportUnusedParameter=false, reportArgumentType=false
 from __future__ import annotations
+
 from typing import TYPE_CHECKING, Any, Literal
 
 if TYPE_CHECKING:
@@ -8,9 +9,8 @@ if TYPE_CHECKING:
 import narwhals as nw
 
 from pfund_plot.enums import PlottingBackend
-    
 
-__all__ = ["plot", "style", "control"]
+__all__ = ["control", "plot", "style"]
 
 
 DEFAULT_COLOR = "steelblue"
@@ -22,13 +22,13 @@ def style(
     xlabel: str = "",
     ylabel: str = "",
     color: str = DEFAULT_COLOR,
-    bg_color: str = '',  # empty string by default because Panel will automatically use the theme color
+    bg_color: str = "",  # empty string by default because Panel will automatically use the theme color
     grid: bool = False,
     total_height: int | None = None,
     height: int = DEFAULT_HEIGHT,
     width: int | None = None,
 ):
-    '''
+    """
     Args:
         title: the title of the plot
         xlabel: the label of the x-axis
@@ -40,7 +40,7 @@ def style(
         height: the height of the figure
         width: the width of the plot, since the plot is responsive, this is only used in panel layout
         grid: whether to show the grid
-    '''
+    """
     return locals()
 
 
@@ -82,8 +82,12 @@ def plot(
 ) -> NdOverlay:
     import hvplot
     from bokeh.models import CrosshairTool
-    from pfund_plot.utils.bokeh import create_bundled_hover_tool, create_vline_hover_opts
+
     from pfund_plot.plots.line import Line
+    from pfund_plot.utils.bokeh import (
+        create_bundled_hover_tool,
+        create_vline_hover_opts,
+    )
 
     _ = hvplot.extension(PlottingBackend.bokeh)
 
@@ -93,11 +97,13 @@ def plot(
     datetime_precision = control["datetime_precision"]
 
     is_single = len(y_cols) == 1
-    crosshair_tool = CrosshairTool(dimensions="height", line_color="gray", line_alpha=0.3)
+    crosshair_tool = CrosshairTool(
+        dimensions="height", line_color="gray", line_alpha=0.3
+    )
     if is_single:
         tools = [
             create_bundled_hover_tool(df, x_col, y_cols, datetime_precision),
-            crosshair_tool
+            crosshair_tool,
         ]
     else:
         tools = [crosshair_tool]
@@ -108,7 +114,8 @@ def plot(
         kwargs["hover_cols"] = y_cols
 
     plot = (
-        df.to_native().hvplot.line(
+        df.to_native()
+        .hvplot.line(
             x=x,
             y=y,
             tools=tools,

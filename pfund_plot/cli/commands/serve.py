@@ -1,6 +1,7 @@
-import click
 import subprocess
 import sys
+
+import click
 
 
 @click.command(
@@ -16,5 +17,5 @@ def serve(ctx):
 
     Passes all arguments directly to 'panel serve'.
     """
-    result = subprocess.run(['panel', 'serve', *ctx.args], check=False)
+    result = subprocess.run(["panel", "serve", *ctx.args], check=False)
     sys.exit(result.returncode)

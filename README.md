@@ -27,7 +27,7 @@ For example, plotting a candlestick should be as simple as writing a single line
 We created a high-level financial visualization layer that combines the best features from existing plotting libraries into an easy-to-use interface.
 
 ---
-<img src="docs/assets/candlestick.gif" alt="pfund-plot candlestick streaming example" width="450">
+<img src="afterpython/static/candlestick.gif" alt="pfund-plot candlestick streaming example" width="450">
 
 ---
 
@@ -81,7 +81,7 @@ feed.stream(product='BTC_USDT_PERP', resolution='1s')
 # In a Python script:
 plt.ohlc(feed).control(update_interval=1000).mode('browser')  # or mode('desktop') under if __name__ == "__main__"
 
-# In a notebook environment (not recommended to start streaming in a notebook):
+# In a notebook environment (not recommended to start streaming in a notebook unless you know what you're doing):
 # await plt.ohlc(feed).control(update_interval=1000).show_async()
 ```
 
@@ -94,6 +94,6 @@ plt.ohlc(df).backend('svelte')
 ```
 This renders the following chart using TradingView's [Lightweight Charts](https://github.com/tradingview/lightweight-charts):
 
-<img src="docs/assets/tradingview.png" alt="pfund-plot TradingView Lightweight Charts example" width="450">
+<img src="afterpython/static/tradingview.png" alt="pfund-plot TradingView Lightweight Charts example" width="450">
 
 > This is meant as a showcase rather than a core direction: `pfund-plot` remains Python-first, and JavaScript-backed charts are supported where they fit naturally. If you want to bring more useful JavaScript visualizations into `pfund-plot`, contributions are welcome.

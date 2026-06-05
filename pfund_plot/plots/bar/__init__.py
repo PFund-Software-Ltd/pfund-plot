@@ -1,17 +1,19 @@
 # pyright: reportArgumentType=false, reportOptionalMemberAccess=false, reportOptionalSubscript=false, reportCallIssue=false, reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false
 from __future__ import annotations
-from typing import Any, Callable, ClassVar, TYPE_CHECKING
+
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, ClassVar
 
 if TYPE_CHECKING:
     from narwhals.typing import IntoFrame
     from pfeed.feeds.market_feed import MarketFeed
-    from pfund_plot.widgets.base import BaseWidget, BaseStreamingWidget
+
+    from pfund_plot.widgets.base import BaseStreamingWidget, BaseWidget
 
 from pfund_plot.enums import PlottingBackend
 from pfund_plot.plots.plot import BasePlot
 from pfund_plot.widgets.datetime_widget import DatetimeRangeWidget
 from pfund_plot.widgets.ticker_widget import TickerSelectWidget
-
 
 __all__ = ["Bar"]
 
@@ -21,21 +23,23 @@ class BarStyle:
 
     bokeh = bokeh_style
 
-    
+
 class BarControl:
     from pfund_plot.plots.bar.bokeh import control as bokeh_control
-    
+
     bokeh = bokeh_control
 
 
 class Bar(BasePlot):
-    SUPPORTED_BACKENDS = [PlottingBackend.bokeh]
+    SUPPORTED_BACKENDS: ClassVar[list[PlottingBackend]] = [PlottingBackend.bokeh]
     SUPPORT_STREAMING: ClassVar[bool] = True
     SUPPORTED_WIDGETS: ClassVar[list[type[BaseWidget]]] = [DatetimeRangeWidget]
-    SUPPORTED_STREAMING_WIDGETS: ClassVar[list[type[BaseStreamingWidget]]] = [TickerSelectWidget]
+    SUPPORTED_STREAMING_WIDGETS: ClassVar[list[type[BaseStreamingWidget]]] = [
+        TickerSelectWidget
+    ]
     style = BarStyle
     control = BarControl
-    
+
     def __init__(
         self,
         data: IntoFrame | MarketFeed | None = None,
@@ -47,7 +51,7 @@ class Bar(BasePlot):
         plot_kwargs: dict[str, Any] | None = None,
         **reactive_params: Any,
     ):
-        '''
+        """
         Args:
             data: The dataframe for static plot or pfeed's feed object for streaming plot
             x: Column name for x-positions. If not specified, the index is used.
@@ -62,7 +66,7 @@ class Bar(BasePlot):
                 e.g. if the plot function is hvplot.line, plot_kwargs will be passed to hvplot.line(**plot_kwargs)
             **reactive_params: name=value pairs for reactive widgets (e.g. ticker=["BTC", "ETH"]).
                 Requires callback to be set.
-        '''
+        """
         super().__init__(
             data=data,
             x=x,
@@ -73,4 +77,4 @@ class Bar(BasePlot):
             **reactive_params,
         )
         if by is not None:
-            self._plot_kwargs['by'] = by
+            self._plot_kwargs["by"] = by

@@ -1,5 +1,6 @@
 # pyright: reportUnusedParameter=false
 from __future__ import annotations
+
 from typing import TYPE_CHECKING, Any, Literal
 
 if TYPE_CHECKING:
@@ -9,8 +10,7 @@ import narwhals as nw
 
 from pfund_plot.enums import PlottingBackend
 
-
-__all__ = ["plot", "style", "control"]
+__all__ = ["control", "plot", "style"]
 
 
 DEFAULT_COLOR = "steelblue"
@@ -23,13 +23,13 @@ def style(
     ylabel: str = "",
     stacked: bool = False,
     color: str | list[str] = DEFAULT_COLOR,
-    bg_color: str = '',  # empty string by default because Panel will automatically use the theme color
+    bg_color: str = "",  # empty string by default because Panel will automatically use the theme color
     grid: bool = False,
     total_height: int | None = None,
     height: int = DEFAULT_HEIGHT,
     width: int | None = None,
 ):
-    '''
+    """
     Args:
         title: the title of the plot
         xlabel: the label of the x-axis
@@ -42,7 +42,7 @@ def style(
         height: the height of the figure
         width: the width of the plot, since the plot is responsive, this is only used in panel layout
         grid: whether to show the grid
-    '''
+    """
     return locals()
 
 
@@ -74,7 +74,6 @@ def control(
     return locals()
 
 
-
 def plot(
     df: nw.DataFrame[Any],
     style: dict[str, Any],
@@ -85,41 +84,45 @@ def plot(
 ) -> Overlay:
     import hvplot
     from bokeh.models import CrosshairTool
-    from pfund_plot.utils.bokeh import create_bundled_hover_tool
+
     from pfund_plot.plots.bar import Bar
+    from pfund_plot.utils.bokeh import create_bundled_hover_tool
 
     _ = hvplot.extension(PlottingBackend.bokeh)
-    
+
     x_col = x
     y_cols = Bar._derive_y_cols(df, x, y)
     datetime_precision = control["datetime_precision"]
 
     is_single = len(y_cols) == 1
-    crosshair_tool = CrosshairTool(dimensions="height", line_color="gray", line_alpha=0.3)
+    crosshair_tool = CrosshairTool(
+        dimensions="height", line_color="gray", line_alpha=0.3
+    )
     if is_single:
         tools = [
             create_bundled_hover_tool(df, x_col, y_cols, datetime_precision),
-            crosshair_tool
+            crosshair_tool,
         ]
     else:
         tools = [crosshair_tool]
 
     return (
-        df.to_native().hvplot.bar(
+        df.to_native()
+        .hvplot.bar(
             x=x,
             y=y,
             tools=tools,
             responsive=True,
             color=style["color"],
-            stacked=style['stacked'],
-            bgcolor=style['bg_color'],
-            grid=style['grid'],
+            stacked=style["stacked"],
+            bgcolor=style["bg_color"],
+            grid=style["grid"],
             **kwargs,
         )
         .opts(
-            title=style['title'],
-            xlabel=style['xlabel'],
-            ylabel=style['ylabel'],
-            height=style['height'],
+            title=style["title"],
+            xlabel=style["xlabel"],
+            ylabel=style["ylabel"],
+            height=style["height"],
         )
     )
