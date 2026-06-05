@@ -104,7 +104,7 @@
 				src={resolve('/readme_py/readme_py.html')}
 				title="README"
 				loading="lazy"
-				class="h-[96vh] w-full max-w-4xl rounded-2xl border mb-28 border-bg300 bg-bg100 text-left shadow-lg"
+				class="h-[96vh] w-full max-w-7xl rounded-2xl border mb-28 border-bg300 bg-bg100 text-left shadow-lg"
 			></iframe>
 		{:else if data.description}
 			<div

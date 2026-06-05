@@ -5,7 +5,7 @@
 #     "marimo",
 #     "pfund-plot==0.0.5",
 #     "bokeh-sampledata==2025.0",
-#     "plotly==6.8.0",
+#     "altair==6.0.0",
 # ]
 # requires-python = ">=3.11"
 # ///
@@ -18,42 +18,53 @@ app = marimo.App(width="medium")
 
 @app.cell(hide_code=True)
 async def _():
-    # Pyodide bundles outdated pinned wheels (bokeh 3.6.0, typing-extensions
-    # 4.11.0) that the header pin can't override, blocking pfund-plot's newer
-    # requirements (bokeh>=3.7 via panel>=1.9.3; typing-extensions>=4.14). On
-    # WASM, drop those bundled wheels so micropip pulls satisfying versions from
-    # PyPI BEFORE pfund_plot is imported/installed. If more bundled-version
-    # conflicts surface, add the package + version here. No-op off WASM.
     import sys
 
     if sys.platform == "emscripten":
         import micropip
 
-        overrides = {"bokeh": "3.8.0", "typing-extensions": "4.14.0"}
-        for _pkg in overrides:
-            try:
-                micropip.uninstall(_pkg)
-            except Exception:
-                pass
+        # Drop the outdated bundled wheels.
+        try:
+            micropip.uninstall("bokeh")
+        except Exception:
+            pass
+        try:
+            micropip.uninstall("typing-extensions")
+        except Exception:
+            pass
+        try:
+            micropip.uninstall("altair")
+        except Exception:
+            pass
+
+        # Reinstall satisfying versions from PyPI.
+        await micropip.install("bokeh==3.9.0")
+        await micropip.install("typing-extensions==4.14.0")
+        await micropip.install("altair==6.0.0")
+
         # bokeh.sampledata imports bokeh_sampledata internally, so marimo's
         # import scanner never sees it and the header entry isn't pulled on
-        # WASM — install it explicitly here too.
-        reqs = [f"{p}=={v}" for p, v in overrides.items()]
-        reqs.append("bokeh-sampledata==2025.0")
-        await micropip.install(reqs)
+        # WASM — install it explicitly too.
+        await micropip.install("bokeh-sampledata==2025.0")
+
+        await micropip.install("pfund-plot==0.0.5")
+        await micropip.install("pyarrow==18.1.0")
+        await micropip.install("polars==1.24.0")
+        await micropip.install("traitlets==5.14.3")
+        await micropip.install("anywidget==0.10.0")
     pfund_plot_ready = True
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     import marimo as mo
     import pandas as pd
+    import altair as alt
     import pfund_plot as plt
-    import plotly.express as px
     from bokeh.sampledata import stocks
 
-    return mo, pd, plt, px, stocks
+    return mo, pd, alt, plt, stocks
 
 
 @app.cell(hide_code=True)
@@ -168,18 +179,21 @@ def _(df, pd, plt, stocks):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## Integration with Other Plotting Libs (e.g. `plotly`)
+    ## Integration with Other Plotting Libs (e.g. `altair`)
     """)
     return
 
 
 @app.cell
-def _(df, plt, px):
-    plotly_mix = plt.ohlc(df) + plt.plotly(
-        px.area(df, x="date", y="volume", title="Apple Trading Volume")
-    ).style(width=600)
-    plotly_mix
-    return (plotly_mix,)
+def _(alt, df, plt):
+    altair_mix = plt.ohlc(df) + plt.altair(
+        alt.Chart(df)
+        .mark_area()
+        .encode(x="date:T", y="volume:Q")
+        .properties(title="Apple Trading Volume")
+    )
+    altair_mix
+    return (altair_mix,)
 
 
 @app.cell(hide_code=True)
@@ -191,12 +205,12 @@ def _(mo):
 
 
 @app.cell
-def _(candlestick, line, ohlc, plotly_mix, plt):
+def _(altair_mix, candlestick, line, ohlc, plt):
     plt.tabs(
         candlestick,
         line,
         ohlc,
-        plt.panel(plotly_mix, name="Plotly Mix"),
+        plt.panel(altair_mix, name="Altair Mix"),
     )
     return
 
