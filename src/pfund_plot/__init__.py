@@ -51,6 +51,9 @@ if TYPE_CHECKING:
     from pfund_plot.plots.matplotlib import (
         Matplotlib as mpl,
     )
+    from pfund_plot.plots.panel import (
+        Panel as panel,
+    )
     from pfund_plot.plots.plotly import (
         Plotly as plotly,
     )
@@ -93,6 +96,10 @@ def __getattr__(name: str):
         from pfund_plot.plots.plotly import Plotly
 
         return Plotly
+    elif name == "panel":
+        from pfund_plot.plots.panel import Panel
+
+        return Panel
     elif name in ("candlestick", "ohlc", "kline"):
         from pfund_plot.plots.candlestick import Candlestick
 
@@ -167,6 +174,7 @@ __all__ = (
     "matplotlib",
     "mpl",
     "ohlc",
+    "panel",
     "plotly",
     "scatter",
     "tabs",

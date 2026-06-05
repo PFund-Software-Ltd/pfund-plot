@@ -173,4 +173,14 @@ def convert_to_lazy_plot(
     except ImportError:
         pass
 
+    # Panel Viewable (e.g. the LazyRow/LazyColumn produced by combining plots
+    # with + or |, or any raw Panel component)
+    try:
+        from panel.viewable import Viewable
+
+        if isinstance(obj, Viewable):
+            return plt.panel(obj)
+    except ImportError:
+        pass
+
     return obj

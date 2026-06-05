@@ -41,8 +41,19 @@ def plot(
     control: dict[str, Any],
     **kwargs: Any,
 ) -> Tabs:
+    # In the marimo + svelte combo the plot's component is a mo.vstack (see
+    # Candlestick._create_component), which carries no name, so Panel assigns a
+    # default tab label like "Column01805". Panel's Tabs accepts a (name, object)
+    # tuple to label a tab explicitly, so pass the plot's name in that case.
+    # Every other component is a pn.Column that already carries its own name.
+    items = [
+        (plot.name, plot.component)
+        if plot._plot._is_using_marimo_svelte_combo()
+        else plot.component
+        for plot in plots
+    ]
     return Tabs(
-        *[plot.component for plot in plots],
+        *items,
         height=style["height"],
         width=style["width"],
         dynamic=control["dynamic"],

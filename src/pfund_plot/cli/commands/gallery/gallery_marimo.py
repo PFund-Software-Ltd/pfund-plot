@@ -5,7 +5,7 @@ import marimo
 __generated_with = "0.23.9"
 app = marimo.App(width="columns")
 
-with app.setup:
+with app.setup(hide_code=True):
     from threading import Thread
 
     import altair as alt
@@ -72,7 +72,7 @@ with app.setup:
     )
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md("""
     # Gallery

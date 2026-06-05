@@ -78,7 +78,7 @@ class BasePlot:
     @staticmethod
     def _check_if_inject_streaming_mixin(
         cls: type[BasePlot], data: Any
-    ) -> type[BasePlot]:  # pyright: ignore[reportSelfClsParameterName]
+    ) -> type[BasePlot]:
         """Dynamically inject streaming mixin based on feed type if not already in MRO."""
         if not cls.SUPPORT_STREAMING:
             return cls
