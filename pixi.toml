@@ -33,6 +33,7 @@ pnpm = ">=10.33.2,<11"
 nodejs = ">=24.16.0,<25"
 
 [pypi-dependencies]
+pfund-kit = ">=0.1.11"
 panel = ">=1.9.3"
 hvplot = ">=0.12.2"
 dayplot = ">=0.6.0"
