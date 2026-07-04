@@ -82,7 +82,11 @@ class BasePlot:
         """Dynamically inject streaming mixin based on feed type if not already in MRO."""
         if not cls.SUPPORT_STREAMING:
             return cls
-        from pfeed.feeds.base_feed import BaseFeed
+        try:
+            from pfeed.feeds.base_feed import BaseFeed
+        except ImportError:
+            # pfeed is optional (streaming only); without it data can't be a feed
+            return cls
 
         if isinstance(data, BaseFeed):
             from pfeed.feeds.market_feed import MarketFeed
@@ -157,11 +161,18 @@ class BasePlot:
             **reactive_params: name=value pairs for reactive widgets (e.g. ticker=["BTC", "ETH"]).
                                Requires callback to be set.
         """
-        from pfeed.feeds.base_feed import BaseFeed
         from pfund_kit.utils import get_notebook_type
 
+        try:
+            from pfeed.feeds.base_feed import BaseFeed
+
+            is_feed = isinstance(data, BaseFeed)
+        except ImportError:
+            # pfeed is optional (streaming only); without it data can't be a feed
+            is_feed = False
+
         # check if data is a dataframe or a feed
-        if not isinstance(data, BaseFeed):
+        if not is_feed:
             self._df: nw.DataFrame[Any] = data
             self._feed: MarketFeed | None = None
         else:
@@ -690,8 +701,6 @@ class BasePlot:
         return x_col
 
     def _setup(self):
-        from pfeed.feeds.streaming_feed_mixin import StreamingFeedMixin
-
         from pfund_plot.utils import import_hvplot_df_module, match_df_with_data_tool
 
         if self.REQUIRED_DATA:
@@ -706,6 +715,8 @@ class BasePlot:
             assert self.SUPPORT_STREAMING, (
                 f"{self._class_name} does not support streaming"
             )
+            from pfeed.feeds.streaming_feed_mixin import StreamingFeedMixin
+
             if not isinstance(self._feed, StreamingFeedMixin):
                 raise ValueError(
                     "feed must be a pfeed's Feed object that supports streaming"

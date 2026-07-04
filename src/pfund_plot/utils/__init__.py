@@ -1,7 +1,7 @@
 # pyright: reportUnknownMemberType=false, reportUnusedImport=false, reportMissingImports=false
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -18,7 +18,8 @@ import datetime
 from pathlib import Path
 
 import narwhals as nw
-from pfeed.enums import DataTool
+
+DataTool = Literal["pandas", "polars", "dask"]
 
 
 def load_js(path: str) -> str:
@@ -91,11 +92,11 @@ def match_df_with_data_tool(df: IntoFrame) -> DataTool:
         dd = None
 
     if isinstance(df, pd.DataFrame):
-        return DataTool.pandas
+        return "pandas"
     elif pl and isinstance(df, (pl.DataFrame, pl.LazyFrame)):
-        return DataTool.polars
+        return "polars"
     elif dd and isinstance(df, dd.DataFrame):
-        return DataTool.dask
+        return "dask"
     else:
         raise ValueError(
             f"Unsupported dataframe type: {type(df)!r}. "
@@ -105,12 +106,12 @@ def match_df_with_data_tool(df: IntoFrame) -> DataTool:
 
 def import_hvplot_df_module(data_tool: DataTool | str) -> None:
 
-    data_tool = DataTool[data_tool.lower()]
-    if data_tool == DataTool.pandas:
+    data_tool = data_tool.lower()
+    if data_tool == "pandas":
         import hvplot.pandas
-    elif data_tool == DataTool.polars:
+    elif data_tool == "polars":
         import hvplot.polars
-    elif data_tool == DataTool.dask:
+    elif data_tool == "dask":
         import hvplot.dask  # noqa: F401
     else:
         raise ValueError(

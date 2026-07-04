@@ -29,17 +29,13 @@ depends-on = [
 ]
 
 [dependencies]
-python = ">=3.11.15"
-uv = ">=0.11.19"
-gh = ">=2.92.0"
 pnpm = ">=10.33.2,<11"
 nodejs = ">=24.16.0,<25"
 
 [pypi-dependencies]
-pfeed = ">=0.0.15"  # used for streaming only
 panel = ">=1.9.3"
 hvplot = ">=0.12.2"
-dayplot = ">=0.5.1"
+dayplot = ">=0.6.0"
 anywidget = ">=0.11.0"
 ipywidgets-bokeh = ">=1.7.0"  # must be included for pn.extension('ipywidgets')
 pywebview = ">=6.2.1"
@@ -52,24 +48,34 @@ py312 = ["py312", "test", "optional"]
 py313 = ["py313", "test", "optional"]
 
 [feature.optional.pypi-dependencies]
-marimo = { version = ">=0.23.9", extras = ["recommended", "lsp"] }
-jupyter-bokeh = ">=4.0.5"
-notebook = ">=7.5.7"
-papermill = ">=2.7.0"
-voila = ">=0.5.12"
-matplotlib = ">=3.10.9"
+marimo = { version = ">=0.23.13", extras = ["recommended", "lsp"] }
 plotly = ">=6.8.0"
-altair = ">=6.1.0"
-vegafusion = ">=2.0.3"
-vl-convert-python = ">=1.9.0.post1"
+# matplotlib = ">=3.11.0"
+# altair
+# altair = ">=6.2.2"
+# vegafusion = ">=2.0.3"
+# vl-convert-python = ">=1.9.0.post1"
+# jupyter
+# jupyter-bokeh = ">=4.1.0"
+# notebook = ">=7.5.7"
+# papermill = ">=2.7.0"
+# voila = ">=0.5.12"
+# dash
+# dash = ">=4.2.0"
+# dash-extensions = ">=2.0.5"
+# dash-ag-grid = ">=35.2.0"
+# dash-mantine-components = ">=2.8.0"
 
 [feature.dev.activation.env]
 ANYWIDGET_HMR="1"
 
 [feature.dev.pypi-dependencies]
 pfund-plot = { path = ".", editable = true }
+pfeed = ">=0.0.16"  # used for streaming only
 afterpython = ">=0.3.16"
-basedpyright = ">=1.39.6"
+basedpyright = ">=1.39.9"
+jupytext = ">=1.19.3"
+jupyterlab = ">=4.5.7"
 watchfiles = ">=1.2.0"  # "panel serve myfile.py --dev" requires watchfiles installed to autoreload
 selenium = ">=4.39.0"  # saving bokeh images requires selenium
 bokeh-sampledata = ">=2025.0"
@@ -78,7 +84,7 @@ vega-datasets = ">=0.9.0"
 
 [feature.test.pypi-dependencies]
 pfund-plot = { path = ".", editable = true }
-pytest = ">=9.0.3"
+pytest = ">=9.1.1"
 pytest-cov = ">=7.1.0"
 pytest-mock = ">=3.15.1"
 pytest-xdist = ">=3.8.0"
